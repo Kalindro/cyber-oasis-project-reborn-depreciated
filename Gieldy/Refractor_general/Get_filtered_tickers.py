@@ -164,7 +164,6 @@ def get_filtered_tickers(base, fresh_live_tickers, forbid_exchange_tokens, API,)
     shark_pool = multiprocessing.Pool(processes=6)
     approved_list = shark_pool.imap(partial_filter, tickers_list)
     shark_pool.close()
-    shark_pool.terminate()
     shark_pool.join()
 
     for result in approved_list:

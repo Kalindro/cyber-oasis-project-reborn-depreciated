@@ -23,7 +23,7 @@ class RunBacktest:
             SAVE_EXCEL=True,
             FRESH_LIVE_TICKERS=False,
             FORBID_EXCHANGE_TOKENS=False,
-            TICKERS_MODE=3,  # 1 = One coin 2 = Few coins 3 = Whole exchange
+            TICKERS_MODE=2,  # 1 = One coin 2 = Few coins 3 = Whole exchange
             WIGGLED_ROOM=0.95,
             TIMEFRAME="4H",
             THE_ONE_COIN=["GTO/USDT"],
@@ -35,7 +35,7 @@ class RunBacktest:
             DETAILED_ORDER_LOG=False,
             TRADE_LOG=False,
             START=date.fromisoformat("2020-01-01"),
-            END=date.fromisoformat("2021-12-01"),
+            END=date.fromisoformat("2022-01-01"),
         )
 
         self.indicators_params = dict(
@@ -118,11 +118,9 @@ class RunBacktest:
 
         partial_history = functools.partial(get_history_full, start=self.backtest_settings["START"], end=self.backtest_settings["END"], fresh_live_history=False,
                                             timeframe=self.backtest_settings["TIMEFRAME"], API=API)
-
         shark_pool = multiprocessing.Pool(processes=6)
         all_coins_history = shark_pool.imap(partial_history, tickers)
         shark_pool.close()
-        shark_pool.terminate()
         shark_pool.join()
 
         ETH_full_history = get_history_full(pair="ETH/USDT", start=self.backtest_settings["START"], end=self.backtest_settings["END"], fresh_live_history=False, timeframe=self.backtest_settings["TIMEFRAME"], API=API)
@@ -182,6 +180,8 @@ class RunBacktest:
 
     def results_controller(self, API, base):
         """Receives all results from backtests and outputs into neat excel file"""
+
+        print("Starting backtest")
         results = self.run_backtest(API, base)
 
         name = API["name"]
