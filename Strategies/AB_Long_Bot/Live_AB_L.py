@@ -5,7 +5,7 @@ from requests.exceptions import ChunkedEncodingError, ConnectionError
 
 from Gieldy.Refractor_general.Envelopes import history_dataframe_envelope
 from Gieldy.Refractor_general.Main_refracting import *
-from Gieldy.Refractor_general.OBSOLETE_PORTFOLIO_VALUES import get_advanced_portfolio_values
+from Gieldy.Refractor_general.ZOBSOLETE_PORTFOLIO_VALUES import get_advanced_portfolio_values
 from Gieldy.Refractor_general.General_utils import *
 from Gieldy.Refractor_general.Mail_sender import mail_error_sender
 
