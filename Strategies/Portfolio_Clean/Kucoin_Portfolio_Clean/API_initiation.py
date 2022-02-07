@@ -9,7 +9,7 @@ def API_initiation():
     Name = "Kucoin AB Bot USDT"
 
     parser = ConfigParser()
-    parser.read("Kucoin_USDT.ini")
+    parser.read("Kucoin_AB_USDT.ini")
 
     Public_key = parser.get("Trade_keys", "Public_key")
     Secret_key = parser.get("Trade_keys", "Secret_key")

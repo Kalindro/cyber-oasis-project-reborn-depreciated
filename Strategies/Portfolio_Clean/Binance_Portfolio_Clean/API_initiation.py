@@ -8,7 +8,7 @@ def API_initiation():
     name = "Binance Momentum L Bot USDT"
 
     parser = ConfigParser()
-    parser.read("Binance_USDT.ini")
+    parser.read("Binance_AB_USDT.ini")
 
     PUBLIC_KEY = parser.get("Trade_keys", "Public_key")
     SECRET_KEY = parser.get("Trade_keys", "Secret_key")
