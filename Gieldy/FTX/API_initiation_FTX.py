@@ -1,16 +1,17 @@
 from ftx import FtxClient
 import os
+from pathlib import Path
 
 from configparser import ConfigParser
 
 def API_initiation():
     name = "FTX"
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    parent_path = os.path.dirname(dir_path)
+    current_path = os.getcwd()
+    project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{parent_path}\APIs\FTX.ini")
+    parser.read(f"{project_path}\Gieldy\APIs\FTX.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")

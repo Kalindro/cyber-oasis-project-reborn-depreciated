@@ -1,5 +1,6 @@
 from kucoin.client import Client
 import os
+from pathlib import Path
 
 from configparser import ConfigParser
 
@@ -7,11 +8,11 @@ from configparser import ConfigParser
 def API_initiation():
     name = "Kucoin AB USDT"
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    parent_path = os.path.dirname(dir_path)
+    current_path = os.getcwd()
+    project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{parent_path}\APIs\Kucoin_AB_USDT.ini")
+    parser.read(f"{project_path}\Gieldy\APIs\Kucoin_AB_USDT.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")

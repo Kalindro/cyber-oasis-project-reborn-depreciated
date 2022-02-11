@@ -1,13 +1,13 @@
-from driftpy import program
 from driftpy.clearing_house_user import ClearingHouse, ClearingHouseUser
+from pathlib import Path
 import asyncio
 import os
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-parent_path = os.path.dirname(dir_path)
+current_path = os.getcwd()
+project_path = Path(current_path).parent.parent
 
-os.environ["ANCHOR_WALLET"] = f"{parent_path}\APIs\Solana_Drift_Bina_ARB.json"
+os.environ["ANCHOR_WALLET"] = f"{project_path}\Gieldy\APIs\Solana_Drift_Bina_ARB.json"
 
 
 async def accinit():

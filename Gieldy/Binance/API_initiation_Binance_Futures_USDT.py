@@ -1,5 +1,6 @@
 from binance.client import Client
 import os
+from pathlib import Path
 
 from configparser import ConfigParser
 
@@ -7,11 +8,11 @@ from configparser import ConfigParser
 def API_initiation():
     name = "Binance Futures USDT"
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    parent_path = os.path.dirname(dir_path)
+    current_path = os.getcwd()
+    project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{parent_path}\APIs\Binance_Futures_USDT.ini")
+    parser.read(f"{project_path}\Gieldy\APIs\Binance_Futures_USDT.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
