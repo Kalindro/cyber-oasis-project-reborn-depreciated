@@ -10,7 +10,7 @@ def API_initiation():
     parent_path = os.path.dirname(dir_path)
 
     parser = ConfigParser()
-    parser.read(f"{parent_path}/APIs/FTX.ini")
+    parser.read(f"{parent_path}\APIs\FTX.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
