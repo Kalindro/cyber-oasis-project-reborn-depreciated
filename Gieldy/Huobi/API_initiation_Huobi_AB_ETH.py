@@ -9,13 +9,13 @@ from configparser import ConfigParser
 
 
 def API_initiation():
-    name = "Huobi"
+    name = "Huobi AB ETH"
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{project_path}\Gieldy\APIs\Huobi.ini")
+    parser.read(f"{project_path}\Gieldy\APIs\Huobi_AB_ETH.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
