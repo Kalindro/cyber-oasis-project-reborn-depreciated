@@ -28,5 +28,6 @@ def global_cancel():
     print("Cancelling API_Kucoin_AB_ETH")
     cancel_all_orders(API_Kucoin_AB_ETH())
 
+
 print("Emergency cancellation of all orders on all AB exchanges")
 global_cancel()
