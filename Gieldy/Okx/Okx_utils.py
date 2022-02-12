@@ -41,23 +41,32 @@ def kucoin_REST_history_fragment(pair, timeframe, since, to, API):
     return history_dataframe_new
 
 
-def kucoin_cancel_pair_orders(pair, API):
+def okx_cancel_pair_orders(pair, API):
+    try:
+        trade_client = API["trade_client"]
+
+        pair = pair.replace("/", "-")
+
+        canceled_pair_orders = trade_client.revoke_orders(instrument_id=pair)
+        canceled_pair_orders_amount = len([canceled_orders["order_id"] for canceled_orders in canceled_pair_orders])
+
+        return canceled_pair_orders_amount
+
+    except Exception as err:
+        print(err)
+
+
+def okx_cancel_all_orders(API):
     trade_client = API["trade_client"]
 
-    pair = pair.replace("/", "-")
-
-    canceled_pair_orders = trade_client.cancel_all_orders(symbol=pair)
-    canceled_pair_orders_amount = len(canceled_pair_orders["cancelledOrderIds"])
-
-    return canceled_pair_orders_amount
-
-
-def kucoin_cancel_all_orders(API):
-    trade_client = API["trade_client"]
-
-    canceled_all_orders = trade_client.cancel_all_orders()
-
-    return canceled_all_orders
+    pairs_to_cancel = []
+    all_open_orders = trade_client.get_order_list()
+    for pair_data in all_open_orders:
+        pairs_to_cancel.append(pair_data["instId"])
+    pairs_to_cancel = list(set(pairs_to_cancel))
+    for pair in pairs_to_cancel:
+        print("Cancelling", pair)
+        okex_cancel_pair_orders(pair=pair, API=API)
 
 
 def kucoin_fetch_order(order_ID, API):

@@ -8,7 +8,7 @@ import os
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-current_path = os.getcwd()
+current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
 os.environ["ANCHOR_WALLET"] = f"{project_path}\Gieldy\APIs\Solana_Drift_Bina_ARB.json"
 

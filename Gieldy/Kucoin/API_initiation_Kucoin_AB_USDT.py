@@ -8,7 +8,7 @@ from configparser import ConfigParser
 def API_initiation():
     name = "Kucoin AB USDT"
 
-    current_path = os.getcwd()
+    current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
