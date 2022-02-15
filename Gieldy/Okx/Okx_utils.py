@@ -2,6 +2,7 @@ import time
 from math import fabs
 from decimal import Decimal
 from pandas import DataFrame as df
+import collections
 import pandas as pd
 
 pd.set_option('display.max_rows', None)
@@ -41,32 +42,25 @@ def kucoin_REST_history_fragment(pair, timeframe, since, to, API):
     return history_dataframe_new
 
 
-def okx_cancel_pair_orders(pair, API):
-    try:
-        trade_client = API["trade_client"]
+def okx_cancel_pair_order(pair, ordid, API):
+    trade_client = API["trade_client"]
 
-        pair = pair.replace("/", "-")
+    pair = pair.replace("/", "-")
 
-        canceled_pair_orders = trade_client.revoke_orders(instrument_id=pair)
-        canceled_pair_orders_amount = len([canceled_orders["order_id"] for canceled_orders in canceled_pair_orders])
-
-        return canceled_pair_orders_amount
-
-    except Exception as err:
-        print(err)
+    canceled_pair_order = trade_client.cancel_order(instId=pair, ordId=ordid)
 
 
 def okx_cancel_all_orders(API):
     trade_client = API["trade_client"]
 
-    pairs_to_cancel = []
+    pairs_to_cancel = collections.defaultdict(list)
     all_open_orders = trade_client.get_order_list()
-    for pair_data in all_open_orders:
-        pairs_to_cancel.append(pair_data["instId"])
-    pairs_to_cancel = list(set(pairs_to_cancel))
-    for pair in pairs_to_cancel:
+    for pair_data in all_open_orders["data"]:
+        pairs_to_cancel[pair_data["instId"]].append(pair_data["ordId"])
+    for pair, orders in pairs_to_cancel.items():
         print("Cancelling", pair)
-        okex_cancel_pair_orders(pair=pair, API=API)
+        for order in orders:
+            okx_cancel_pair_order(pair=pair, ordid=order, API=API)
 
 
 def kucoin_fetch_order(order_ID, API):

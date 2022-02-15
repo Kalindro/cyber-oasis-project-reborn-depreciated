@@ -1,4 +1,5 @@
 import os
+from okex.Trade_api import TradeAPI
 from pathlib import Path
 
 from configparser import ConfigParser
@@ -17,7 +18,7 @@ def API_initiation():
     secret_key = parser.get("Trade_keys", "Secret_key")
     passphrase = parser.get("Trade_keys", "Passphrase")
 
-    trade_client = TradeAPI(api_key=public_key, api_secret_key=secret_key, passphrase=passphrase, use_server_time=True)
+    trade_client = TradeAPI(api_key=public_key, api_secret_key=secret_key, passphrase=passphrase, flag="0")
 
     API = {"name": name,
            "trade_client": trade_client
