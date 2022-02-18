@@ -1,3 +1,4 @@
+import datetime
 from random import randint
 import time
 from datetime import timedelta, date
@@ -5,7 +6,7 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from Gieldy.Refractor_general.General_utils import get_project_root
-from Gieldy.Refractor_general.Main_refracting import get_history_fragment
+from Gieldy.Refractor_general.Main_refracting import get_history_fragment_for_func
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -38,6 +39,8 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
         exchange = "FTX"
         request_limit_sleep = randint(2, 10)
 
+    if type(start) == datetime.datetime: start = start.date()
+    if type(end) == datetime.datetime: end = end.date()
     pair_for_data = pair.replace("/", "-")
     root = get_project_root()
     last_date = date.fromisoformat("2018-01-01")
@@ -91,11 +94,12 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     history_dataframe_final = df()
 
     # Start the loop for history sets merging
+
     while since < date.today() + timedelta(days=1):
         while True:
             try:
                 time.sleep(request_limit_sleep / 10)
-                history_dataframe_fresh = get_history_fragment(pair=pair, timeframe=timeframe_for_data, since=since, to=to, days_of_history=days_of_history, API=API)
+                history_dataframe_fresh = get_history_fragment_for_func(pair=pair, timeframe=timeframe_for_data, since=since, to=to, days_of_history=days_of_history, API=API)
                 history_dataframe_final = pd.concat([history_dataframe_final, history_dataframe_fresh])
                 since = since + timedelta(days=days)
                 to = since + timedelta(days=days) + timedelta(days=addition)

@@ -238,7 +238,7 @@ def trading_enabled_bool(pair_precisions_status, API):
         raise Exception(f"{name.lower()} not added for this function")
 
 
-def get_history_fragment(pair, timeframe, since, to, days_of_history, API):
+def get_history_fragment_for_func(pair, timeframe, since, to, days_of_history, API):
     name = API["name"]
 
     if "huobi" in name.lower():
