@@ -25,6 +25,8 @@ def binance_REST_history_fragment(pair, timeframe, since, to, API):
         timeframe = "4h"
     if timeframe.upper() == "1D":
         timeframe = "1d"
+    if timeframe.upper() == "3D":
+        timeframe = "3d"
 
     since = int(time.mktime(since.timetuple()) * 1000)
     to = int(time.mktime(to.timetuple()) * 1000)

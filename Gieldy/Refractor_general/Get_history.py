@@ -86,6 +86,9 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     if timeframe_for_data == "1D":
         days = candles_limit
         addition = addition_limit
+    if timeframe_for_data == "3D":
+        days = candles_limit * 3
+        addition = addition_limit * 3
 
     delta = end - start
     days_of_history = delta.days
