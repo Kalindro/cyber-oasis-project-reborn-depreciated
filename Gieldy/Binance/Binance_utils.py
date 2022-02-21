@@ -70,6 +70,8 @@ def binance_cancel_all_orders(API):
         print("Cancelling", pair)
         binance_cancel_pair_orders(pair=pair, API=API)
 
+    print(f"Canceled all orders")
+
 
 def binance_fetch_order(pair, order_ID, API):
     general_client = API["general_client"]

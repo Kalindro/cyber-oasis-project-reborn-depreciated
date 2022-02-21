@@ -74,6 +74,8 @@ def okx_cancel_all_orders(API):
         for order in orders:
             okx_cancel_pair_order(pair=pair, ordid=order, API=API)
 
+    print(f"Canceled all orders")
+
 
 def kucoin_fetch_order(order_ID, API):
     general_client = API["general_client"]

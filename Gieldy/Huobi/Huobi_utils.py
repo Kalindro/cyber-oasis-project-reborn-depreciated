@@ -141,6 +141,7 @@ def huobi_cancel_all_orders(API):
     while int(canceled_all_orders.success_count) > 0:
         canceled_all_orders = trade_client.cancel_open_orders(account_id=account_ID)
 
+    print(f"Canceled all orders")
     return canceled_all_orders
 
 

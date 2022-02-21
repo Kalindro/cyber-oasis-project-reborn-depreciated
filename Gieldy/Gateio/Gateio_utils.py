@@ -65,6 +65,8 @@ def gateio_cancel_all_orders(API):
             gateio_cancel_pair_orders(pair=pair, API=API)
         all_open_orders = trade_client.list_all_open_orders()
 
+    print(f"Canceled all orders")
+
 
 def gateio_fetch_order(pair, order_ID, API):
     trade_client = API["trade_client"]

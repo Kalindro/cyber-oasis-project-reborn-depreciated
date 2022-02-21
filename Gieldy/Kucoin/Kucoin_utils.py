@@ -57,6 +57,7 @@ def kucoin_cancel_all_orders(API):
 
     canceled_all_orders = trade_client.cancel_all_orders()
 
+    print(f"Canceled all orders")
     return canceled_all_orders
 
 
