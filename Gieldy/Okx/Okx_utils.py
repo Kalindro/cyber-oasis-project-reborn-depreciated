@@ -50,6 +50,18 @@ def okx_cancel_pair_order(pair, ordid, API):
     canceled_pair_order = trade_client.cancel_order(instId=pair, ordId=ordid)
 
 
+def okx_cancel_pair_orders(pair, API):
+    trade_client = API["trade_client"]
+
+    pair = pair.replace("/", "-")
+
+    pair_open_orders = trade_client.get_order_list(instId=pair)
+    for pair, orders in pair_open_orders["data"].items():
+        print("Cancelling", pair)
+        for order in orders:
+            okx_cancel_pair_order(pair=pair, ordid=order, API=API)
+
+
 def okx_cancel_all_orders(API):
     trade_client = API["trade_client"]
 

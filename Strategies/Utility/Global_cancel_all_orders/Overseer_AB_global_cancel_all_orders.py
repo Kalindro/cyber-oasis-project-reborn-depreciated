@@ -41,6 +41,8 @@ class GlobalCancelOverseer:
         B_3d = btc_history["rocp_3d"][-2] < -btc_history["natr_3d"][-2]
 
         shelf = shelve.open("config\config")
+
+        if "canceled" not in shelf: shelf["canceled"] = None
         if A_1d or B_1d or A_3d or B_3d:
             if A_1d: print(f'1D_ROCP: {btc_history["rocp_1d"][-1]} surpassed 1D_NATR: {-btc_history["natr_1d"][-1]}')
             if B_1d: print(f'1D_ROCP: {btc_history["rocp_1d"][-2]} surpassed 1D_NATR: {-btc_history["natr_1d"][-2]} (yesterday)')

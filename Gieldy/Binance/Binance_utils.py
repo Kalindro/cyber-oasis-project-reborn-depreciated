@@ -52,7 +52,6 @@ def binance_cancel_pair_orders(pair, API):
 
         canceled_pair_orders = general_client.cancel_orders(symbol=pair)
         canceled_pair_orders_amount = len([canceled_orders["orderId"] for canceled_orders in canceled_pair_orders])
-
         return canceled_pair_orders_amount
 
     except BinanceAPIException as err:

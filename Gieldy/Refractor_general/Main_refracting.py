@@ -28,8 +28,8 @@ def cancel_pair_orders(pair, API):
     if "gate" in name.lower():
         return gateio_cancel_pair_orders(pair=pair, API=API)
 
-    if "okex" in name.lower():
-        return okex_cancel_pair_orders(pair=pair, API=API)
+    if "okx" in name.lower():
+        return okx_cancel_pair_orders(pair=pair, API=API)
 
     else:
         raise Exception(f"{name.lower()} not added for this function")
@@ -39,7 +39,6 @@ def cancel_all_orders(API):
     print("Canceling all orders")
 
     name = API["name"]
-
     if "huobi" in name.lower():
         return huobi_cancel_all_orders(API)
 
