@@ -208,4 +208,8 @@ def binance_get_futures_pair_prices_rates(API):
     prices_dataframe.pop("quote")
     prices_dataframe["funding_rate_APR"] = (prices_dataframe["funding_rate"] * 3 * 365.25).round(2)
     prices_dataframe.set_index("symbol", inplace=True)
+
     return prices_dataframe
+
+    # async def futures_account_balance(self, **params):
+    #     return await self._request_futures_api('get', 'balance', True, data=params)

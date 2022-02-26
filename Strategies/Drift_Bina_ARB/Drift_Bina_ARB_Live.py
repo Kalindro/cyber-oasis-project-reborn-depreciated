@@ -17,6 +17,8 @@ pd.set_option('display.width', None)
 
 
 async def main():
+    start_time = time.time()
+
     API_Binance = API_1()
     API_Drift = API_2()
 
@@ -28,8 +30,8 @@ async def main():
     arb_df["gap_percent"] = abs((arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100)
     arb_df.sort_values(by=["gap_percent"], ascending=False, inplace=True)
     print(arb_df)
-    print()
 
-
+    print("--- %s seconds ---" % (time.time() - start_time))
 while True:
     asyncio.run(main())
+    time.sleep(0.5)
