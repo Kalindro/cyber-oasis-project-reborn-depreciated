@@ -192,3 +192,12 @@ def binance_trading_enabled_bool(pair_precisions_status):
     trading_enabled = True if "TRADING" in pair_precisions_status["status"].upper() else False
 
     return trading_enabled
+
+
+def binance_get_futures_pair_prices(API):
+    general_client = API["general_client"]
+
+    prices_dataframe = df(general_client.futures_mark_price())
+    prices_dataframe["symbol"] = prices_dataframe["symbol"].str.replace("-", "/")
+
+    return prices_dataframe

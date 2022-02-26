@@ -112,48 +112,19 @@ async def calculate_market_summary(markets):
 
     last_funding_ts = pd.to_datetime(markets.markets[0].amm.last_funding_rate_ts * 1e9)
     next_funding_ts = last_funding_ts + timedelta(hours=1)
-    next_funding_ts
 
-    summary = {}
+    summary = dict()
 
-    next_funding = (markets_summary['last_mark_price_twap'] \
-                    - markets_summary['last_oracle_price_twap']) / 24
-    summary['next_funding_rate(%)'] = next_funding \
-                                      / markets_summary['last_oracle_price_twap'] * 100
+    next_funding = (markets_summary['last_mark_price_twap'] - markets_summary['last_oracle_price_twap']) / 24
 
-    summary['next_funding_rate_capped(%)'] = calculate_capped_funding_rate(markets_summary)
+    summary['next_funding_rate'] = next_funding / markets_summary['last_oracle_price_twap'] * 100
 
-    summary['next_funding_rate(%APR)'] = (summary['next_funding_rate(%)'] * 24 * 365.25).round(2)
+    summary['next_funding_rate_capped'] = calculate_capped_funding_rate(markets_summary)
 
-    # next_est_capped_funding_revenue = \
-    # markets_summary[["base_asset_amount_long", "base_asset_amount_short"]].abs().min(axis=1) * next_funding \
-    # - markets_summary[["base_asset_amount_long", "base_asset_amount_short"]].abs().max(axis=1) * drift_capped_fund_rate
+    summary['next_funding_rate_APR'] = (summary['next_funding_rate'] * 24 * 365.25).round(2)
 
-    summary['mark_price'] = (markets_summary['quote_asset_reserve'] \
-                             / markets_summary['base_asset_reserve']) \
-                            * markets_summary['peg_multiplier'] / 1e3
-
-    prices = []
-    twaps = []
-    confs = []
-    twacs = []
-    for x in markets_summary['oracle'].values.tolist():
-        price = await (get_pyth_price(str(x)))
-        prices.append(price.aggregate_price)
-        confs.append(price.aggregate_price_confidence_interval)
-    summary['oracle_price'] = prices
-    summary['oracle_conf'] = confs
+    summary['mark_price'] = (markets_summary['quote_asset_reserve'] / markets_summary['base_asset_reserve']) * markets_summary['peg_multiplier'] / 1e3
 
     df = pd.concat([pd.DataFrame(MARKETS).iloc[:, :3], pd.DataFrame(summary)], axis=1)
 
-    # df.loc[fd2_m+est_fee_pool_funding_revenue>0,
-    #      ['next_funding_rate_capped(%)']] = np.nan
-
     return df
-
-# oracle_mark_spread = market_summary['mark_price']-market_summary['oracle_price']
-
-# funding_whatif = np.sign(oracle_mark_spread)*abs(oracle_mark_spread - market_summary['oracle_conf'])\
-# /market_summary['oracle_price']
-# pd.concat([funding_whatif, market_summary['next_funding_rate']],axis=1)
-# (funding_whatif - market_summary['next_funding_rate'])#/market_summary['next_funding_rate']
