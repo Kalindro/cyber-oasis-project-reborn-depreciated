@@ -35,7 +35,28 @@ AMM_PRECISION = 1e13
 FUNDING_PRECISION = 1e4
 
 
-async def load_position_table(drift_acct):
+async def drift_get_margin_account_info(API):
+    API = await API
+
+    margin_info = dict()
+    margin_info["total_collateral"] = await API["drift_user"].get_total_collateral()/QUOTE_PRECISION
+    margin_info["unrealised_pnl"] = await API["drift_user"].get_unrealised_pnl(0)/QUOTE_PRECISION
+    margin_info["leverage"] = await API["drift_user"].get_leverage()
+    margin_info["free_collateral"] = await API["drift_user"].get_free_collateral()/QUOTE_PRECISION
+    return margin_info
+
+
+async def drift_markets_summary(API):
+    API = await API
+
+    markets = await API["drift_acct"].get_markets_account()
+    market_summary = await drift_calculate_market_summary(markets)
+    return market_summary
+
+
+async def drift_load_position_table(API):
+    API = await API
+
     async def async_apply(ser, lambd):
         prices = []
         for x in ser.values.tolist():
@@ -43,10 +64,8 @@ async def load_position_table(drift_acct):
             prices.append(price)
         return prices
 
-    drift_user = ClearingHouseUser(drift_acct, drift_acct.program.provider.wallet.public_key)
-    drift_user_acct = await (drift_user.get_user_account())
-    position_acct = await (drift_acct.program.account["UserPositions"].fetch(
-        drift_user_acct.positions
+    position_acct = await (API["drift_acct"].program.account["UserPositions"].fetch(
+        API["drift_user_acct"].positions
     ))
 
     # load user positions
@@ -54,38 +73,34 @@ async def load_position_table(drift_acct):
         UserPositions,
         position_acct,
     )
-    positions_df = pd.DataFrame(positions.positions)[['market_index', 'base_asset_amount', 'quote_asset_amount']]
-    positions_df['base_asset_amount'] /= AMM_PRECISION
-    positions_df['quote_asset_amount'] /= QUOTE_PRECISION
-    positions_df = pd.DataFrame(MARKETS)[['symbol', 'market_index']].merge(positions_df)
+    positions_df = pd.DataFrame(positions.positions)[["market_index", "base_asset_amount", "quote_asset_amount"]]
+    positions_df["base_asset_amount"] /= AMM_PRECISION
+    positions_df["quote_asset_amount"] /= QUOTE_PRECISION
+    positions_df = pd.DataFrame(MARKETS)[["symbol", "market_index"]].merge(positions_df)
     positions_df.loc[positions_df.base_asset_amount == 0, :] = np.nan
-    positions_df['notional'] = np.array(await (async_apply(positions_df['market_index'], drift_user.get_position_value))) / QUOTE_PRECISION
-    positions_df['entry_price'] = (positions_df['quote_asset_amount'] / positions_df['base_asset_amount']).abs()
-    positions_df['exit_price'] = (positions_df['notional'] / positions_df['base_asset_amount']).abs()
-    positions_df['pnl'] = (positions_df['notional'] - positions_df['quote_asset_amount']) * positions_df['base_asset_amount'].pipe(np.sign)
+    positions_df["notional"] = np.array(await (async_apply(positions_df["market_index"], API["drift_user"].get_position_value))) / QUOTE_PRECISION
+    positions_df["entry_price"] = (positions_df["quote_asset_amount"] / positions_df["base_asset_amount"]).abs()
+    positions_df["exit_price"] = (positions_df["notional"] / positions_df["base_asset_amount"]).abs()
+    positions_df["pnl"] = (positions_df["notional"] - positions_df["quote_asset_amount"]) * positions_df["base_asset_amount"].pipe(np.sign)
     return positions_df
 
 
-async def calculate_market_summary(markets):
-
+async def drift_calculate_market_summary(markets):
     markets_summary = pd.concat([
         pd.DataFrame(MARKETS).iloc[:, :3],
         pd.DataFrame(markets.markets),
         pd.DataFrame([x.amm for x in markets.markets]),
-    ], axis=1).dropna(subset=['symbol'])
+    ], axis=1).dropna(subset=["symbol"])
 
     last_funding_ts = pd.to_datetime(markets.markets[0].amm.last_funding_rate_ts * 1e9)
     next_funding_ts = last_funding_ts + timedelta(hours=1)
 
     summary = dict()
 
-    next_funding = (markets_summary['last_mark_price_twap'] - markets_summary['last_oracle_price_twap']) / 24
-
-    summary['next_funding_rate'] = next_funding / markets_summary['last_oracle_price_twap'] * 100
-
-    summary['next_funding_rate_APR'] = (summary['next_funding_rate'] * 24 * 365.25).round(2)
-
-    summary['mark_price'] = (markets_summary['quote_asset_reserve'] / markets_summary['base_asset_reserve']) * markets_summary['peg_multiplier'] / 1e3
+    next_funding = (markets_summary["last_mark_price_twap"] - markets_summary["last_oracle_price_twap"]) / 24
+    summary["next_funding_rate"] = next_funding / markets_summary["last_oracle_price_twap"] * 100
+    summary["next_funding_rate_APR"] = (summary["next_funding_rate"] * 24 * 365.25).round(2)
+    summary["mark_price"] = (markets_summary["quote_asset_reserve"] / markets_summary["base_asset_reserve"]) * markets_summary["peg_multiplier"] / 1e3
 
     df = pd.concat([pd.DataFrame(MARKETS).iloc[:, :3], pd.DataFrame(summary)], axis=1)
 
