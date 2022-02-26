@@ -194,10 +194,18 @@ def binance_trading_enabled_bool(pair_precisions_status):
     return trading_enabled
 
 
-def binance_get_futures_pair_prices(API):
+def binance_get_futures_pair_prices_rates(API):
     general_client = API["general_client"]
 
     prices_dataframe = df(general_client.futures_mark_price())
-    prices_dataframe["symbol"] = prices_dataframe["symbol"].str.replace("-", "/")
-
+    prices_dataframe = prices_dataframe.apply(pd.to_numeric, errors="ignore")
+    prices_dataframe.rename(columns={"symbol": "pair", "markPrice": "mark_price", "lastFundingRate": "funding_rate"}, inplace=True)
+    col = prices_dataframe["pair"].str[:-4]
+    prices_dataframe.insert(1, "symbol", col)
+    prices_dataframe["quote"] = prices_dataframe["pair"].str[-4:]
+    prices_dataframe = prices_dataframe[prices_dataframe.quote.str.contains("USDT")]
+    prices_dataframe["pair"] = prices_dataframe["symbol"] + "/" + prices_dataframe["quote"]
+    prices_dataframe.pop("quote")
+    prices_dataframe["funding_rate_APR"] = (prices_dataframe["funding_rate"] * 3 * 365.25).round(2)
+    prices_dataframe.set_index("symbol", inplace=True)
     return prices_dataframe

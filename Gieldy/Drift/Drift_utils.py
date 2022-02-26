@@ -46,7 +46,7 @@ async def drift_get_margin_account_info(API):
     return margin_info
 
 
-async def drift_markets_summary(API):
+async def drift_get_pair_prices_rates(API):
     API = await API
 
     markets = await API["drift_acct"].get_markets_account()
@@ -98,10 +98,15 @@ async def drift_calculate_market_summary(markets):
     summary = dict()
 
     next_funding = (markets_summary["last_mark_price_twap"] - markets_summary["last_oracle_price_twap"]) / 24
-    summary["next_funding_rate"] = next_funding / markets_summary["last_oracle_price_twap"] * 100
-    summary["next_funding_rate_APR"] = (summary["next_funding_rate"] * 24 * 365.25).round(2)
+    summary["funding_rate"] = next_funding / markets_summary["last_oracle_price_twap"] * 100
+    summary["funding_rate_APR"] = (summary["funding_rate"] * 24 * 365.25).round(2)
     summary["mark_price"] = (markets_summary["quote_asset_reserve"] / markets_summary["base_asset_reserve"]) * markets_summary["peg_multiplier"] / 1e3
 
     df = pd.concat([pd.DataFrame(MARKETS).iloc[:, :3], pd.DataFrame(summary)], axis=1)
+    df = df.apply(pd.to_numeric, errors="ignore")
+
+    df.rename(columns={"symbol": "pair", "base_asset_symbol": "symbol"}, inplace=True)
+    df["pair"] = df["symbol"] + "/USDT"
+    df.set_index("symbol", inplace=True)
 
     return df
