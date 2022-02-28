@@ -36,8 +36,6 @@ FUNDING_PRECISION = 1e4
 
 
 async def drift_get_margin_account_info(API):
-    API = await API
-
     margin_info = dict()
     margin_info["total_collateral"] = await API["drift_user"].get_total_collateral()/QUOTE_PRECISION
     margin_info["unrealised_pnl"] = await API["drift_user"].get_unrealised_pnl(0)/QUOTE_PRECISION
@@ -47,16 +45,12 @@ async def drift_get_margin_account_info(API):
 
 
 async def drift_get_pair_prices_rates(API):
-    API = await API
-
     markets = await API["drift_acct"].get_markets_account()
     market_summary = await drift_calculate_market_summary(markets)
     return market_summary
 
 
 async def drift_load_position_table(API):
-    API = await API
-
     async def async_apply(ser, lambd):
         prices = []
         for x in ser.values.tolist():

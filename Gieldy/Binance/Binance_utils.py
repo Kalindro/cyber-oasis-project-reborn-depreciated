@@ -211,5 +211,50 @@ def binance_get_futures_pair_prices_rates(API):
 
     return prices_dataframe
 
-    # async def futures_account_balance(self, **params):
-    #     return await self._request_futures_api('get', 'balance', True, data=params)
+
+def binance_get_futures_balance(API):
+    general_client = API["general_client"]
+
+    balances_df = df(general_client.futures_account_balance())
+    balances_df.pop("accountAlias")
+    balances_df.pop("updateTime")
+    balances_df.rename(columns={"asset": "symbol", "balance": "total", "withdrawAvailable": "available"}, inplace=True)
+    balances_df.set_index("symbol", inplace=True)
+
+    return balances_df
+
+
+def binance_futures_positions(API):
+    general_client = API["general_client"]
+
+    positions_df = df(general_client.futures_account()["positions"])
+    positions_df["symbol"] = positions_df["symbol"].str[:-4]
+    positions_df.set_index("symbol", inplace=True)
+
+    return positions_df
+
+
+def binance_futures_open_limit_long(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=False)
+
+
+def binance_futures_open_limit_short(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=False)
+
+
+def binance_futures_close_limit_short(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=True)
+
+
+def binance_futures_close_limit_long(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=True)
+
+

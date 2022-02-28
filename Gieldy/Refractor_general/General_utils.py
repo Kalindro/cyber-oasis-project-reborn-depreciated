@@ -1,11 +1,7 @@
 import math
 import pandas as pd
+import datetime
 from pathlib import Path
-
-
-def get_project_root():
-    root = str(Path(__file__).parent.parent.parent).replace('\\', '/')
-    return root
 
 
 def round_down(n, decimals=0):
@@ -24,7 +20,22 @@ def round_up(n, decimals=0):
         return math.ceil(n * multiplier) / multiplier
 
 
-def read_pairs():
-    pair_settings_dataframe = pd.read_excel("Pairs.xlsx", dtype=str, index_col=False)
+def round_time(date_delta, dt, to="average"):
 
-    return pair_settings_dataframe
+    round_to = date_delta.total_seconds()
+
+    if dt is None:
+        dt = datetime.datetime.now()
+    seconds = (dt - dt.min).seconds
+
+    if seconds % round_to == 0 and dt.microsecond == 0:
+        rounding = (seconds + round_to / 2) // round_to * round_to
+    else:
+        if to == 'up':
+            rounding = (seconds + dt.microsecond/1000000 + round_to) // round_to * round_to
+        elif to == 'down':
+            rounding = seconds // round_to * round_to
+        else:
+            rounding = (seconds + round_to / 2) // round_to * round_to
+
+    return dt + datetime.timedelta(0, rounding - seconds, - dt.microsecond)

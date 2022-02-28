@@ -5,7 +5,6 @@ from datetime import timedelta, date
 import pandas as pd
 from pandas import DataFrame as df
 
-from Gieldy.Refractor_general.General_utils import get_project_root
 from Gieldy.Refractor_general.Main_refracting import get_history_fragment_for_func
 
 pd.set_option('display.max_rows', None)
@@ -42,7 +41,6 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     if type(start) == datetime.datetime: start = start.date()
     if type(end) == datetime.datetime: end = end.date()
     pair_for_data = pair.replace("/", "-")
-    root = get_project_root()
     last_date = date.fromisoformat("2018-01-01")
     history_dataframe_saved = None
     ohlc = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum", "pair": "last", "symbol": "last"}
