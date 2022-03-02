@@ -2,7 +2,7 @@ from datetime import timedelta, datetime, date
 import schedule
 from huobi.exception.huobi_api_exception import HuobiApiException
 from requests.exceptions import ChunkedEncodingError, ConnectionError
-
+from okex.exceptions import OkexAPIException
 from Gieldy.Refractor_general.Envelopes import history_dataframe_envelope
 from Gieldy.Refractor_general.Main_refracting import *
 from Gieldy.Refractor_general.ZOBSOLETE_PORTFOLIO_VALUES import get_advanced_portfolio_values

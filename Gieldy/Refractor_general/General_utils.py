@@ -1,7 +1,6 @@
 import math
 import pandas as pd
 import datetime
-from pathlib import Path
 
 
 def round_down(n, decimals=0):
@@ -39,3 +38,11 @@ def round_time(date_delta, dt, to="average"):
             rounding = (seconds + round_to / 2) // round_to * round_to
 
     return dt + datetime.timedelta(0, rounding - seconds, - dt.microsecond)
+
+
+def zscore(x, window):
+    r = x.rolling(window=window)
+    m = r.mean().shift(1)
+    s = r.std(ddof=0).shift(1)
+    z = (x-m)/s
+    return z
