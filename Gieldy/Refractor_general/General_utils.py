@@ -41,7 +41,7 @@ def round_time(date_delta, dt, to="average"):
 
 
 def zscore(x, window):
-    r = x.rolling(window=window)
+    r = x.rolling(window=window, min_periods=window)
     m = r.mean().shift(1)
     s = r.std(ddof=0).shift(1)
     z = (x-m)/s

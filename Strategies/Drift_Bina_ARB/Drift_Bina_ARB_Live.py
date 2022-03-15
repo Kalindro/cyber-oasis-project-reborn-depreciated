@@ -3,6 +3,7 @@ import pandas as pd
 import time
 import os
 import datetime as dt
+import numpy as np
 
 from datetime import timedelta
 
@@ -28,7 +29,8 @@ project_path = Path(current_path).parent.parent
 class DriftBinaARBLive:
 
     def __init__(self):
-        self.zscore_period = 100
+        self.zscore_period = 720
+        self.min_gap = 0.32
 
     @staticmethod
     def initiate_binance():
@@ -48,6 +50,14 @@ class DriftBinaARBLive:
 
         return historical_arb_df
 
+    def conditions(self, row):
+        if (row["gap_perc"] or row["avg_gap"]) > self.min_gap:
+            return True
+        elif (row["gap_perc"] or row["avg_gap"]) < -self.min_gap:
+            return True
+        else:
+            return False
+
     async def update_dataframe(self, historical_arb_df, API_drift, API_binance):
         try:
             arb_df = df()
@@ -57,29 +67,43 @@ class DriftBinaARBLive:
 
             arb_df["drift_price"] = drift_prices["mark_price"]
             arb_df["bina_price"] = bina_prices["mark_price"]
-            arb_df["gap_percent"] = abs((arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100)
+            arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
             arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=timedelta(seconds=5))
             arb_df.reset_index(inplace=True)
             arb_df.set_index("timestamp", inplace=True)
-            arb_df.sort_values(by=["gap_percent"], ascending=False, inplace=True)
 
             historical_arb_df = historical_arb_df.append(arb_df)
             historical_arb_df.reset_index(inplace=True)
             historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
-
-            historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(hours=6))]
-            historical_arb_df["average_gap"] = historical_arb_df.groupby("symbol")["gap_percent"].transform(
-                lambda x: x.rolling(self.zscore_period, self.zscore_period).mean())
-            historical_arb_df["zscore"] = historical_arb_df.groupby("symbol")["gap_percent"].transform(lambda x: zscore(x, self.zscore_period))
-            # historical_arb_df["stdev"] = historical_arb_df.groupby("symbol")["gap_percent"].transform(lambda x: x.rolling(zscore_period, zscore_period).std())
-
-            historical_arb_df.sort_values(["timestamp", "average_gap"], inplace=True)
+            # historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(hours=6))]
             historical_arb_df.set_index("timestamp", inplace=True)
 
-            print(historical_arb_df)
+            playable_coins = historical_arb_df.symbol.unique()
+            coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
+            for key in coin_dataframes_dict.keys():
+                coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
-            # binance_balances = binance_get_futures_balance(API_binance)
-            # binance_positions = binance_futures_positions(API_binance)
+            fresh_data = df()
+            for frame in coin_dataframes_dict.values():
+                frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
+                frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
+                    lambda x: np.median(sorted(x, reverse=True)[:int(0.15*self.zscore_period)]))
+                frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
+                    lambda x: np.median(sorted(x, reverse=False)[:int(0.15*self.zscore_period)]))
+                frame["gap_stdv"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).std()
+                frame["zscore"] = (frame["gap_perc"] - frame["avg_gap"]) / frame["gap_stdv"]
+                frame["upper_zsc"] = 4.00
+                frame["lower_zsc"] = -4.00
+                frame["in_play"] = frame.apply(lambda row: self.conditions(row), axis=1)
+                fresh_data = fresh_data.append(frame.iloc[-1])
+
+            fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
+            print(fresh_data)
+
+            binance_balances = binance_get_futures_balance(API_binance)
+            binance_positions = binance_futures_positions(API_binance)
+            binance_positions = binance_positions[binance_positions.index.isin(playable_coins)]
+
             # drift_positions = await drift_load_position_table(API_drift)
 
             return historical_arb_df
@@ -96,14 +120,13 @@ class DriftBinaARBLive:
         while True:
             start_time = time.time()
 
-            historical_arb_df = await self.update_dataframe(historical_arb_df=historical_arb_df, API_drift=API_1, API_binance=API_2)
+            historical_arb_df = self.update_dataframe(historical_arb_df=historical_arb_df, API_drift=API_1, API_binance=API_2)
             if i > 250:
-                print(historical_arb_df)
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
-                print("Saving CSV")
+                print("Saved CSV")
                 i = 0
             i += 1
-            time.sleep(0.5)
+            time.sleep(1)
             print("--- %s seconds ---" % (time.time() - start_time))
 
 

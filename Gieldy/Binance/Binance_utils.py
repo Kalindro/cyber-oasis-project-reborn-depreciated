@@ -216,8 +216,7 @@ def binance_get_futures_balance(API):
     general_client = API["general_client"]
 
     balances_df = df(general_client.futures_account_balance())
-    balances_df.pop("accountAlias")
-    balances_df.pop("updateTime")
+    balances_df.drop(["accountAlias", "updateTime"], axis=1, inplace=True)
     balances_df.rename(columns={"asset": "symbol", "balance": "total", "withdrawAvailable": "available"}, inplace=True)
     balances_df.set_index("symbol", inplace=True)
 
@@ -230,6 +229,7 @@ def binance_futures_positions(API):
     positions_df = df(general_client.futures_account()["positions"])
     positions_df["symbol"] = positions_df["symbol"].str[:-4]
     positions_df.set_index("symbol", inplace=True)
+    positions_df.drop(["updateTime", "positionSide", "bidNotional", "askNotional", "openOrderInitialMargin", "maxNotional"], axis=1, inplace=True)
 
     return positions_df
 
