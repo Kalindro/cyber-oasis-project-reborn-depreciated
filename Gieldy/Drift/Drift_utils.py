@@ -50,7 +50,7 @@ async def drift_get_pair_prices_rates(API):
     return market_summary
 
 
-async def drift_load_position_table(API):
+async def drift_load_positions(API):
     async def async_apply(ser, lambd):
         prices = []
         for x in ser.values.tolist():
@@ -76,6 +76,11 @@ async def drift_load_position_table(API):
     positions_df["entry_price"] = (positions_df["quote_asset_amount"] / positions_df["base_asset_amount"]).abs()
     positions_df["exit_price"] = (positions_df["notional"] / positions_df["base_asset_amount"]).abs()
     positions_df["pnl"] = (positions_df["notional"] - positions_df["quote_asset_amount"]) * positions_df["base_asset_amount"].pipe(np.sign)
+    positions_df["pair"] = positions_df["symbol"]
+    positions_df = positions_df[positions_df["symbol"].notna()]
+    positions_df["symbol"] = positions_df["symbol"].str[:-5]
+    positions_df.set_index("symbol", inplace=True)
+
     return positions_df
 
 

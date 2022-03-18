@@ -227,6 +227,8 @@ def binance_futures_positions(API):
     general_client = API["general_client"]
 
     positions_df = df(general_client.futures_account()["positions"])
+    positions_df = positions_df[positions_df.symbol.str.contains("USDT")]
+    positions_df["pair"] = positions_df["symbol"]
     positions_df["symbol"] = positions_df["symbol"].str[:-4]
     positions_df.set_index("symbol", inplace=True)
     positions_df.drop(["updateTime", "positionSide", "bidNotional", "askNotional", "openOrderInitialMargin", "maxNotional"], axis=1, inplace=True)
@@ -257,4 +259,17 @@ def binance_futures_close_limit_long(API):
 
     general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=True)
 
+
+def binance_futures_change_leverage(API, pair, leverage):
+    general_client = API["general_client"]
+
+    general_client.futures_change_leverage(symbol=pair, leverage=leverage)
+
+
+def binance_futures_change_marin_type(API, pair, type):
+    """  "ISOLATED" or "CROSSED" """
+
+    general_client = API["general_client"]
+
+    general_client.futures_change_margin_type(symbol=pair, marginType=type)
 

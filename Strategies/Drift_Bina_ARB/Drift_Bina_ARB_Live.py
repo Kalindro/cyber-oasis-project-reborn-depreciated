@@ -32,6 +32,7 @@ class DriftBinaARBLive:
     def __init__(self):
         self.zscore_period = 720
         self.min_gap = 0.30
+        self.leverage = 3
 
     @staticmethod
     def initiate_binance():
@@ -51,7 +52,14 @@ class DriftBinaARBLive:
 
         return historical_arb_df
 
-    def conditions(self, row):
+    @staticmethod
+    def conditions_inplay(row):
+        if (row["binance_pos"] or row["drift_pos"]) > 0:
+            return True
+        else:
+            return False
+
+    def conditions_playable(self, row):
         if (row["gap_perc"] or row["avg_gap"] or row["bottom_avg_gaps"]) > self.min_gap:
             return True
         elif (row["gap_perc"] or row["avg_gap"] or row["bottom_avg_gaps"]) < -self.min_gap:
@@ -59,12 +67,44 @@ class DriftBinaARBLive:
         else:
             return False
 
+    def fresh_data_aggregator(self, coin_dataframes_dict):
+        fresh_data = df()
+        for frame in coin_dataframes_dict.values():
+            frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
+            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
+                lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
+            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
+                lambda x: np.median(sorted(x, reverse=False)[:int(0.10*self.zscore_period)]))
+            # frame["gap_stdv"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).std()
+            # frame["zscore"] = (frame["gap_perc"] - frame["avg_gap"]) / frame["gap_stdv"]
+            # frame["upper_zsc"] = 4.00
+            # frame["lower_zsc"] = -4.00
+            frame["playable"] = frame.apply(lambda row: self.conditions_playable(row), axis=1)
+            fresh_data = fresh_data.append(frame.iloc[-1])
+        fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
+
+        return fresh_data
+
+    def binance_futures_margin_leverage_check(self, API_binance, binance_positions):
+        if (~binance_positions.leverage.isin([str(self.leverage)])).any():
+            for _, row in binance_positions.iterrows():
+                if row["leverage"] != self.leverage:
+                    print("Changing leverage")
+                    binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.leverage)
+
+        if (~binance_positions.isolated).any():
+            for _, row in binance_positions.iterrows():
+                if not row["isolated"]:
+                    print("Changing  margin type")
+                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
+
     async def update_dataframe(self, historical_arb_df, API_drift, API_binance):
         arb_df = df()
 
         drift_prices = await drift_get_pair_prices_rates(API_drift)
         bina_prices = binance_get_futures_pair_prices_rates(API_binance)
 
+        arb_df["drift_index"] = drift_prices["market_index"]
         arb_df["drift_price"] = drift_prices["mark_price"]
         arb_df["bina_price"] = bina_prices["mark_price"]
         arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
@@ -83,31 +123,25 @@ class DriftBinaARBLive:
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
-        fresh_data = df()
-        for frame in coin_dataframes_dict.values():
-            frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
-            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
-                lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
-            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
-                lambda x: np.median(sorted(x, reverse=False)[:int(0.10*self.zscore_period)]))
-            # frame["gap_stdv"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).std()
-            # frame["zscore"] = (frame["gap_perc"] - frame["avg_gap"]) / frame["gap_stdv"]
-            # frame["upper_zsc"] = 4.00
-            # frame["lower_zsc"] = -4.00
-            frame["in_play"] = frame.apply(lambda row: self.conditions(row), axis=1)
-            fresh_data = fresh_data.append(frame.iloc[-1])
-
-        fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
+        fresh_data = self.fresh_data_aggregator(coin_dataframes_dict=coin_dataframes_dict)
         print(fresh_data)
 
         best_coin = fresh_data.iloc[-1]
-        print(best_coin)
 
-        binance_balances = binance_get_futures_balance(API_binance)
         binance_positions = binance_futures_positions(API_binance)
+        drift_positions = await drift_load_positions(API_drift)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins)]
-        print(binance_positions)
-        # drift_positions = await drift_load_position_table(API_drift)
+        self.binance_futures_margin_leverage_check(API_binance=API_binance, binance_positions=binance_positions)
+
+        balances_dataframe = df()
+        balances_dataframe.index = binance_positions.index
+        balances_dataframe["binance_pos"] = binance_positions["positionAmt"].astype(float)
+        balances_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
+        balances_dataframe.fillna(0, inplace=True)
+        balances_dataframe["binance_pair"] = binance_positions["pair"]
+        balances_dataframe["drift_pair"] = drift_prices["market_index"]
+        balances_dataframe["in_play"] = balances_dataframe.apply(lambda row: self.conditions_inplay(row), axis=1)
+        print(balances_dataframe)
 
         return historical_arb_df
 
@@ -129,7 +163,6 @@ class DriftBinaARBLive:
                         print("Saved CSV")
                         i = 0
                     i += 1
-                    time.sleep(1)
                     print("--- %s seconds ---" % (time.time() - start_time))
 
             except Exception as e:
