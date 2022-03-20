@@ -1,12 +1,6 @@
-import asyncio
-import pandas as pd
-import time
 import traceback
 import os
 import datetime as dt
-import numpy as np
-
-from datetime import timedelta
 
 from pathlib import Path
 from Gieldy.Binance.Binance_utils import *
@@ -75,10 +69,6 @@ class DriftBinaARBLive:
                 lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(0.10*self.zscore_period)]))
-            # frame["gap_stdv"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).std()
-            # frame["zscore"] = (frame["gap_perc"] - frame["avg_gap"]) / frame["gap_stdv"]
-            # frame["upper_zsc"] = 4.00
-            # frame["lower_zsc"] = -4.00
             frame["playable"] = frame.apply(lambda row: self.conditions_playable(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
         fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
