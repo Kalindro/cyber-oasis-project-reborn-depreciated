@@ -53,10 +53,28 @@ class DriftBinaARBLive:
         else:
             return False
 
-    def conditions_playable(self, row):
-        if (row["gap_perc"] or row["avg_gap"] or row["bottom_avg_gaps"]) > self.min_gap:
+    def conds_open_long_drift(self, row):
+        if ((row["gap_perc"] > self.min_gap) or (row["avg_gap"] > self.min_gap)) and (row["gap_perc"] > row["top_avg_gaps"]):
             return True
-        elif (row["gap_perc"] or row["avg_gap"] or row["bottom_avg_gaps"]) < -self.min_gap:
+        else:
+            return False
+
+    def conds_open_short_drift(self, row):
+        if ((row["gap_perc"] < -self.min_gap) or (row["avg_gap"] < -self.min_gap)) and (row["gap_perc"] < row["bottom_avg_gaps"]):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def conds_close_long_drift(row):
+        if row["gap_perc"] < row["bottom_avg_gaps"]:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def conds_close_short_drift(row):
+        if row["gap_perc"] > row["top_avg_gaps"]:
             return True
         else:
             return False
@@ -69,7 +87,10 @@ class DriftBinaARBLive:
                 lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(0.10*self.zscore_period)]))
-            frame["playable"] = frame.apply(lambda row: self.conditions_playable(row), axis=1)
+            frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
+            frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
+            frame["close_l_drift"] = frame.apply(lambda row: self.conds_close_long_drift(row), axis=1)
+            frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
         fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
 
@@ -93,12 +114,11 @@ class DriftBinaARBLive:
 
         drift_prices = await drift_get_pair_prices_rates(API_drift)
         bina_prices = binance_get_futures_pair_prices_rates(API_binance)
-
         arb_df["drift_index"] = drift_prices["market_index"]
         arb_df["drift_price"] = drift_prices["mark_price"]
         arb_df["bina_price"] = bina_prices["mark_price"]
         arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
-        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=timedelta(seconds=5))
+        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
         arb_df.reset_index(inplace=True)
         arb_df.set_index("timestamp", inplace=True)
 
@@ -107,7 +127,6 @@ class DriftBinaARBLive:
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         # historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(hours=6))]
         historical_arb_df.set_index("timestamp", inplace=True)
-
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
@@ -115,8 +134,6 @@ class DriftBinaARBLive:
 
         fresh_data = self.fresh_data_aggregator(coin_dataframes_dict=coin_dataframes_dict)
         print(fresh_data)
-
-        best_coin = fresh_data.iloc[-1]
 
         binance_positions = binance_futures_positions(API_binance)
         drift_positions = await drift_load_positions(API_drift)
@@ -132,6 +149,20 @@ class DriftBinaARBLive:
         balances_dataframe["drift_pair"] = drift_prices["market_index"]
         balances_dataframe["in_play"] = balances_dataframe.apply(lambda row: self.conditions_inplay(row), axis=1)
         print(balances_dataframe)
+
+        best_coin_row = fresh_data.iloc[-1]
+        best_symbol = best_coin_row["symbol"]
+
+        if not balances_dataframe.loc[best_symbol, "in_play"]:
+            if best_coin_row["open_l_drift"]:
+                print("Longing Drift, shorting Binance")
+            elif best_coin_row["open_s_drift"]:
+                print("Shorting Drift, longing Binance")
+        else:
+            if best_coin_row["close_l_drift"]:
+                print("Closing Drift long, closing Binance short")
+            elif best_coin_row["close_s_drift"]:
+                print("Closing Drift short, closing Binance long")
 
         return historical_arb_df
 
@@ -155,9 +186,10 @@ class DriftBinaARBLive:
                     i += 1
                     print("--- %s seconds ---" % (time.time() - start_time))
 
-            except Exception as e:
-                e = traceback.format_exc()
-                print('Error: ', e)
+            except Exception as err:
+                trace = traceback.format_exc()
+                print(f"Error: {err}")
+                print(trace)
                 time.sleep(5)
 
 

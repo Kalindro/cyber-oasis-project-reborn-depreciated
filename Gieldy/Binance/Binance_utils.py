@@ -236,10 +236,22 @@ def binance_futures_positions(API):
     return positions_df
 
 
+def binance_futures_open_market_long(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="BUY", type="MARKET", quantity=None, price=None, close_position=False)
+
+
 def binance_futures_open_limit_long(API):
     general_client = API["general_client"]
 
     general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=False)
+
+
+def binance_futures_open_market_short(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="SELL", type="MARKET", quantity=None, price=None, close_position=False)
 
 
 def binance_futures_open_limit_short(API):
@@ -248,16 +260,31 @@ def binance_futures_open_limit_short(API):
     general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=False)
 
 
-def binance_futures_close_limit_short(API):
+def binance_futures_close_market_long(API):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=True)
+    general_client.futures_create_order(symbol=None, side="SELL", type="MARKET", quantity=None, price=None, close_position=False)
 
 
 def binance_futures_close_limit_long(API):
     general_client = API["general_client"]
 
     general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=True)
+
+
+def binance_futures_close_market_short(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="BUY", type="MARKET", quantity=None, price=None, close_position=False)
+
+
+def binance_futures_close_limit_short(API):
+    general_client = API["general_client"]
+
+    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=True)
+
+
+
 
 
 def binance_futures_change_leverage(API, pair, leverage):
