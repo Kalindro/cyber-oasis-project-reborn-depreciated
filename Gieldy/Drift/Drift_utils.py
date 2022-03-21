@@ -90,7 +90,6 @@ async def drift_calculate_market_summary(markets):
         pd.DataFrame(markets.markets),
         pd.DataFrame([x.amm for x in markets.markets]),
     ], axis=1).dropna(subset=["symbol"])
-
     last_funding_ts = pd.to_datetime(markets.markets[0].amm.last_funding_rate_ts * 1e9)
     next_funding_ts = last_funding_ts + timedelta(hours=1)
 
