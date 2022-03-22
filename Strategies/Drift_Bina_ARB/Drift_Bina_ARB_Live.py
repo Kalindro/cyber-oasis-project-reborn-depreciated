@@ -79,7 +79,35 @@ class DriftBinaARBLive:
         else:
             return False
 
-    def fresh_data_aggregator(self, coin_dataframes_dict):
+    @staticmethod
+    async def update_history_dataframe(historical_arb_df, API_drift, API_binance):
+        arb_df = df()
+
+        drift_prices = await drift_get_pair_prices_rates(API_drift)
+        bina_prices = binance_get_futures_pair_prices_rates(API_binance)
+        arb_df["drift_index"] = drift_prices["market_index"]
+        arb_df["drift_price"] = drift_prices["mark_price"]
+        arb_df["bina_price"] = bina_prices["mark_price"]
+        arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
+        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
+        arb_df.reset_index(inplace=True)
+        arb_df.set_index("timestamp", inplace=True)
+
+        historical_arb_df = historical_arb_df.append(arb_df)
+        historical_arb_df.reset_index(inplace=True)
+        historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
+        # historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(hours=6))]
+        historical_arb_df.set_index("timestamp", inplace=True)
+        historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
+
+        return historical_arb_df
+
+    def fresh_data_aggregator(self, historical_arb_df):
+        playable_coins = historical_arb_df.symbol.unique()
+        coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
+        for key in coin_dataframes_dict.keys():
+            coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
+
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
@@ -109,61 +137,39 @@ class DriftBinaARBLive:
                     print("Changing  margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
 
-    async def update_dataframe(self, historical_arb_df, API_drift, API_binance):
-        arb_df = df()
-
-        drift_prices = await drift_get_pair_prices_rates(API_drift)
-        bina_prices = binance_get_futures_pair_prices_rates(API_binance)
-        arb_df["drift_index"] = drift_prices["market_index"]
-        arb_df["drift_price"] = drift_prices["mark_price"]
-        arb_df["bina_price"] = bina_prices["mark_price"]
-        arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
-        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
-        arb_df.reset_index(inplace=True)
-        arb_df.set_index("timestamp", inplace=True)
-
-        historical_arb_df = historical_arb_df.append(arb_df)
-        historical_arb_df.reset_index(inplace=True)
-        historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
-        # historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(hours=6))]
-        historical_arb_df.set_index("timestamp", inplace=True)
-        historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
-        playable_coins = historical_arb_df.symbol.unique()
-        coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
-        for key in coin_dataframes_dict.keys():
-            coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
-
-        fresh_data = self.fresh_data_aggregator(coin_dataframes_dict=coin_dataframes_dict)
+    async def main(self, historical_arb_df, API_drift, API_binance):
+        fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
         print(fresh_data)
 
-        # binance_positions = binance_futures_positions(API_binance)
-        # drift_positions = await drift_load_positions(API_drift)
-        # binance_positions = binance_positions[binance_positions.index.isin(playable_coins)]
-        # self.binance_futures_margin_leverage_check(API_binance=API_binance, binance_positions=binance_positions)
-        #
-        # balances_dataframe = df()
-        # balances_dataframe.index = binance_positions.index
-        # balances_dataframe["binance_pos"] = binance_positions["positionAmt"].astype(float)
-        # balances_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
-        # balances_dataframe.fillna(0, inplace=True)
-        # balances_dataframe["binance_pair"] = binance_positions["pair"]
-        # balances_dataframe["drift_pair"] = drift_prices["market_index"]
-        # balances_dataframe["in_play"] = balances_dataframe.apply(lambda row: self.conditions_inplay(row), axis=1)
-        # print(balances_dataframe)
-        #
-        # best_coin_row = fresh_data.iloc[-1]
-        # best_symbol = best_coin_row["symbol"]
-        #
-        # if not balances_dataframe.loc[best_symbol, "in_play"]:
-        #     if best_coin_row["open_l_drift"]:
-        #         print("Longing Drift, shorting Binance")
-        #     elif best_coin_row["open_s_drift"]:
-        #         print("Shorting Drift, longing Binance")
-        # else:
-        #     if best_coin_row["close_l_drift"]:
-        #         print("Closing Drift long, closing Binance short")
-        #     elif best_coin_row["close_s_drift"]:
-        #         print("Closing Drift short, closing Binance long")
+        playable_coins = historical_arb_df.symbol.unique()
+        binance_positions = binance_futures_positions(API_binance)
+        drift_positions = await drift_load_positions(API_drift)
+        binance_positions = binance_positions[binance_positions.index.isin(playable_coins)]
+        self.binance_futures_margin_leverage_check(API_binance=API_binance, binance_positions=binance_positions)
+
+        balances_dataframe = df()
+        balances_dataframe.index = binance_positions.index
+        balances_dataframe["binance_pos"] = binance_positions["positionAmt"].astype(float)
+        balances_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
+        balances_dataframe.fillna(0, inplace=True)
+        balances_dataframe["binance_pair"] = binance_positions["pair"]
+        balances_dataframe["drift_pair"] = historical_arb_df.drop_duplicates(subset="symbol").set_index("symbol").loc[balances_dataframe.index, "drift_index"]
+        balances_dataframe["in_play"] = balances_dataframe.apply(lambda row: self.conditions_inplay(row), axis=1)
+        print(balances_dataframe)
+
+        best_coin_row = fresh_data.iloc[-1]
+        best_symbol = best_coin_row["symbol"]
+
+        if not balances_dataframe.loc[best_symbol, "in_play"]:
+            if best_coin_row["open_l_drift"]:
+                print("Longing Drift, shorting Binance")
+            elif best_coin_row["open_s_drift"]:
+                print("Shorting Drift, longing Binance")
+        else:
+            if best_coin_row["close_l_drift"]:
+                print("Closing Drift long, closing Binance short")
+            elif best_coin_row["close_s_drift"]:
+                print("Closing Drift short, closing Binance long")
 
         return historical_arb_df
 
@@ -178,14 +184,15 @@ class DriftBinaARBLive:
                 while True:
                     start_time = time.time()
 
-                    historical_arb_df = await self.update_dataframe(historical_arb_df=historical_arb_df, API_drift=API_1, API_binance=API_2)
+                    historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_1, API_binance=API_2)
+                    await self.main(historical_arb_df=historical_arb_df, API_drift=API_1, API_binance=API_2)
 
                     if i > 250:
                         historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
                         print("Saved CSV")
                         i = 0
+
                     i += 1
-                    time.sleep(1)
                     print("--- %s seconds ---" % (time.time() - start_time))
 
             except Exception as err:
