@@ -5,7 +5,7 @@ import datetime as dt
 from pathlib import Path
 from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
-from Gieldy.Refractor_general.General_utils import round_time, zscore
+from Gieldy.Refractor_general.General_utils import round_time
 
 from Gieldy.Binance.API_initiation_Binance_Futures_USDT import API_initiation as API_binance
 from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift
@@ -19,6 +19,15 @@ pd.set_option('display.width', None)
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
+
+
+def run_once(f):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+    wrapper.has_run = False
+    return wrapper
 
 
 class DriftBinaARBLive:
@@ -111,6 +120,7 @@ class DriftBinaARBLive:
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
+            frame["avg_gap_abs"] = abs(frame["avg_gap"])
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
                 lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
@@ -120,7 +130,8 @@ class DriftBinaARBLive:
             frame["close_l_drift"] = frame.apply(lambda row: self.conds_close_long_drift(row), axis=1)
             frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
-        fresh_data.sort_values(by=["avg_gap"], ascending=False, inplace=True)
+        fresh_data.sort_values(by=["avg_gap_abs"], inplace=True)
+        print(fresh_data)
 
         return fresh_data
 
@@ -137,10 +148,7 @@ class DriftBinaARBLive:
                     print("Changing  margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
 
-    async def main(self, historical_arb_df, API_drift, API_binance):
-        fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
-        print(fresh_data)
-
+    async def get_balances_summary(self, historical_arb_df, API_binance, API_drift):
         playable_coins = historical_arb_df.symbol.unique()
         binance_positions = binance_futures_positions(API_binance)
         drift_positions = await drift_load_positions(API_drift)
@@ -157,19 +165,50 @@ class DriftBinaARBLive:
         balances_dataframe["in_play"] = balances_dataframe.apply(lambda row: self.conditions_inplay(row), axis=1)
         print(balances_dataframe)
 
+        return balances_dataframe
+
+    async def main(self, historical_arb_df, API_drift, API_binance):
+        fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
+        balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+
         best_coin_row = fresh_data.iloc[-1]
         best_symbol = best_coin_row["symbol"]
 
         if not balances_dataframe.loc[best_symbol, "in_play"]:
             if best_coin_row["open_l_drift"]:
                 print("Longing Drift, shorting Binance")
+                balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df,
+                                                                     API_drift=API_drift, API_binance=API_binance)
             elif best_coin_row["open_s_drift"]:
                 print("Shorting Drift, longing Binance")
+                balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df,
+                                                                     API_drift=API_drift, API_binance=API_binance)
         else:
             if best_coin_row["close_l_drift"]:
                 print("Closing Drift long, closing Binance short")
+                balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df,
+                                                                     API_drift=API_drift, API_binance=API_binance)
             elif best_coin_row["close_s_drift"]:
                 print("Closing Drift short, closing Binance long")
+                balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df,
+                                                                     API_drift=API_drift, API_binance=API_binance)
+
+        # if best_coin_row["open_l_drift"]:
+        #     balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+        #     if not balances_dataframe.loc[best_symbol, "in_play"]:
+        #         print(f"{best_symbol} Longing Drift, shorting Binance")
+        # elif best_coin_row["open_s_drift"]:
+        #     balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+        #     if not balances_dataframe.loc[best_symbol, "in_play"]:
+        #         print(f"{best_symbol} Shorting Drift, longing Binance")
+        # elif best_coin_row["close_l_drift"]:
+        #     balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+        #     if balances_dataframe.loc[best_symbol, "in_play"]:
+        #         print(f"{best_symbol} Closing Drift long, closing Binance short")
+        # elif best_coin_row["close_s_drift"]:
+        #     balances_dataframe = await self.get_balances_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+        #     if balances_dataframe.loc[best_symbol, "in_play"]:
+        #         print(f"{best_symbol} Closing Drift short, closing Binance long")
 
         return historical_arb_df
 
