@@ -212,7 +212,7 @@ def binance_get_futures_pair_prices_rates(API):
     return prices_dataframe
 
 
-def binance_get_futures_balance(API):
+def binance_futures_get_balance(API):
     general_client = API["general_client"]
 
     balances_df = df(general_client.futures_account_balance())
@@ -236,55 +236,52 @@ def binance_futures_positions(API):
     return positions_df
 
 
-def binance_futures_open_market_long(API):
+def binance_futures_open_market_long(API, symbol, amount):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="BUY", type="MARKET", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="BUY", type="MARKET", quantity=amount, price=None, close_position=False)
 
 
-def binance_futures_open_limit_long(API):
+def binance_futures_open_market_short(API, symbol, amount):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="SELL", type="MARKET", quantity=amount, price=None, close_position=False)
 
 
-def binance_futures_open_market_short(API):
+def binance_futures_close_market_long(API, symbol):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="SELL", type="MARKET", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="SELL", type="MARKET", quantity=None, price=None, close_position=True)
 
 
-def binance_futures_open_limit_short(API):
+def binance_futures_close_market_short(API, symbol):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="BUY", type="MARKET", quantity=None, price=None, close_position=True)
 
 
-def binance_futures_close_market_long(API):
+def binance_futures_open_limit_long(API, symbol, amount, price):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="SELL", type="MARKET", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="BUY", type="LIMIT", quantity=amount, price=price, close_position=False)
 
 
-def binance_futures_close_limit_long(API):
+def binance_futures_open_limit_short(API, symbol, amount, price):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="SELL", type="LIMIT", quantity=None, price=None, close_position=True)
+    general_client.futures_create_order(symbol=symbol, side="SELL", type="LIMIT", quantity=amount, price=price, close_position=False)
 
 
-def binance_futures_close_market_short(API):
+def binance_futures_close_limit_long(API,symbol, price):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="BUY", type="MARKET", quantity=None, price=None, close_position=False)
+    general_client.futures_create_order(symbol=symbol, side="SELL", type="LIMIT", quantity=None, price=price, close_position=True)
 
 
-def binance_futures_close_limit_short(API):
+def binance_futures_close_limit_short(API,symbol, price):
     general_client = API["general_client"]
 
-    general_client.futures_create_order(symbol=None, side="BUY", type="LIMIT", quantity=None, price=None, close_position=True)
-
-
-
+    general_client.futures_create_order(symbol=symbol, side="BUY", type="LIMIT", quantity=None, price=price, close_position=True)
 
 
 def binance_futures_change_leverage(API, pair, leverage):

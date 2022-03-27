@@ -38,9 +38,10 @@ FUNDING_PRECISION = 1e4
 async def drift_get_margin_account_info(API):
     margin_info = dict()
     margin_info["total_collateral"] = await API["drift_user"].get_total_collateral()/QUOTE_PRECISION
-    margin_info["unrealised_pnl"] = await API["drift_user"].get_unrealised_pnl(0)/QUOTE_PRECISION
-    margin_info["leverage"] = await API["drift_user"].get_leverage()
     margin_info["free_collateral"] = await API["drift_user"].get_free_collateral()/QUOTE_PRECISION
+    # margin_info["leverage"] = await API["drift_user"].get_leverage()
+    # margin_info["X"] = await API["drift_user"].get_total_position_value()/QUOTE_PRECISION
+
     return margin_info
 
 
@@ -108,3 +109,27 @@ async def drift_calculate_market_summary(markets):
     df.set_index("symbol", inplace=True)
 
     return df
+
+
+async def drift_open_market_long(API, amount, drift_index):
+    open_position = await API["drift_acct"].open_position(direction=PositionDirection.LONG, amount=amount, market_index=drift_index)
+
+    return open_position
+
+
+async def drift_open_market_short(API, amount, drift_index):
+    open_position = await API["drift_acct"].open_position(direction=PositionDirection.SHORT, amount=amount, market_index=drift_index)
+
+    return open_position
+
+
+async def drift_close_order(API, drift_index):
+    close_position = await API["drift_acct"].close_position(market_index=drift_index)
+
+    return close_position
+
+
+async def Drift_X(API):
+    X = await API["drift_user"].get_total_position_value()
+
+    return X
