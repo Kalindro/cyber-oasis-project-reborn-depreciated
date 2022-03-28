@@ -55,6 +55,13 @@ class DriftBinaARBLive:
             return False
 
     @staticmethod
+    def conds_noplay(row):
+        if (abs(row["binance_pos"]) == 0) and (abs(row["drift_pos"]) == 0):
+            return True
+        else:
+            return False
+
+    @staticmethod
     def conds_binance_inplay(row):
         if abs(row["binance_pos"]) > 0:
             return True
@@ -77,14 +84,14 @@ class DriftBinaARBLive:
 
     def conds_open_long_drift(self, row):
         if (((row["gap_perc"] > self.min_gap) or (row["avg_gap"] > self.min_gap)) or (
-                (row["top_avg_gaps"] - row["bottom_avg_gaps"]) > self.min_gap)) and (row["gap_perc"] > row["top_avg_gaps"]):
+                (row["gap_range"]) > self.min_gap)) and (row["gap_perc"] > row["top_avg_gaps"]):
             return True
         else:
             return False
 
     def conds_open_short_drift(self, row):
         if (((row["gap_perc"] < -self.min_gap) or (row["avg_gap"] < -self.min_gap)) or (
-                (row["top_avg_gaps"] - row["bottom_avg_gaps"]) > self.min_gap)) and (row["gap_perc"] < row["bottom_avg_gaps"]):
+                (row["gap_range"]) > self.min_gap)) and (row["gap_perc"] < row["bottom_avg_gaps"]):
             return True
         else:
             return False
@@ -108,9 +115,11 @@ class DriftBinaARBLive:
 
         drift_prices = await drift_get_pair_prices_rates(API_drift)
         bina_prices = binance_get_futures_pair_prices_rates(API_binance)
-        arb_df["drift_index"] = drift_prices["market_index"]
-        arb_df["drift_price"] = drift_prices["mark_price"]
+        arb_df["drift_pair"] = drift_prices["market_index"]
+        arb_df["binance_pair"] = bina_prices["pair"]
+        arb_df = arb_df[["binance_pair", "drift_pair"]]
         arb_df["bina_price"] = bina_prices["mark_price"]
+        arb_df["drift_price"] = drift_prices["mark_price"]
         arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
         arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
         arb_df.reset_index(inplace=True)
@@ -139,14 +148,14 @@ class DriftBinaARBLive:
                 lambda x: np.median(sorted(x, reverse=True)[:int(0.10*self.zscore_period)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(0.10*self.zscore_period)]))
+            frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
             frame["close_l_drift"] = frame.apply(lambda row: self.conds_close_long_drift(row), axis=1)
             frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
 
-        fresh_data.sort_values(by=["avg_gap_abs"], inplace=True)
-        print(fresh_data)
+        fresh_data.sort_values(by=["gap_range"], inplace=True)
         time.sleep(1)
 
         return fresh_data
@@ -161,14 +170,14 @@ class DriftBinaARBLive:
         if (~binance_positions.isolated).any():
             for _, row in binance_positions.iterrows():
                 if not row["isolated"]:
-                    print("Changing  margin type")
+                    print("Changing margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
 
     async def get_positions_summary(self, historical_arb_df, API_binance, API_drift):
         playable_coins = historical_arb_df.symbol.unique()
         binance_positions = binance_futures_positions(API_binance)
-        drift_positions = await drift_load_positions(API_drift)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins)]
+        drift_positions = await drift_load_positions(API_drift)
         self.binance_futures_margin_leverage_check(API_binance=API_binance, binance_positions=binance_positions)
 
         positions_dataframe = df()
@@ -177,8 +186,9 @@ class DriftBinaARBLive:
         positions_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
         positions_dataframe.fillna(0, inplace=True)
         positions_dataframe["binance_pair"] = binance_positions["pair"]
-        positions_dataframe["drift_pair"] = historical_arb_df.drop_duplicates(subset="symbol").set_index("symbol").loc[positions_dataframe.index, "drift_index"]
+        positions_dataframe["drift_pair"] = (historical_arb_df.drop_duplicates(subset="symbol").set_index("symbol").loc[positions_dataframe.index, "drift_pair"]).astype(int)
         positions_dataframe["inplay"] = positions_dataframe.apply(lambda row: self.conds_inplay(row), axis=1)
+        positions_dataframe["noplay"] = positions_dataframe.apply(lambda row: self.conds_noplay(row), axis=1)
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
@@ -191,15 +201,13 @@ class DriftBinaARBLive:
     async def get_balances_summary(API_binance, API_drift):
         binance_balances = binance_futures_get_balance(API=API_binance).loc["USDT"]
         drift_balances = await drift_get_margin_account_info(API=API_drift)
-        dict = {"binance": float(binance_balances['total']), "drift": float(drift_balances['total_collateral']),
+        balances_dict = {"binance": float(binance_balances['total']), "drift": float(drift_balances['total_collateral']),
                 "binance_play_value": float(binance_balances['total']) * 0.75,
                 "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
                 "coin_target_value": 10}
                 # "coin_target_value": float(binance_balances['total']) * 0.5}
-        balances_dataframe = df([dict])
-        print(balances_dataframe)
 
-        return balances_dataframe
+        return balances_dict
 
     async def run_constant_update(self):
         API_drift = await self.initiate_drift()
@@ -216,7 +224,6 @@ class DriftBinaARBLive:
 
             best_coin_row = fresh_data.iloc[-1]
             best_coin_symbol = best_coin_row["symbol"]
-            best_coin_price = best_coin_row["bina_price"]
             play_symbols_binance_list = [coin for coin in positions_dataframe.loc[positions_dataframe["binance_inplay"]].index]
             play_symbols_drift_list = [coin for coin in positions_dataframe.loc[positions_dataframe["drift_inplay"]].index]
             play_symbols_list = play_symbols_binance_list + play_symbols_drift_list
@@ -227,48 +234,91 @@ class DriftBinaARBLive:
             if not np.isnan(best_coin_row["avg_gap"]):
                 for index, coin_row in play_coins_dataframe.iterrows():
                     coin_symbol = coin_row["symbol"]
+                    coin_pair = coin_row["binance_pair"]
+                    coin_price = coin_row["bina_price"]
                     if not positions_dataframe.loc[coin_symbol, "inplay"]:
-                        if coin_row["open_l_drift"] or coin_row["imbalance"]:
-                            print(f"{coin_symbol} Longing Drift, shorting Binance")
-                            balances_dataframe = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
-                            coin_target_value = balances_dataframe["coin_target_value"]
-                            if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                long_drift = drift_open_market_long(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
-                            if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                short_binance = binance_futures_open_market_short(API=API_binance, symbol=coin_symbol, amount=coin_target_value/best_coin_price)
-                            positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                        elif coin_row["open_s_drift"] or coin_row["imbalance"]:
-                            print(f"{coin_symbol} Shorting Drift, longing Binance")
-                            balances_dataframe = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
-                            coin_target_value = balances_dataframe["coin_target_value"]
-                            if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                short_drift = drift_open_market_short(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
-                            if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                long_binance = binance_futures_open_market_long(API=API_binance, symbol=coin_symbol, amount=coin_target_value/best_coin_price)
-                            positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                    else:
-                        if coin_row["close_l_drift"]:
-                            print(f"{coin_symbol} Closing Drift long, closing Binance short")
-                            if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                close_drift_long = drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
-                            if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                close_binance_short = binance_futures_close_market_short(API=API_binance, symbol=coin_symbol)
-                            positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                        elif coin_row["close_s_drift"]:
-                            print(f"{coin_symbol} Closing Drift short, closing Binance long")
-                            if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                close_drift_short = drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
-                            if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                close_binance_long = binance_futures_close_market_long(API=API_binance, symbol=coin_symbol)
-                            positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                        if coin_row["open_l_drift"]:
+                            precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
+                            balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                            coin_target_value = balances_dict["coin_target_value"]
+                            bina_open_amount = round(coin_target_value / coin_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            print(f"{coin_symbol} Longing Drift {coin_target_value}, shorting Binance {bina_open_amount}")
+                            while not positions_dataframe.loc[coin_symbol, "inplay"]:
+                                try:
+                                    if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                        long_drift = await drift_open_market_long(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        print(long_drift)
+                                    if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                        short_binance = binance_futures_open_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
+                                        print(short_binance)
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                                except Exception as err:
+                                    trace = traceback.format_exc()
+                                    print(f"Error, retrying buys: {err}\n{trace}")
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                        elif coin_row["open_s_drift"]:
+                            precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
+                            balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                            coin_target_value = balances_dict["coin_target_value"]
+                            bina_open_amount = round((coin_target_value / coin_price), precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            print(f"{coin_symbol} Shorting Drift {coin_target_value}, longing Binance {bina_open_amount}")
+                            while not positions_dataframe.loc[coin_symbol, "inplay"]:
+                                try:
+                                    if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                        short_drift = await drift_open_market_short(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        print(short_drift)
+                                    if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                        long_binance = binance_futures_open_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
+                                        print(long_binance)
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                                except Exception as err:
+                                    trace = traceback.format_exc()
+                                    print(f"Error, retrying buys: {err}\n{trace}")
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
 
-            if i > 250:
+                    else:
+                        precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
+                        bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 5), precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        if coin_row["close_l_drift"] and positions_dataframe.loc[coin_symbol, "drift_pos"] > 0:
+                            print(f"{coin_symbol} Closing Drift long, closing Binance short {bina_close_amount}")
+                            while not positions_dataframe.loc[coin_symbol, "noplay"]:
+                                try:
+                                    if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                        close_drift_long = await drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
+                                        print(close_drift_long)
+                                    if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                        close_binance_short = binance_futures_close_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
+                                        print(close_binance_short)
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                                except Exception as err:
+                                    trace = traceback.format_exc()
+                                    print(f"Error, retrying sells: {err}\n{trace}")
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+
+                        elif coin_row["close_s_drift"] and positions_dataframe.loc[coin_symbol, "drift_pos"] < 0:
+                            print(f"{coin_symbol} Closing Drift short, closing Binance long {bina_close_amount}")
+                            while True:
+                                try:
+                                    if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                        close_drift_short = await drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
+                                        print(close_drift_short)
+                                    if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                        close_binance_long = binance_futures_close_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
+                                        print(close_binance_long)
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                                    break
+                                except Exception as err:
+                                    trace = traceback.format_exc()
+                                    print(f"Error, retrying sells: {err}\n{trace}")
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+
+            if i > 125:
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
                 print("Saved CSV")
                 i = 0
 
             i += 1
-            print("--- %s seconds ---" % (time.time() - start_time))
+            print("--- %s seconds ---" % (round(time.time() - start_time, 2)))
 
     async def main(self):
         while True:
@@ -277,8 +327,7 @@ class DriftBinaARBLive:
 
             except Exception as err:
                 trace = traceback.format_exc()
-                print(f"Error: {err}")
-                print(trace)
+                print(f"Error: {err}\n{trace}")
                 time.sleep(5)
 
 

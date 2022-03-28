@@ -112,13 +112,13 @@ async def drift_calculate_market_summary(markets):
 
 
 async def drift_open_market_long(API, amount, drift_index):
-    open_position = await API["drift_acct"].open_position(direction=PositionDirection.LONG, amount=amount, market_index=drift_index)
+    open_position = await API["drift_acct"].open_position(direction=PositionDirection.LONG(), amount=int(amount), market_index=int(drift_index))
 
     return open_position
 
 
 async def drift_open_market_short(API, amount, drift_index):
-    open_position = await API["drift_acct"].open_position(direction=PositionDirection.SHORT, amount=amount, market_index=drift_index)
+    open_position = await API["drift_acct"].open_position(direction=PositionDirection.SHORT(), amount=int(amount), market_index=int(drift_index))
 
     return open_position
 
@@ -127,9 +127,3 @@ async def drift_close_order(API, drift_index):
     close_position = await API["drift_acct"].close_position(market_index=drift_index)
 
     return close_position
-
-
-async def Drift_X(API):
-    X = await API["drift_user"].get_total_position_value()
-
-    return X
