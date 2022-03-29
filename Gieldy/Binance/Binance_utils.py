@@ -253,11 +253,10 @@ def binance_futures_get_pairs_precisions_status(API):
          round(min(fabs(Decimal(pair_data["filters"][0]["minPrice"]).normalize().as_tuple().exponent),
                    fabs(Decimal(pair_data["filters"][0]["tickSize"]).normalize().as_tuple().exponent))),
          float(pair_data["filters"][2]["minQty"]) if "minQty" in pair_data["filters"][2] else 0,
-         float(pair_data["filters"][3]["minNotional"]) if "minNotional" in pair_data["filters"][3] else 0] for pair_data in all_pairs]
+         float(pair_data["filters"][5]["notional"]) if "notional" in pair_data["filters"][5] else 0] for pair_data in all_pairs]
     pair_dataframe.set_index("pair", inplace=True)
 
     return pair_dataframe
-
 
 def binance_futures_open_market_long(API, pair, amount):
     general_client = API["general_client"]
