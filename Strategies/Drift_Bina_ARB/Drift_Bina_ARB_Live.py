@@ -192,8 +192,8 @@ class DriftBinaARBLive:
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
-
-        time.sleep(1.5)
+        print(positions_dataframe)
+        time.sleep(0.5)
 
         return positions_dataframe
 
@@ -219,7 +219,6 @@ class DriftBinaARBLive:
         historical_arb_df = self.read_historical_dataframe()
         historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-        print(positions_dataframe)
         print(await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift))
         x = 0
         while True:
@@ -264,13 +263,11 @@ class DriftBinaARBLive:
                                             short_binance = binance_futures_open_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
                                         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                                        print(positions_dataframe)
                                         i += 1
                                     except Exception as err:
                                         trace = traceback.format_exc()
                                         print(f"Error, retrying buys: {err}\n{trace}")
                                         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                                        print(positions_dataframe)
                                         i += 1
                         elif coin_row["open_s_drift"]:
                             precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
@@ -293,13 +290,11 @@ class DriftBinaARBLive:
                                             long_binance = binance_futures_open_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
                                         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                                        print(positions_dataframe)
                                         i += 1
                                     except Exception as err:
                                         trace = traceback.format_exc()
                                         print(f"Error, retrying buys: {err}\n{trace}")
                                         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                                        print(positions_dataframe)
                                         i += 1
                     else:
                         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
