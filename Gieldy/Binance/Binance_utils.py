@@ -258,6 +258,7 @@ def binance_futures_get_pairs_precisions_status(API):
 
     return pair_dataframe
 
+
 def binance_futures_open_market_long(API, pair, amount):
     general_client = API["general_client"]
 

@@ -2,6 +2,9 @@ import traceback
 import os
 import datetime as dt
 
+import httpcore
+
+from colorama import Fore, Back, Style
 from pathlib import Path
 from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
@@ -24,7 +27,7 @@ project_path = Path(current_path).parent.parent
 class DriftBinaARBLive:
 
     def __init__(self):
-        self.zscore_period = 360
+        self.zscore_period = 180
         self.quartile = 0.15
         self.min_gap = 0.32
         self.leverage = 3
@@ -226,7 +229,6 @@ class DriftBinaARBLive:
 
             historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
             fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
-
             best_coin_row = fresh_data.iloc[-1]
             best_coin_symbol = best_coin_row["symbol"]
             play_symbols_binance_list = [coin for coin in positions_dataframe.loc[positions_dataframe["binance_inplay"]].index]
@@ -248,7 +250,7 @@ class DriftBinaARBLive:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
                             if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(f"{coin_symbol} Longing Drift: {coin_target_value}, shorting Binance: {bina_open_amount}")
+                                print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {coin_target_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while not positions_dataframe.loc[coin_symbol, "inplay"] and coin_row["open_l_drift"]:
@@ -275,7 +277,7 @@ class DriftBinaARBLive:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round((coin_target_value / coin_price), precisions_dataframe.loc[coin_pair, "amount_precision"])
                             if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(f"{coin_symbol} Shorting Drift: {coin_target_value}, longing Binance: {bina_open_amount}")
+                                print(Fore.YELLOW + f"{coin_symbol} Shorting Drift: {coin_target_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while not positions_dataframe.loc[coin_symbol, "inplay"] and coin_row["open_s_drift"]:
@@ -298,10 +300,10 @@ class DriftBinaARBLive:
                                         i += 1
                     else:
                         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
-                        bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 5), precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
                         if coin_row["close_l_drift"] and positions_dataframe.loc[coin_symbol, "drift_pos"] > 0:
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(f"{coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}")
+                                print(Fore.YELLOW + f"{coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while not positions_dataframe.loc[coin_symbol, "noplay"] and coin_row["close_l_drift"]:
@@ -324,7 +326,7 @@ class DriftBinaARBLive:
                                         i += 1
                         elif coin_row["close_s_drift"] and positions_dataframe.loc[coin_symbol, "drift_pos"] < 0:
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(f"{coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}")
+                                print(Fore.YELLOW + f"{coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while not positions_dataframe.loc[coin_symbol, "noplay"] and coin_row["close_s_drift"]:
@@ -354,7 +356,7 @@ class DriftBinaARBLive:
             if elapsed < 1.5:
                 time.sleep(1.5 - elapsed)
             elif elapsed > 3:
-                print("--- Whole loop %s seconds ---" % (round(time.time() - start_time, 2)))
+                print("--- Whole loop %s seconds ---\n" % (round(time.time() - start_time, 2)))
 
             x += 1
 
@@ -362,6 +364,9 @@ class DriftBinaARBLive:
         while True:
             try:
                 await self.run_constant_update()
+
+            # except httpcore.TimeoutException:
+            #     time.sleep(0.1)
 
             except Exception as err:
                 trace = traceback.format_exc()
