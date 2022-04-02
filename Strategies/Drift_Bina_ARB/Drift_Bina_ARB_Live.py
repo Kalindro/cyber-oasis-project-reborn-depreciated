@@ -27,7 +27,7 @@ project_path = Path(current_path).parent.parent
 class DriftBinaARBLive:
 
     def __init__(self):
-        self.zscore_period = 180
+        self.zscore_period = 360
         self.quartile = 0.15
         self.min_gap = 0.32
         self.leverage = 3
