@@ -3,6 +3,7 @@ import os
 import datetime as dt
 
 import httpcore
+import solana
 
 from colorama import Fore, Back, Style
 from pathlib import Path
@@ -89,14 +90,14 @@ class DriftBinaARBLive:
 
     def conds_open_long_drift(self, row):
         if (((row["gap_perc"] > self.min_regular_gap) or (row["avg_gap"] > self.min_regular_gap)) or (
-                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] > max(row["top_avg_gaps"], 0.10)):
+                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] > max(row["top_avg_gaps"], 0.12)):
             return True
         else:
             return False
 
     def conds_open_short_drift(self, row):
         if (((row["gap_perc"] < -self.min_regular_gap) or (row["avg_gap"] < -self.min_regular_gap)) or (
-                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] < min(row["bottom_avg_gaps"], -0.10)):
+                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] < min(row["bottom_avg_gaps"], -0.12)):
             return True
         else:
             return False
@@ -196,13 +197,11 @@ class DriftBinaARBLive:
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
-
         time.sleep(1)
 
         return positions_dataframe
 
-    @staticmethod
-    async def get_balances_summary(API_binance, API_drift):
+    async def get_balances_summary(self, API_binance, API_drift):
         binance_balances = binance_futures_get_balance(API=API_binance).loc["USDT"]
         drift_balances = await drift_get_margin_account_info(API=API_drift)
         balances_dict = {"binance": float(binance_balances['total']),
@@ -210,7 +209,7 @@ class DriftBinaARBLive:
                          "sum": float(binance_balances['total']) + float(drift_balances['total_collateral']),
                          "binance_play_value": float(binance_balances['total']) * 0.75,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
-                         "coin_target_value": 30}
+                         "coin_target_value": 15 * self.leverage}
         # "coin_target_value": float(binance_balances['total']) * 0.5}
         time.sleep(1.5)
 
@@ -223,8 +222,7 @@ class DriftBinaARBLive:
         historical_arb_df = self.read_historical_dataframe()
         historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
         positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-        print(positions_dataframe)
-        print(await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift))
+        print(positions_dataframe, await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift))
 
         x = 0
         while True:
@@ -251,6 +249,8 @@ class DriftBinaARBLive:
                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                         coin_target_value = balances_dict["coin_target_value"]
                         bina_open_amount = round(coin_target_value / coin_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        print(bina_open_amount)
+                        print(precisions_dataframe.loc[coin_pair, "min_order_amount"])
                         if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
                             print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {coin_target_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                             print(fresh_data)
@@ -271,7 +271,10 @@ class DriftBinaARBLive:
                                     i += 1
                                 except Exception as err:
                                     trace = traceback.format_exc()
-                                    print(f"Error on buys: {err}\n{trace}")
+                                    if err == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error: {err}")
+                                    else:
+                                        print(f"Error on buys: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
                                         i += 1
@@ -302,7 +305,10 @@ class DriftBinaARBLive:
                                     i += 1
                                 except Exception as err:
                                     trace = traceback.format_exc()
-                                    print(f"Error on buys: {err}\n{trace}")
+                                    if err == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error: {err}")
+                                    else:
+                                        print(f"Error on buys: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
                                         i += 1
@@ -332,7 +338,11 @@ class DriftBinaARBLive:
                                     i += 1
                                 except Exception as err:
                                     trace = traceback.format_exc()
-                                    print(f"Error on sells: {err}\n{trace}")
+                                    print(err)
+                                    if err == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error: {err}")
+                                    else:
+                                        print(f"Error on sells: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
                                         i += 1
@@ -359,7 +369,10 @@ class DriftBinaARBLive:
                                     i += 1
                                 except Exception as err:
                                     trace = traceback.format_exc()
-                                    print(f"Error on sells: {err}\n{trace}")
+                                    if not (err == solana.rpc.core.UnconfirmedTxError):
+                                        print(f"Unconfirmed TX Error: {err}")
+                                    else:
+                                        print(f"Error on sells: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
                                         i += 1
