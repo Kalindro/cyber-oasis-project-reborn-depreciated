@@ -245,16 +245,21 @@ class DriftBinaARBLive:
                 coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                 coin_symbol = coin_row["symbol"]
                 coin_pair = coin_row["binance_pair"]
-                coin_price = coin_row["bina_price"]
+                coin_bina_price = coin_row["bina_price"]
+                coin_drift_price = coin_row["drift_price"]
 
                 if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < 2):
                     if coin_row["open_l_drift"]:
                         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                         coin_target_value = balances_dict["coin_target_value"]
-                        bina_open_amount = round(coin_target_value / coin_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        try:
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            drift_open_value = bina_open_amount / coin_drift_price
+                        except:
+                            print(f"Target val: {coin_target_value}, price: {coin_bina_price}, precision: {precisions_dataframe.loc[coin_pair, 'amount_precision']}")
                         if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                            print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {coin_target_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
+                            print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                             print(fresh_data)
                             i = 1
                             while True:
@@ -262,7 +267,7 @@ class DriftBinaARBLive:
                                     print(f"Try number: {i}")
                                     if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
                                         drift_orders = time.time()
-                                        long_drift = await drift_open_market_long(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        long_drift = await drift_open_market_long(API=API_drift, amount=drift_open_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
                                         print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
                                     if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
                                         bina_orders = time.time()
@@ -276,7 +281,8 @@ class DriftBinaARBLive:
                                 except Exception as err:
                                     trace = traceback.format_exc()
                                     print(f"Error on buys: {err}\n{trace}")
-                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                                    positions_dataframe = await self.get_positions_summary(historical_arb_df=historical_arb_df,
+                                                                                           API_drift=API_drift, API_binance=API_binance, printing=False)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
                                         pass
                                     else:
@@ -289,13 +295,12 @@ class DriftBinaARBLive:
                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                         coin_target_value = balances_dict["coin_target_value"]
                         try:
-                            bina_open_amount = round((coin_target_value / coin_price), precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            drift_open_value = bina_open_amount / coin_drift_price
                         except:
-                            print(coin_target_value)
-                            print(coin_price)
-                            print(precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            print(f"Target val: {coin_target_value}, price: {coin_bina_price}, precision: {precisions_dataframe.loc[coin_pair, 'amount_precision']}")
                         if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                            print(Fore.YELLOW + f"{coin_symbol} Shorting Drift: {coin_target_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
+                            print(Fore.YELLOW + f"{coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                             print(fresh_data)
                             i = 1
                             while True:
@@ -303,7 +308,7 @@ class DriftBinaARBLive:
                                     print(f"Try number: {i}")
                                     if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
                                         drift_orders = time.time()
-                                        short_drift = await drift_open_market_short(API=API_drift, amount=coin_target_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        short_drift = await drift_open_market_short(API=API_drift, amount=drift_open_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
                                         print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
                                     if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
                                         bina_orders = time.time()
