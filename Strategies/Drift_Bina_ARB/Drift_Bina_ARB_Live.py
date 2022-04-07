@@ -34,16 +34,19 @@ class Initialize:
         self.MIN_RANGE_GAP = 0.32
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
+        self.DRIFT_USDC_PRECISION = 4
 
     @staticmethod
     def read_historical_dataframe():
         while True:
             try:
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
+                if (len(historical_arb_df) < 10) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]):
+                    x = 5/0
                 break
             except:
                 print("Reading historical DF CSV Fail, retrying")
-                time.sleep(0.25)
+                time.sleep(0.1)
 
         return historical_arb_df
 
@@ -246,9 +249,9 @@ class LogicHandle(Initialize):
                          "binance_play_value": float(binance_balances['total']) * 0.75,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
                          "coin_target_value": 15 * self.LEVERAGE}
-        # "coin_target_value": float(binance_balances['total']) * 0.5}
+                            # "coin_target_value": float(binance_balances['total']) * 0.5}
         if printing:
-            print(f"Account value sum: {balances_dict['sum']:.2f}")
+            print(Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1)
 
         return balances_dict
@@ -273,7 +276,8 @@ class LogicHandle(Initialize):
             play_symbols_list = list(set(play_symbols_list))
 
             if np.isnan(fresh_data.iloc[-1]["avg_gap"]):
-                time.sleep(5)
+                print("Not enough data, logic sleeping...")
+                time.sleep(30)
                 continue
 
             for coin in play_symbols_list:
@@ -288,11 +292,8 @@ class LogicHandle(Initialize):
                         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                         coin_target_value = balances_dict["coin_target_value"]
-                        try:
-                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
-                            drift_open_value = bina_open_amount / coin_drift_price
-                        except:
-                            print(f"Target val: {coin_target_value}, price: {coin_bina_price}, precision: {precisions_dataframe.loc[coin_pair, 'amount_precision']}")
+                        bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
                         if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
                             print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                             print(fresh_data)
@@ -310,12 +311,13 @@ class LogicHandle(Initialize):
                                         print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
                                     break
-                                except solana.rpc.core.UnconfirmedTxError as err:
-                                    print(f"Unconfirmed TX Error on buys: {err}")
-                                    time.sleep(0.5)
                                 except Exception as err:
-                                    trace = traceback.format_exc()
-                                    print(f"Error on buys: {err}\n{trace}")
+                                    if type(err) == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error on buys: {err}")
+                                        time.sleep(0.5)
+                                    else:
+                                        trace = traceback.format_exc()
+                                        print(f"Error on buys: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data,
                                                                                            API_drift=API_drift, API_binance=API_binance, printing=False)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -329,11 +331,8 @@ class LogicHandle(Initialize):
                         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                         coin_target_value = balances_dict["coin_target_value"]
-                        try:
-                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
-                            drift_open_value = bina_open_amount / coin_drift_price
-                        except:
-                            print(f"Target val: {coin_target_value}, price: {coin_bina_price}, precision: {precisions_dataframe.loc[coin_pair, 'amount_precision']}")
+                        bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
                         if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
                             print(Fore.YELLOW + f"{coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                             print(fresh_data)
@@ -351,12 +350,13 @@ class LogicHandle(Initialize):
                                         print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
                                     break
-                                except solana.rpc.core.UnconfirmedTxError as err:
-                                    print(f"Unconfirmed TX Error on buys: {err}")
-                                    time.sleep(0.5)
                                 except Exception as err:
-                                    trace = traceback.format_exc()
-                                    print(f"Error on buys: {err}\n{trace}")
+                                    if type(err) == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error on buys: {err}")
+                                        time.sleep(0.5)
+                                    else:
+                                        trace = traceback.format_exc()
+                                        print(f"Error on buys: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data,
                                                                                            API_drift=API_drift, API_binance=API_binance, printing=False)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -388,12 +388,13 @@ class LogicHandle(Initialize):
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data,
                                                                                            API_drift=API_drift, API_binance=API_binance, printing=False)
                                     break
-                                except solana.rpc.core.UnconfirmedTxError as err:
-                                    print(f"Unconfirmed TX Error on sells: {err}")
-                                    time.sleep(0.5)
                                 except Exception as err:
-                                    trace = traceback.format_exc()
-                                    print(f"Error on sells: {err}\n{trace}")
+                                    if type(err) == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error on sells: {err}")
+                                        time.sleep(0.5)
+                                    else:
+                                        trace = traceback.format_exc()
+                                        print(f"Error on sells: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data,
                                                                                            API_drift=API_drift, API_binance=API_binance, printing=False)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -420,12 +421,13 @@ class LogicHandle(Initialize):
                                         print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
                                     break
-                                except solana.rpc.core.UnconfirmedTxError as err:
-                                    print(f"Unconfirmed TX Error on sells: {err}")
-                                    time.sleep(0.5)
                                 except Exception as err:
-                                    trace = traceback.format_exc()
-                                    print(f"Error on sells: {err}\n{trace}")
+                                    if type(err) == solana.rpc.core.UnconfirmedTxError:
+                                        print(f"Unconfirmed TX Error on sells: {err}")
+                                        time.sleep(0.5)
+                                    else:
+                                        trace = traceback.format_exc()
+                                        print(f"Error on sells: {err}\n{trace}")
                                     positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data,
                                                                                            API_drift=API_drift, API_binance=API_binance, printing=False)
                                     if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -436,7 +438,7 @@ class LogicHandle(Initialize):
                                     i += 1
 
             elapsed = time.time() - logic_start_time
-            if elapsed < 1.5:
+            if elapsed < 4:
                 pass
             else:
                 print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))

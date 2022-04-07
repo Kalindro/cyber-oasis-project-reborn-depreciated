@@ -254,6 +254,7 @@ def binance_futures_get_pairs_precisions_status(API):
                    fabs(Decimal(pair_data["filters"][0]["tickSize"]).normalize().as_tuple().exponent))),
          float(pair_data["filters"][2]["minQty"]) if "minQty" in pair_data["filters"][2] else 0,
          float(pair_data["filters"][5]["notional"]) if "notional" in pair_data["filters"][5] else 0] for pair_data in all_pairs]
+    pair_dataframe.drop_duplicates(subset="pair", keep="first", inplace=True)
     pair_dataframe.set_index("pair", inplace=True)
 
     return pair_dataframe
