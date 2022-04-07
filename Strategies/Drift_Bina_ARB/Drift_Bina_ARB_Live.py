@@ -1,18 +1,18 @@
 import traceback
 import os
 import datetime as dt
-import sys
 import solana
+import sys
 
-
+from multiprocessing import Process
 from colorama import Fore, Back, Style
 from pathlib import Path
 from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Futures_USDT import API_initiation as API_binance
-from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift
+from Gieldy.Binance.API_initiation_Binance_Futures_USDT import API_initiation as API_binance_1
+from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
 
 
 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -25,23 +25,91 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
 
 
-class DriftBinaARBLive:
+class Initialize:
 
     def __init__(self):
-        self.zscore_period = 240
-        self.quartile = 0.15
-        self.min_regular_gap = 0.30
-        self.min_range_gap = 0.32
-        self.leverage = 3
-        self.drift_big_N = 1_000_000
+        self.ZSCORE_PERIOD = 240
+        self.QUARTILE = 0.15
+        self.MIN_REGULAR_GAP = 0.30
+        self.MIN_RANGE_GAP = 0.32
+        self.LEVERAGE = 3
+        self.DRIFT_BIG_N = 1_000_000
+
+    @staticmethod
+    def read_historical_dataframe():
+        while True:
+            try:
+                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
+                break
+            except:
+                print("Reading historical DF CSV Fail, retrying")
+                time.sleep(0.25)
+
+        return historical_arb_df
 
     @staticmethod
     def initiate_binance():
-        return API_binance()
+        return API_binance_1()
 
     @staticmethod
     async def initiate_drift():
-        return await API_drift()
+        return await API_drift_2()
+
+
+class DataHandle(Initialize):
+    def __init__(self):
+        Initialize.__init__(self)
+
+    async def update_history_dataframe(self, historical_arb_df, API_drift, API_binance):
+        arb_df = df()
+
+        drift_prices = await drift_get_pair_prices_rates(API_drift)
+        bina_prices = binance_get_futures_pair_prices_rates(API_binance)
+        arb_df["drift_pair"] = drift_prices["market_index"]
+        arb_df["binance_pair"] = bina_prices["pair"]
+        arb_df = arb_df[["binance_pair", "drift_pair"]]
+        arb_df["bina_price"] = bina_prices["mark_price"]
+        arb_df["drift_price"] = drift_prices["mark_price"]
+        arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
+        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
+        arb_df.reset_index(inplace=True)
+        arb_df.set_index("timestamp", inplace=True)
+
+        historical_arb_df = historical_arb_df.append(arb_df)
+        historical_arb_df.reset_index(inplace=True)
+        historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
+        historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
+        historical_arb_df.set_index("timestamp", inplace=True)
+        historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
+
+        return historical_arb_df
+
+    async def run_constant_parallel_fresh_data_update(self):
+        print("Running data side...")
+        API_drift = await self.initiate_drift()
+        API_binance = self.initiate_binance()
+        historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
+
+        while True:
+            data_start_time = time.time()
+
+            historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+            historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
+
+            elapsed = time.time() - data_start_time
+            if elapsed < 1.5:
+                time.sleep(1.5 - elapsed)
+            else:
+                print("--- Data loop %s seconds ---\n" % (round(time.time() - data_start_time, 2)))
+
+    def main(self):
+            asyncio.run(self.run_constant_parallel_fresh_data_update())
+
+
+class LogicHandle(Initialize):
+
+    def __init__(self):
+        Initialize.__init__(self)
 
     @staticmethod
     def conds_inplay(row):
@@ -79,15 +147,15 @@ class DriftBinaARBLive:
             return False
 
     def conds_open_long_drift(self, row):
-        if (((row["gap_perc"] > self.min_regular_gap) or (row["avg_gap"] > self.min_regular_gap)) or (
-                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] > max(row["top_avg_gaps"], 0.12)):
+        if (((row["gap_perc"] > self.MIN_REGULAR_GAP) or (row["avg_gap"] > self.MIN_REGULAR_GAP)) or (
+                (row["gap_range"]) > self.MIN_RANGE_GAP)) and (row["gap_perc"] > max(row["top_avg_gaps"], 0.12)):
             return True
         else:
             return False
 
     def conds_open_short_drift(self, row):
-        if (((row["gap_perc"] < -self.min_regular_gap) or (row["avg_gap"] < -self.min_regular_gap)) or (
-                (row["gap_range"]) > self.min_range_gap)) and (row["gap_perc"] < min(row["bottom_avg_gaps"], -0.12)):
+        if (((row["gap_perc"] < -self.MIN_REGULAR_GAP) or (row["avg_gap"] < -self.MIN_REGULAR_GAP)) or (
+                (row["gap_range"]) > self.MIN_RANGE_GAP)) and (row["gap_perc"] < min(row["bottom_avg_gaps"], -0.12)):
             return True
         else:
             return False
@@ -106,41 +174,8 @@ class DriftBinaARBLive:
         else:
             return False
 
-    @staticmethod
-    def read_historical_dataframe():
-        try:
-            historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
-        except:
-            print("No saved DF")
-            historical_arb_df = df()
-
-        return historical_arb_df
-
-    async def update_history_dataframe(self, historical_arb_df, API_drift, API_binance):
-        arb_df = df()
-
-        drift_prices = await drift_get_pair_prices_rates(API_drift)
-        bina_prices = binance_get_futures_pair_prices_rates(API_binance)
-        arb_df["drift_pair"] = drift_prices["market_index"]
-        arb_df["binance_pair"] = bina_prices["pair"]
-        arb_df = arb_df[["binance_pair", "drift_pair"]]
-        arb_df["bina_price"] = bina_prices["mark_price"]
-        arb_df["drift_price"] = drift_prices["mark_price"]
-        arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
-        arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
-        arb_df.reset_index(inplace=True)
-        arb_df.set_index("timestamp", inplace=True)
-
-        historical_arb_df = historical_arb_df.append(arb_df)
-        historical_arb_df.reset_index(inplace=True)
-        historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
-        historical_arb_df = historical_arb_df[historical_arb_df["timestamp"] > (dt.datetime.now() - timedelta(seconds=(self.zscore_period*1.25)*5))]
-        historical_arb_df.set_index("timestamp", inplace=True)
-        historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
-
-        return historical_arb_df
-
-    def fresh_data_aggregator(self, historical_arb_df):
+    def fresh_data_aggregator(self):
+        historical_arb_df = self.read_historical_dataframe()
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
@@ -148,12 +183,12 @@ class DriftBinaARBLive:
 
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
-            frame["avg_gap"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).mean()
+            frame["avg_gap"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).mean()
             frame["avg_gap_abs"] = abs(frame["avg_gap"])
-            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
-                lambda x: np.median(sorted(x, reverse=True)[:int(self.quartile*self.zscore_period)]))
-            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.zscore_period, self.zscore_period).apply(
-                lambda x: np.median(sorted(x, reverse=False)[:int(self.quartile*self.zscore_period)]))
+            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
             frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
@@ -165,11 +200,11 @@ class DriftBinaARBLive:
         return fresh_data
 
     def binance_futures_margin_leverage_check(self, API_binance, binance_positions):
-        if (~binance_positions.leverage.isin([str(self.leverage)])).any():
+        if (~binance_positions.leverage.isin([str(self.LEVERAGE)])).any():
             for _, row in binance_positions.iterrows():
-                if row["leverage"] != self.leverage:
+                if row["leverage"] != self.LEVERAGE:
                     print("Changing leverage")
-                    binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.leverage)
+                    binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
 
         if (~binance_positions.isolated).any():
             for _, row in binance_positions.iterrows():
@@ -210,7 +245,7 @@ class DriftBinaARBLive:
                          "sum": float(binance_balances['total']) + float(drift_balances['total_collateral']),
                          "binance_play_value": float(binance_balances['total']) * 0.75,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
-                         "coin_target_value": 15 * self.leverage}
+                         "coin_target_value": 15 * self.LEVERAGE}
         # "coin_target_value": float(binance_balances['total']) * 0.5}
         if printing:
             print(f"Account value sum: {balances_dict['sum']:.2f}")
@@ -218,29 +253,18 @@ class DriftBinaARBLive:
 
         return balances_dict
 
-    async def constant_parallel_fresh_data_update(self):
-        historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
-
-        while True:
-            historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-            historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
-            fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
-            return fresh_data
-
-    async def run_constant_logic(self):
-        print("Running...")
+    async def run_constant_parallel_logic(self):
+        print("Running logic side...")
         API_drift = await self.initiate_drift()
         API_binance = self.initiate_binance()
-        historical_arb_df = self.read_historical_dataframe()
-        fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
+        fresh_data = self.fresh_data_aggregator()
         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+        print(fresh_data)
 
-        x = 0
         while True:
-            start_time = time.time()
-            historical_arb_df = self.read_historical_dataframe()
-            fresh_data = self.fresh_data_aggregator(historical_arb_df=historical_arb_df)
+            logic_start_time = time.time()
+            fresh_data = self.fresh_data_aggregator()
             best_coins_open_l = [coin for coin in fresh_data.loc[fresh_data["open_l_drift"], "symbol"]]
             best_coins_open_s = [coin for coin in fresh_data.loc[fresh_data["open_s_drift"], "symbol"]]
             play_symbols_binance_list = [coin for coin in positions_dataframe.loc[positions_dataframe["binance_inplay"]].index]
@@ -248,7 +272,10 @@ class DriftBinaARBLive:
             play_symbols_list = play_symbols_binance_list + play_symbols_drift_list + best_coins_open_s + best_coins_open_l
             play_symbols_list = list(set(play_symbols_list))
 
-            if np.isnan(fresh_data.iloc[-1]["avg_gap"]): continue
+            if np.isnan(fresh_data.iloc[-1]["avg_gap"]):
+                time.sleep(5)
+                continue
+
             for coin in play_symbols_list:
                 coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                 coin_symbol = coin_row["symbol"]
@@ -275,7 +302,7 @@ class DriftBinaARBLive:
                                     print(f"Try number: {i}")
                                     if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
                                         drift_orders = time.time()
-                                        long_drift = await drift_open_market_long(API=API_drift, amount=drift_open_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        long_drift = await drift_open_market_long(API=API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
                                         print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
                                     if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
                                         bina_orders = time.time()
@@ -316,7 +343,7 @@ class DriftBinaARBLive:
                                     print(f"Try number: {i}")
                                     if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
                                         drift_orders = time.time()
-                                        short_drift = await drift_open_market_short(API=API_drift, amount=drift_open_value*self.drift_big_N, drift_index=coin_row["drift_pair"])
+                                        short_drift = await drift_open_market_short(API=API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
                                         print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
                                     if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
                                         bina_orders = time.time()
@@ -408,26 +435,28 @@ class DriftBinaARBLive:
                                 finally:
                                     i += 1
 
-            elapsed = time.time() - start_time
+            elapsed = time.time() - logic_start_time
             if elapsed < 1.5:
-                time.sleep(1.5 - elapsed)
-            elif elapsed > 3:
-                print("--- Whole loop %s seconds ---\n" % (round(time.time() - start_time, 2)))
+                pass
+            else:
+                print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
-            x += 1
-
-    async def main(self):
-        while True:
-            try:
-                await self.run_constant_logic()
-
-            except Exception as err:
-                trace = traceback.format_exc()
-                print(f"Error: {err}\n{trace}")
-                time.sleep(5)
+    def main(self):
+            asyncio.run(self.run_constant_parallel_logic())
 
 
 if __name__ == "__main__":
-    asyncio.run(DriftBinaARBLive().main())
+    try:
+        p1 = Process(target=DataHandle().main)
+        p1.start()
+        time.sleep(5)
+        p2 = Process(target=LogicHandle().main)
+        p2.start()
+
+    except Exception as err:
+        trace = traceback.format_exc()
+        print(f"Error: {err}\n{trace}")
+        time.sleep(5)
+
 
 
