@@ -31,7 +31,7 @@ class Initialize:
         self.ZSCORE_PERIOD = 240
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.30
-        self.MIN_RANGE_GAP = 0.32
+        self.MIN_RANGE_GAP = 0.34
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -50,7 +50,7 @@ class Initialize:
                     historical_arb_df = df()
                     print("Something wrong with CSV, creating fresh")
                 else:
-                    print("Reading historical DF CSV Fail, retrying")
+                    # print("Reading historical DF CSV Fail, retrying")
                     time.sleep(0.1)
             finally:
                 i += 1
@@ -96,6 +96,7 @@ class DataHandle(Initialize):
 
     async def run_constant_parallel_fresh_data_update(self):
         print("Running data side...")
+
         API_drift = await self.initiate_drift()
         API_binance = self.initiate_binance()
         historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
@@ -108,14 +109,17 @@ class DataHandle(Initialize):
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
 
                 elapsed = time.time() - data_start_time
-                if elapsed < 1.5:
-                    time.sleep(1.5 - elapsed)
+                if elapsed < 2:
+                    time.sleep(2 - elapsed)
                 else:
                     print("--- Data loop %s seconds ---\n" % (round(time.time() - data_start_time, 2)))
 
             except Exception as err:
                 trace = traceback.format_exc()
                 print(f"Error on data: {err}\n{trace}")
+                API_drift = await self.initiate_drift()
+                API_binance = self.initiate_binance()
+                time.sleep(1)
 
     def main(self):
             asyncio.run(self.run_constant_parallel_fresh_data_update())
@@ -165,7 +169,7 @@ class LogicHandle(Initialize):
         conds1 = ((row["gap_perc"] > self.MIN_REGULAR_GAP) and (row["prev_gap"] > self.MIN_REGULAR_GAP))
         conds2 = row["avg_gap"] > self.MIN_REGULAR_GAP
         conds3 = row["gap_range"] > self.MIN_RANGE_GAP
-        conds4 = ((row["gap_perc"] > max(row["top_avg_gaps"], 0.12)) and (row["prev_gap"] > max(row["top_avg_gaps"], 0.12)))
+        conds4 = ((row["gap_perc"] > max(row["top_avg_gaps"], 0.14)) and (row["prev_gap"] > max(row["top_avg_gaps"], 0.14)))
         if (conds1 or conds2 or conds3) and conds4:
             return True
         else:
@@ -175,7 +179,7 @@ class LogicHandle(Initialize):
         conds1 = ((row["gap_perc"] < -self.MIN_REGULAR_GAP) and (row["prev_gap"] < -self.MIN_REGULAR_GAP))
         conds2 = row["avg_gap"] < -self.MIN_REGULAR_GAP
         conds3 = row["gap_range"] > self.MIN_RANGE_GAP
-        conds4 = ((row["gap_perc"] < min(row["bottom_avg_gaps"], -0.12)) and (row["prev_gap"] < min(row["bottom_avg_gaps"], -0.12)))
+        conds4 = ((row["gap_perc"] < min(row["bottom_avg_gaps"], -0.14)) and (row["prev_gap"] < min(row["bottom_avg_gaps"], -0.14)))
         if (conds1 or conds2 or conds3) and conds4:
             return True
         else:
@@ -207,6 +211,7 @@ class LogicHandle(Initialize):
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["prev_gap"] = frame["gap_perc"].shift(1)
+            frame["gap_abs"] = abs(frame["gap_perc"])
             frame["avg_gap"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).mean()
             frame["avg_gap_abs"] = abs(frame["avg_gap"])
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
@@ -220,7 +225,7 @@ class LogicHandle(Initialize):
             frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
 
-        fresh_data.sort_values(by=["gap_range"], inplace=True)
+        fresh_data.sort_values(by=["gap_abs"], inplace=True)
 
         return fresh_data
 
@@ -304,7 +309,7 @@ class LogicHandle(Initialize):
 
                 if np.isnan(fresh_data.iloc[-1]["avg_gap"]):
                     print("Not enough data, logic sleeping...")
-                    time.sleep(30)
+                    time.sleep(45)
                     continue
 
                 for coin in play_symbols_list:
@@ -471,6 +476,9 @@ class LogicHandle(Initialize):
             except Exception as err:
                 trace = traceback.format_exc()
                 print(f"Error on logic: {err}\n{trace}")
+                API_drift = await self.initiate_drift()
+                API_binance = self.initiate_binance()
+                time.sleep(1)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
@@ -487,3 +495,4 @@ if __name__ == "__main__":
     except Exception as err:
         trace = traceback.format_exc()
         print(f"Error on name main: {err}\n{trace}")
+        time.sleep(1)
