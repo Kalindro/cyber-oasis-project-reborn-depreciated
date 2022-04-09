@@ -10,7 +10,7 @@ from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Futures_USDT import API_initiation as API_binance
+from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance
 from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift
 
 

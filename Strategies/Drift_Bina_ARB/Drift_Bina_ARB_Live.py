@@ -2,7 +2,6 @@ import traceback
 import os
 import datetime as dt
 import solana
-import sys
 
 from multiprocessing import Process
 from colorama import Fore, Back, Style
@@ -11,7 +10,7 @@ from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Futures_USDT import API_initiation as API_binance_1
+from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance_1
 from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
 
 
@@ -30,8 +29,10 @@ class Initialize:
     def __init__(self):
         self.ZSCORE_PERIOD = 240
         self.QUARTILE = 0.15
-        self.MIN_REGULAR_GAP = 0.30
-        self.MIN_RANGE_GAP = 0.34
+        self.MIN_REGULAR_GAP = 0.32
+        self.MIN_GAP_ON_RANGE = 0.14
+        self.MIN_CLOSING_GAP = 0.05
+        self.MIN_RANGE = 0.34
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -165,37 +166,53 @@ class LogicHandle(Initialize):
         else:
             return False
 
+    # def conds_open_long_drift(self, row):
+    #     conds1 = ((row["gap_perc"] > self.MIN_REGULAR_GAP) and (row["prev_gap"] > self.MIN_REGULAR_GAP))
+    #     conds2 = row["avg_gap"] > self.MIN_REGULAR_GAP
+    #     conds3 = row["gap_range"] > self.MIN_RANGE_GAP
+    #     conds4 = ((row["gap_perc"] > max(row["top_avg_gaps"], 0.13)) and (row["prev_gap"] > max(row["top_avg_gaps"], 0.13)))
+    #     if (conds1 or conds2 or conds3) and conds4:
+    #         return True
+    #     else:
+    #         return False
+
     def conds_open_long_drift(self, row):
-        conds1 = ((row["gap_perc"] > self.MIN_REGULAR_GAP) and (row["prev_gap"] > self.MIN_REGULAR_GAP))
-        conds2 = row["avg_gap"] > self.MIN_REGULAR_GAP
-        conds3 = row["gap_range"] > self.MIN_RANGE_GAP
-        conds4 = ((row["gap_perc"] > max(row["top_avg_gaps"], 0.14)) and (row["prev_gap"] > max(row["top_avg_gaps"], 0.14)))
-        if (conds1 or conds2 or conds3) and conds4:
+        conds1 = ((row["gap_perc"] > self.MIN_GAP_ON_RANGE) and (row["prev_gap"] > self.MIN_GAP_ON_RANGE))
+        conds2 = row["gap_range"] > self.MIN_RANGE
+        conds3 = ((row["gap_perc"] > row["top_avg_gaps"]) and (row["prev_gap"] > row["top_avg_gaps"]))
+        if conds1 and conds2 and conds3:
             return True
         else:
             return False
+
+    # def conds_open_short_drift(self, row):
+    #     conds1 = ((row["gap_perc"] < -self.MIN_REGULAR_GAP) and (row["prev_gap"] < -self.MIN_REGULAR_GAP))
+    #     conds2 = row["avg_gap"] < -self.MIN_REGULAR_GAP
+    #     conds3 = row["gap_range"] > self.MIN_RANGE_GAP
+    #     conds4 = ((row["gap_perc"] < min(row["bottom_avg_gaps"], -0.13)) and (row["prev_gap"] < min(row["bottom_avg_gaps"], -0.13)))
+    #     if (conds1 or conds2 or conds3) and conds4:
+    #         return True
+    #     else:
+    #         return False
 
     def conds_open_short_drift(self, row):
-        conds1 = ((row["gap_perc"] < -self.MIN_REGULAR_GAP) and (row["prev_gap"] < -self.MIN_REGULAR_GAP))
-        conds2 = row["avg_gap"] < -self.MIN_REGULAR_GAP
-        conds3 = row["gap_range"] > self.MIN_RANGE_GAP
-        conds4 = ((row["gap_perc"] < min(row["bottom_avg_gaps"], -0.14)) and (row["prev_gap"] < min(row["bottom_avg_gaps"], -0.14)))
-        if (conds1 or conds2 or conds3) and conds4:
+        conds1 = ((row["gap_perc"] < -self.MIN_GAP_ON_RANGE) and (row["prev_gap"] < -self.MIN_GAP_ON_RANGE))
+        conds2 = row["gap_range"] > self.MIN_RANGE
+        conds3 = ((row["gap_perc"] < row["bottom_avg_gaps"]) and (row["prev_gap"] < row["bottom_avg_gaps"]))
+        if conds1 and conds2 and conds3:
             return True
         else:
             return False
 
-    @staticmethod
-    def conds_close_long_drift(row):
-        cond = min(row["bottom_avg_gaps"], -0.05)
+    def conds_close_long_drift(self, row):
+        cond = min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
         if (row["gap_perc"] < cond) and (row["prev_gap"] < cond):
             return True
         else:
             return False
 
-    @staticmethod
-    def conds_close_short_drift(row):
-        cond = max(row["top_avg_gaps"], 0.05)
+    def conds_close_short_drift(self, row):
+        cond = max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
         if (row["gap_perc"] > cond) and (row["prev_gap"] > cond):
             return True
         else:
@@ -225,7 +242,7 @@ class LogicHandle(Initialize):
             frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
 
-        fresh_data.sort_values(by=["gap_abs"], inplace=True)
+        fresh_data.sort_values(by=["gap_range"], inplace=True)
 
         return fresh_data
 
@@ -314,6 +331,7 @@ class LogicHandle(Initialize):
 
                 for coin in play_symbols_list:
                     fresh_data = self.fresh_data_aggregator()
+                    positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
                     coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                     coin_symbol = coin_row["symbol"]
                     coin_pair = coin_row["binance_pair"]
@@ -345,11 +363,11 @@ class LogicHandle(Initialize):
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
-                                            time.sleep(0.5)
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                     finally:
+                                        time.sleep(5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -387,6 +405,7 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                     finally:
+                                        time.sleep(5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -422,6 +441,7 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                     finally:
+                                        time.sleep(5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -453,6 +473,7 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                     finally:
+                                        time.sleep(5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
