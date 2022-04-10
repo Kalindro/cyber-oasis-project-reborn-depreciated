@@ -27,12 +27,13 @@ project_path = Path(current_path).parent.parent
 class Initialize:
 
     def __init__(self):
-        self.ZSCORE_PERIOD = 240
-        self.QUARTILE = 0.15
+        self.ZSCORE_PERIOD = 360
+        self.QUARTILE = 0.10
+        self.MIN_HUGE_GAP = 0.45
         self.MIN_REGULAR_GAP = 0.32
+        self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
-        self.MIN_CLOSING_GAP = 0.05
-        self.MIN_RANGE = 0.34
+        self.MIN_CLOSING_GAP = 0.00
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -177,8 +178,10 @@ class LogicHandle(Initialize):
     def conds_open_long_drift(self, row):
         conds1 = ((row["gap_perc"] > self.MIN_GAP_ON_RANGE) and (row["prev_gap"] > self.MIN_GAP_ON_RANGE))
         conds2 = row["gap_range"] > self.MIN_RANGE
-        conds3 = ((row["gap_perc"] > row["top_avg_gaps"]) and (row["prev_gap"] > row["top_avg_gaps"]))
-        if conds1 and conds2 and conds3:
+        conds3 = False
+        # conds3 = ((row["gap_perc"] > self.MIN_HUGE_GAP) and (row["prev_gap"] > self.MIN_HUGE_GAP))
+        conds4 = ((row["gap_perc"] >= row["top_avg_gaps"]) and (row["prev_gap"] >= row["top_avg_gaps"]))
+        if ((conds1 and conds2) or conds3) and conds4:
             return True
         else:
             return False
@@ -196,21 +199,25 @@ class LogicHandle(Initialize):
     def conds_open_short_drift(self, row):
         conds1 = ((row["gap_perc"] < -self.MIN_GAP_ON_RANGE) and (row["prev_gap"] < -self.MIN_GAP_ON_RANGE))
         conds2 = row["gap_range"] > self.MIN_RANGE
-        conds3 = ((row["gap_perc"] < row["bottom_avg_gaps"]) and (row["prev_gap"] < row["bottom_avg_gaps"]))
-        if conds1 and conds2 and conds3:
+        conds3 = False
+        # conds3 = ((row["gap_perc"] < -self.MIN_HUGE_GAP) and (row["prev_gap"] < -self.MIN_HUGE_GAP))
+        conds4 = ((row["gap_perc"] <= row["bottom_avg_gaps"]) and (row["prev_gap"] <= row["bottom_avg_gaps"]))
+        if ((conds1 and conds2) or conds3) and conds4:
             return True
         else:
             return False
 
-    def conds_close_long_drift(self, row):
-        cond = min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
+    @staticmethod
+    def conds_close_long_drift( row):
+        cond = row["bottom_avg_gaps"]
         if (row["gap_perc"] < cond) and (row["prev_gap"] < cond):
             return True
         else:
             return False
 
-    def conds_close_short_drift(self, row):
-        cond = max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
+    @staticmethod
+    def conds_close_short_drift(row):
+        cond = row["top_avg_gaps"]
         if (row["gap_perc"] > cond) and (row["prev_gap"] > cond):
             return True
         else:
@@ -303,6 +310,7 @@ class LogicHandle(Initialize):
         print("Running logic side...")
         API_drift = await self.initiate_drift()
         API_binance = self.initiate_binance()
+        precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
         fresh_data = self.fresh_data_aggregator()
         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
@@ -337,8 +345,6 @@ class LogicHandle(Initialize):
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < 2):
                         if coin_row["open_l_drift"]:
-                            precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
-                            balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
@@ -357,6 +363,10 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             short_binance = binance_futures_open_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                        time.sleep(5)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
@@ -364,7 +374,6 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(5)
-                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -374,8 +383,6 @@ class LogicHandle(Initialize):
                                         i += 1
 
                         elif coin_row["open_s_drift"]:
-                            precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
-                            balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
@@ -394,6 +401,10 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             long_binance = binance_futures_open_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                        time.sleep(5)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
@@ -401,7 +412,6 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(5)
-                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -411,7 +421,6 @@ class LogicHandle(Initialize):
                                         i += 1
 
                     else:
-                        precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
                         if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
@@ -429,6 +438,10 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             close_binance_short = binance_futures_close_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                        time.sleep(5)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
@@ -436,7 +449,6 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(5)
-                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -460,6 +472,10 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             close_binance_long = binance_futures_close_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                        time.sleep(5)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
@@ -467,7 +483,6 @@ class LogicHandle(Initialize):
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(5)
-                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -477,13 +492,14 @@ class LogicHandle(Initialize):
                                         i += 1
 
                 elapsed = time.time() - logic_start_time
-                if elapsed < 4:
+                if elapsed < 2:
+                    time.sleep(2 - elapsed)
                     pass
                 else:
                     print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 50:
-                    balances = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                    balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     x = 0
 
                 x += 1
