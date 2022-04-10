@@ -118,8 +118,6 @@ class DataHandle(Initialize):
             except Exception as err:
                 trace = traceback.format_exc()
                 print(f"Error on data: {err}\n{trace}")
-                API_drift = await self.initiate_drift()
-                API_binance = self.initiate_binance()
                 time.sleep(1)
 
     def main(self):
@@ -259,7 +257,7 @@ class LogicHandle(Initialize):
                     print("Changing margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
 
-    async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True):
+    async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
         playable_coins_list = fresh_data.symbol.unique()
         binance_positions = binance_futures_positions(API_binance)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins_list)]
@@ -280,7 +278,8 @@ class LogicHandle(Initialize):
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
         if printing:
             print(positions_dataframe)
-        time.sleep(1.5)
+        if sleeping:
+            time.sleep(1.5)
 
         return positions_dataframe
 
@@ -305,10 +304,9 @@ class LogicHandle(Initialize):
         API_drift = await self.initiate_drift()
         API_binance = self.initiate_binance()
         fresh_data = self.fresh_data_aggregator()
-        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
         print(fresh_data)
-        time.sleep(3)
 
         x = 0
         while True:
@@ -326,12 +324,11 @@ class LogicHandle(Initialize):
 
                 if np.isnan(fresh_data.iloc[-1]["avg_gap"]):
                     print("Not enough data, logic sleeping...")
-                    time.sleep(45)
+                    time.sleep(15)
                     continue
 
                 for coin in play_symbols_list:
                     fresh_data = self.fresh_data_aggregator()
-                    positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift, API_binance=API_binance)
                     coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                     coin_symbol = coin_row["symbol"]
                     coin_pair = coin_row["binance_pair"]
@@ -366,8 +363,8 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                    finally:
                                         time.sleep(5)
+                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -400,12 +397,11 @@ class LogicHandle(Initialize):
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
-                                            time.sleep(0.5)
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                    finally:
                                         time.sleep(5)
+                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -436,12 +432,11 @@ class LogicHandle(Initialize):
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
-                                            time.sleep(0.5)
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                    finally:
                                         time.sleep(5)
+                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -468,12 +463,11 @@ class LogicHandle(Initialize):
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
                                             print(f"Unconfirmed TX Error on buys: {err}")
-                                            time.sleep(0.5)
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                    finally:
                                         time.sleep(5)
+                                    finally:
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -497,8 +491,6 @@ class LogicHandle(Initialize):
             except Exception as err:
                 trace = traceback.format_exc()
                 print(f"Error on logic: {err}\n{trace}")
-                API_drift = await self.initiate_drift()
-                API_binance = self.initiate_binance()
                 time.sleep(1)
 
     def main(self):
