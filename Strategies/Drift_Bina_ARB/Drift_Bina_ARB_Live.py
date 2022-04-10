@@ -28,12 +28,12 @@ class Initialize:
 
     def __init__(self):
         self.ZSCORE_PERIOD = 360
-        self.QUARTILE = 0.10
+        self.QUARTILE = 0.15
         self.MIN_HUGE_GAP = 0.45
-        self.MIN_REGULAR_GAP = 0.32
+        self.MIN_REGULAR_GAP = 0.34
         self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
-        self.MIN_CLOSING_GAP = 0.00
+        self.MIN_CLOSING_GAP = 0.10
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -176,12 +176,11 @@ class LogicHandle(Initialize):
     #         return False
 
     def conds_open_long_drift(self, row):
-        conds1 = ((row["gap_perc"] > self.MIN_GAP_ON_RANGE) and (row["prev_gap"] > self.MIN_GAP_ON_RANGE))
+        conds1 = row["gap_perc"] > self.MIN_GAP_ON_RANGE
         conds2 = row["gap_range"] > self.MIN_RANGE
-        conds3 = False
-        # conds3 = ((row["gap_perc"] > self.MIN_HUGE_GAP) and (row["prev_gap"] > self.MIN_HUGE_GAP))
-        conds4 = ((row["gap_perc"] >= row["top_avg_gaps"]) and (row["prev_gap"] >= row["top_avg_gaps"]))
-        if ((conds1 and conds2) or conds3) and conds4:
+        conds3 = row["gap_perc"] > self.MIN_REGULAR_GAP
+        conds4 = row["gap_perc"] >= row["top_avg_gaps"]
+        if conds3 and conds4:
             return True
         else:
             return False
@@ -197,28 +196,25 @@ class LogicHandle(Initialize):
     #         return False
 
     def conds_open_short_drift(self, row):
-        conds1 = ((row["gap_perc"] < -self.MIN_GAP_ON_RANGE) and (row["prev_gap"] < -self.MIN_GAP_ON_RANGE))
+        conds1 = row["gap_perc"] < -self.MIN_GAP_ON_RANGE
         conds2 = row["gap_range"] > self.MIN_RANGE
-        conds3 = False
-        # conds3 = ((row["gap_perc"] < -self.MIN_HUGE_GAP) and (row["prev_gap"] < -self.MIN_HUGE_GAP))
-        conds4 = ((row["gap_perc"] <= row["bottom_avg_gaps"]) and (row["prev_gap"] <= row["bottom_avg_gaps"]))
-        if ((conds1 and conds2) or conds3) and conds4:
+        conds3 = row["gap_perc"] < -self.MIN_REGULAR_GAP
+        conds4 = row["gap_perc"] <= row["bottom_avg_gaps"]
+        if conds3 and conds4:
             return True
         else:
             return False
 
-    @staticmethod
-    def conds_close_long_drift( row):
-        cond = row["bottom_avg_gaps"]
-        if (row["gap_perc"] < cond) and (row["prev_gap"] < cond):
+    def conds_close_long_drift(self, row):
+        cond = row["gap_perc"] < min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
+        if cond:
             return True
         else:
             return False
 
-    @staticmethod
-    def conds_close_short_drift(row):
-        cond = row["top_avg_gaps"]
-        if (row["gap_perc"] > cond) and (row["prev_gap"] > cond):
+    def conds_close_short_drift(self, row):
+        cond = row["gap_perc"] > max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
+        if cond:
             return True
         else:
             return False
@@ -232,7 +228,6 @@ class LogicHandle(Initialize):
 
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
-            frame["prev_gap"] = frame["gap_perc"].shift(1)
             frame["gap_abs"] = abs(frame["gap_perc"])
             frame["avg_gap"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).mean()
             frame["avg_gap_abs"] = abs(frame["avg_gap"])
@@ -349,7 +344,7 @@ class LogicHandle(Initialize):
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
                             if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while True:
@@ -387,7 +382,7 @@ class LogicHandle(Initialize):
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
                             if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while True:
@@ -424,7 +419,7 @@ class LogicHandle(Initialize):
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
                         if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while True:
@@ -458,7 +453,7 @@ class LogicHandle(Initialize):
                                         i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 i = 1
                                 while True:
@@ -494,9 +489,9 @@ class LogicHandle(Initialize):
                 elapsed = time.time() - logic_start_time
                 if elapsed < 2:
                     time.sleep(2 - elapsed)
-                    pass
                 else:
-                    print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
+                    pass
+                    # print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 50:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
