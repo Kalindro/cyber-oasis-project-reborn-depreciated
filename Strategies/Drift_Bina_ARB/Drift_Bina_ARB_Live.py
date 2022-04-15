@@ -498,8 +498,8 @@ class LogicHandle(Initialize):
                     pass
                     # print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
-                if x > 25:
-                    # balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                if x > 100:
+                    balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     x = 0
 
                 x += 1
