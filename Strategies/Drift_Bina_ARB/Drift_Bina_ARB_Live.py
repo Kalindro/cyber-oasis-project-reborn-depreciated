@@ -40,6 +40,7 @@ class Initialize:
         self.MIN_GAP_ON_RANGE = 0.14
         self.MIN_CLOSING_GAP = 0.08
         self.LEVERAGE = 3
+        self.COINS_AT_ONCE = 5
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
 
@@ -287,8 +288,8 @@ class LogicHandle(Initialize):
                          "sum": float(binance_balances['total']) + float(drift_balances['total_collateral']),
                          "binance_play_value": float(binance_balances['total']) * 0.75,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
-                         "coin_target_value": 15 * self.LEVERAGE}
-                            # "coin_target_value": float(binance_balances['total']) * 0.5}
+                         "coin_target_value": float(binance_balances['total']) * 0.75 * self.COINS_AT_ONCE * self.LEVERAGE}
+                         # "coin_target_value": 15 * self.LEVERAGE}
         if printing:
             print(Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
@@ -335,7 +336,7 @@ class LogicHandle(Initialize):
                     if positions_dataframe["imbalance"].any():
                         print("Hitler!!!")
 
-                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < 5):
+                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
