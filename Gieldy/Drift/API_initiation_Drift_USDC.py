@@ -6,7 +6,6 @@ import os
 import warnings
 import sys
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
