@@ -2,6 +2,7 @@ import traceback
 import os
 import datetime as dt
 import solana
+import sys
 
 from multiprocessing import Process
 from colorama import Fore, Back, Style
@@ -14,7 +15,10 @@ from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiati
 from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
 
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+if sys.platform == "win32" and sys.version_info.minor >= 8:
+        asyncio.set_event_loop_policy(
+            asyncio.WindowsSelectorEventLoopPolicy()
+        )
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
