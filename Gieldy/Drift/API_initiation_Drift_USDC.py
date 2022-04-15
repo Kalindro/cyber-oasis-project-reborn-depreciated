@@ -14,7 +14,7 @@ name = "Drift USDC"
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
-os.environ["ANCHOR_WALLET"] = f"{project_path}\Gieldy\APIs\Solana_Drift_Bina_ARB.json"
+os.environ["ANCHOR_WALLET"] = f"{project_path}/Gieldy/APIs/Solana_Drift_Bina_ARB.json"
 
 
 async def API_initiation():
