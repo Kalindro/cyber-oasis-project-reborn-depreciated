@@ -286,14 +286,14 @@ class LogicHandle(Initialize):
         balances_dict = {"binance": float(binance_balances['total']),
                          "drift": float(drift_balances['total_collateral']),
                          "sum": float(binance_balances['total']) + float(drift_balances['total_collateral']),
-                         "binance_play_value": float(binance_balances['total']) * 0.75,
-                         "drift_play_value": float(drift_balances['total_collateral']) * 0.75,
-                         "coin_target_value": float(binance_balances['total']) * 0.75 * self.COINS_AT_ONCE * self.LEVERAGE}
+                         "binance_play_value": float(binance_balances['total']) * 0.80,
+                         "drift_play_value": float(drift_balances['total_collateral']) * 0.80,
+                         "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
                          # "coin_target_value": 15 * self.LEVERAGE}
         if printing:
             print(Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
-
+        print(balances_dict)
         return balances_dict
 
     async def run_constant_parallel_logic(self):
