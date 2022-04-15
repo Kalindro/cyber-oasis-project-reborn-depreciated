@@ -293,7 +293,7 @@ class LogicHandle(Initialize):
         if printing:
             print(Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
-        print(balances_dict)
+
         return balances_dict
 
     async def run_constant_parallel_logic(self):
