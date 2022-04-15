@@ -28,12 +28,13 @@ class Initialize:
 
     def __init__(self):
         self.ZSCORE_PERIOD = 360
+        self.FAST_AVG = 18
         self.QUARTILE = 0.15
         self.MIN_HUGE_GAP = 0.45
         self.MIN_REGULAR_GAP = 0.42
         self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
-        self.MIN_CLOSING_GAP = 0.10
+        self.MIN_CLOSING_GAP = 0.08
         self.LEVERAGE = 3
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -176,7 +177,9 @@ class LogicHandle(Initialize):
     def conds_open_long_drift(self, row):
         conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
         conds2 = row["gap_perc"] >= row["top_avg_gaps"]
-        if conds1 and conds2:
+        conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
+        conds4 = row["fast_avg_gap"] >= row["top_avg_gaps"]
+        if conds1 and conds2 and conds3 and conds4:
             return True
         else:
             return False
@@ -184,21 +187,25 @@ class LogicHandle(Initialize):
     def conds_open_short_drift(self, row):
         conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
         conds2 = row["gap_perc"] <= row["bottom_avg_gaps"]
-        if conds1 and conds2:
+        conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
+        conds4 = row["fast_avg_gap"] <= row["bottom_avg_gaps"]
+        if conds1 and conds2 and conds3 and conds4:
             return True
         else:
             return False
 
     def conds_close_long_drift(self, row):
-        cond = row["gap_perc"] < min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
-        if cond:
+        conds1 = row["gap_perc"] < min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
+        conds2 = row["fast_avg_gap"] < min(row["bottom_avg_gaps"], -self.MIN_CLOSING_GAP)
+        if conds1 and conds2:
             return True
         else:
             return False
 
     def conds_close_short_drift(self, row):
-        cond = row["gap_perc"] > max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
-        if cond:
+        conds1 = row["gap_perc"] > max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
+        conds2 = row["fast_avg_gap"] > max(row["top_avg_gaps"], self.MIN_CLOSING_GAP)
+        if conds1 and conds2:
             return True
         else:
             return False
@@ -213,13 +220,11 @@ class LogicHandle(Initialize):
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["gap_abs"] = abs(frame["gap_perc"])
-            frame["avg_gap"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).mean()
-            frame["avg_gap_abs"] = abs(frame["avg_gap"])
+            frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median()
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
-            frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
             frame["open_somewhere"] = frame.apply(lambda row: self.conds_open_somewhere(row), axis=1)
@@ -310,7 +315,7 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
-                if np.isnan(fresh_data.iloc[-1]["avg_gap"]):
+                if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     # print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(5)
                     continue
@@ -322,6 +327,9 @@ class LogicHandle(Initialize):
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
+
+                    if positions_dataframe["imbalance"].any():
+                        print("Hitler!!!")
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < 5):
                         if coin_row["open_l_drift"]:
@@ -343,7 +351,9 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             short_binance = binance_futures_open_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(1.5)
+                                        balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                                        time.sleep(1.5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         break
@@ -353,7 +363,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(30)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -381,7 +391,9 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             long_binance = binance_futures_open_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(1.5)
+                                        balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                                        time.sleep(1.5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         break
@@ -391,7 +403,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(30)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -418,7 +430,9 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             close_binance_short = binance_futures_close_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(1.5)
+                                        balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                                        time.sleep(1.5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         break
@@ -428,7 +442,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(30)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -452,7 +466,9 @@ class LogicHandle(Initialize):
                                             bina_orders = time.time()
                                             close_binance_long = binance_futures_close_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(1.5)
+                                        balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                                        time.sleep(1.5)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         break
@@ -462,7 +478,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(30)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -479,7 +495,7 @@ class LogicHandle(Initialize):
                     # print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 25:
-                    balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                    # balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     x = 0
 
                 x += 1
