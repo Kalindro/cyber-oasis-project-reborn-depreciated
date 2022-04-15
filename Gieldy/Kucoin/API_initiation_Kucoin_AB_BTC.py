@@ -12,7 +12,7 @@ def API_initiation():
     project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{project_path}\Gieldy\APIs\Kucoin_AB_BTC.ini")
+    parser.read(f"{project_path}/Gieldy/APIs/Kucoin_AB_BTC.ini")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
