@@ -1,6 +1,8 @@
 import traceback
 import os
 import datetime as dt
+
+import httpcore
 import solana
 import sys
 
@@ -124,8 +126,11 @@ class DataHandle(Initialize):
                     print("--- Data loop %s seconds ---\n" % (round(time.time() - data_start_time, 2)))
 
             except Exception as err:
-                trace = traceback.format_exc()
-                print(f"Error on data: {err}\n{trace}")
+                if type(err) == httpcore.ReadTimeout:
+                    print(f"Read timeout: {err}")
+                else:
+                    trace = traceback.format_exc()
+                    print(f"Error on data: {err}\n{trace}")
                 time.sleep(1)
 
     def main(self):
@@ -506,9 +511,12 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
-                trace = traceback.format_exc()
-                print(f"Error on logic: {err}\n{trace}")
-                time.sleep(1)
+                if type(err) == httpcore.ReadTimeout:
+                    print(f"Read timeout: {err}")
+                else:
+                    trace = traceback.format_exc()
+                    print(f"Error on logic: {err}\n{trace}")
+            time.sleep(1)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
@@ -523,6 +531,9 @@ if __name__ == "__main__":
         p2.start()
 
     except Exception as err:
-        trace = traceback.format_exc()
-        print(f"Error on name main: {err}\n{trace}")
-        time.sleep(1)
+        if type(err) == httpcore.ReadTimeout:
+            print(f"Read timeout: {err}")
+        else:
+            trace = traceback.format_exc()
+            print(f"Error on main: {err}\n{trace}")
+    time.sleep(1)
