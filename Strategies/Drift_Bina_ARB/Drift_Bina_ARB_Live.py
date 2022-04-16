@@ -279,7 +279,7 @@ class LogicHandle(Initialize):
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
         if printing:
-            print(f"{dt.datetime.now()}: {positions_dataframe}")
+            print(positions_dataframe)
         if sleeping:
             time.sleep(1.5)
 
@@ -296,7 +296,7 @@ class LogicHandle(Initialize):
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
                          # "coin_target_value": 15 * self.LEVERAGE}
         if printing:
-            print(Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
+            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
 
         return balances_dict
@@ -502,7 +502,7 @@ class LogicHandle(Initialize):
                     time.sleep(2 - elapsed)
                 elif elapsed > 5:
                     pass
-                    # print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
+                    print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 100:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
