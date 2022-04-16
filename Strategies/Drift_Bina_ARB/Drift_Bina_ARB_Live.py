@@ -274,7 +274,7 @@ class LogicHandle(Initialize):
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
         if printing:
-            print(positions_dataframe)
+            print(f"{dt.datetime.now()}: {positions_dataframe}")
         if sleeping:
             time.sleep(1.5)
 
