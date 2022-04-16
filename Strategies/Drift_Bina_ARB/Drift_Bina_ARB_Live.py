@@ -296,7 +296,7 @@ class LogicHandle(Initialize):
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
                          # "coin_target_value": 15 * self.LEVERAGE}
         if printing:
-            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
+            print(round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5)) + " " + Fore.GREEN + f"Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
 
         return balances_dict
