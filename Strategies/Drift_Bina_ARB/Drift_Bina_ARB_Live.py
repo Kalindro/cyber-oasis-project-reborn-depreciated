@@ -342,12 +342,12 @@ class LogicHandle(Initialize):
                     print(coin)
                     x = time.time()
                     fresh_data = self.fresh_data_aggregator()
+                    print(time.time() - x)
                     coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                     coin_symbol = coin_row["symbol"]
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
-                    print(time.time() - x)
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
