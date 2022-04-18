@@ -229,14 +229,17 @@ class LogicHandle(Initialize):
             return False
 
     def fresh_data_aggregator(self):
+        fresh_data = df()
+
+        x = time.time()
         historical_arb_df = self.read_historical_dataframe()
+        print(time.time() - x)
+
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
-        x = time.time()
-        fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["gap_abs"] = abs(frame["gap_perc"])
             frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median()
@@ -252,7 +255,6 @@ class LogicHandle(Initialize):
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
-        print(time.time() - x)
         return fresh_data
 
     def binance_futures_margin_leverage_check(self, API_binance, binance_positions):
