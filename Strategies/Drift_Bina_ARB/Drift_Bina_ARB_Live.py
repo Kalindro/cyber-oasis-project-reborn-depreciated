@@ -331,7 +331,7 @@ class LogicHandle(Initialize):
                 play_symbols_list_pre = play_symbols_binance_list + play_symbols_drift_list + best_coins_open
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
-                print(play_symbols_list_final)
+
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     # print("Not enough data or wrong load, logic sleeping...")
@@ -340,15 +340,14 @@ class LogicHandle(Initialize):
 
                 for coin in play_symbols_list_final:
                     print(coin)
+                    x = time.time()
                     fresh_data = self.fresh_data_aggregator()
                     coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                     coin_symbol = coin_row["symbol"]
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
-
-                    if positions_dataframe["imbalance"].any():
-                        print("Hitler!!!")
+                    print(time.time() - x)
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
