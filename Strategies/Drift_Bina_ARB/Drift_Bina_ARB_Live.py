@@ -233,7 +233,6 @@ class LogicHandle(Initialize):
 
         historical_arb_df = self.read_historical_dataframe()
 
-        x = time.time()
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
@@ -254,7 +253,7 @@ class LogicHandle(Initialize):
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
-        print(time.time() - x)
+        fresh_data.set_index("symbol", inplace=True)
 
         return fresh_data
 
@@ -272,7 +271,7 @@ class LogicHandle(Initialize):
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
 
     async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
-        playable_coins_list = fresh_data.symbol.unique()
+        playable_coins_list = fresh_data.index.unique()
         binance_positions = binance_futures_positions(API_binance)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins_list)]
         drift_positions = await drift_load_positions(API_drift)
@@ -284,7 +283,7 @@ class LogicHandle(Initialize):
         positions_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
         positions_dataframe.fillna(0, inplace=True)
         positions_dataframe["binance_pair"] = binance_positions["pair"]
-        positions_dataframe["drift_pair"] = (fresh_data.set_index("symbol").loc[positions_dataframe.index, "drift_pair"]).astype(int)
+        positions_dataframe["drift_pair"] = fresh_data.loc[positions_dataframe.index, "drift_pair"].astype(int)
         positions_dataframe["inplay"] = positions_dataframe.apply(lambda row: self.conds_inplay(row), axis=1)
         positions_dataframe["noplay"] = positions_dataframe.apply(lambda row: self.conds_noplay(row), axis=1)
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
@@ -329,7 +328,7 @@ class LogicHandle(Initialize):
                 logic_start_time = time.time()
                 fresh_data = self.fresh_data_aggregator()
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
-                best_coins_open = [coin for coin in play_dataframe.symbol]
+                best_coins_open = [coin for coin in play_dataframe.index]
                 best_coins_open.reverse()
                 play_symbols_binance_list = [coin for coin in positions_dataframe.loc[positions_dataframe["binance_inplay"]].index]
                 play_symbols_drift_list = [coin for coin in positions_dataframe.loc[positions_dataframe["drift_inplay"]].index]
@@ -343,10 +342,9 @@ class LogicHandle(Initialize):
                     continue
 
                 for coin in play_symbols_list_final:
-                    x = time.time()
                     fresh_data = self.fresh_data_aggregator()
-                    coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
-                    coin_symbol = coin_row["symbol"]
+                    coin_row = fresh_data.loc[coin]
+                    coin_symbol = coin
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
