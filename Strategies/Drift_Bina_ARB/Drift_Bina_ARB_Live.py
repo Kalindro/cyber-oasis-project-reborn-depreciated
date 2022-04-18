@@ -112,6 +112,7 @@ class DataHandle(Initialize):
         API_binance = self.initiate_binance()
         historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
 
+        x = 0
         while True:
             try:
                 data_start_time = time.time()
@@ -123,7 +124,13 @@ class DataHandle(Initialize):
                 if elapsed < 2:
                     time.sleep(2 - elapsed)
                 elif elapsed > 3:
-                    print("--- Data loop %s seconds ---\n" % (round(time.time() - data_start_time, 2)))
+                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.time() - data_start_time, 2)))
+
+                if x > 100:
+                    balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                    API_drift = await self.initiate_drift()
+                    API_binance = self.initiate_binance()
+                    x = 0
 
             except Exception as err:
                 if type(err) == httpcore.ReadTimeout:
@@ -502,10 +509,12 @@ class LogicHandle(Initialize):
                     time.sleep(2 - elapsed)
                 elif elapsed > 5:
                     pass
-                    print("--- Logic loop %s seconds ---\n" % (round(time.time() - logic_start_time, 2)))
+                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 100:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
+                    API_drift = await self.initiate_drift()
+                    API_binance = self.initiate_binance()
                     x = 0
 
                 x += 1
