@@ -507,7 +507,7 @@ class LogicHandle(Initialize):
                     time.sleep(2 - elapsed)
                 elif elapsed > 5:
                     pass
-                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
+                    # print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 100:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
