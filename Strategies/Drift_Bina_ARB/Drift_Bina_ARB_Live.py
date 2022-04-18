@@ -127,10 +127,11 @@ class DataHandle(Initialize):
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.time() - data_start_time, 2)))
 
                 if x > 250:
-                    balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
                     x = 0
+
+                return historical_arb_df
 
             except Exception as err:
                 if type(err) == httpcore.ReadTimeout:
@@ -234,6 +235,7 @@ class LogicHandle(Initialize):
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
+        x = time.time()
         fresh_data = df()
         for frame in coin_dataframes_dict.values():
             frame["gap_abs"] = abs(frame["gap_perc"])
@@ -250,7 +252,7 @@ class LogicHandle(Initialize):
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
-
+        print(time.time() - x)
         return fresh_data
 
     def binance_futures_margin_leverage_check(self, API_binance, binance_positions):
@@ -332,17 +334,14 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
-
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     # print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(5)
                     continue
 
                 for coin in play_symbols_list_final:
-                    print(coin)
                     x = time.time()
                     fresh_data = self.fresh_data_aggregator()
-                    print(time.time() - x)
                     coin_row = fresh_data.loc[fresh_data["symbol"] == coin].iloc[-1]
                     coin_symbol = coin_row["symbol"]
                     coin_pair = coin_row["binance_pair"]
