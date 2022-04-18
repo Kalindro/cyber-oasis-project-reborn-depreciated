@@ -131,8 +131,6 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-                return historical_arb_df
-
             except Exception as err:
                 if type(err) == httpcore.ReadTimeout:
                     print(f"Read timeout: {err}")
