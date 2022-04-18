@@ -36,12 +36,12 @@ class Initialize:
         self.ZSCORE_PERIOD = 360
         self.FAST_AVG = 12
         self.QUARTILE = 0.15
-        self.MIN_REGULAR_GAP = 0.45
+        self.MIN_REGULAR_GAP = 0.43
         self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
         self.MIN_CLOSING_GAP = 0.08
         self.LEVERAGE = 3
-        self.COINS_AT_ONCE = 5
+        self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
 
