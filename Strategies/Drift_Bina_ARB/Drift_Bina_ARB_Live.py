@@ -41,7 +41,7 @@ class Initialize:
         self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
         self.MIN_CLOSING_GAP = 0.08
-        self.LEVERAGE = 3
+        self.LEVERAGE = 4
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
