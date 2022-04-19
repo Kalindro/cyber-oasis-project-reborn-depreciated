@@ -3,6 +3,7 @@ import os
 import datetime as dt
 
 import httpcore
+import httpx
 import solana
 import sys
 
@@ -36,7 +37,7 @@ class Initialize:
         self.ZSCORE_PERIOD = 360
         self.FAST_AVG = 8
         self.QUARTILE = 0.15
-        self.MIN_REGULAR_GAP = 0.42
+        self.MIN_REGULAR_GAP = 0.44
         self.MIN_RANGE = 0.36
         self.MIN_GAP_ON_RANGE = 0.14
         self.MIN_CLOSING_GAP = 0.08
@@ -131,7 +132,7 @@ class DataHandle(Initialize):
                     x = 0
 
             except Exception as err:
-                if type(err) == httpcore.ReadTimeout:
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
                     print(f"Read timeout: {err}")
                 else:
                     trace = traceback.format_exc()
@@ -519,7 +520,7 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
-                if type(err) == httpcore.ReadTimeout:
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
                     print(f"Read timeout: {err}")
                 else:
                     trace = traceback.format_exc()
@@ -539,7 +540,7 @@ if __name__ == "__main__":
         p2.start()
 
     except Exception as err:
-        if type(err) == httpcore.ReadTimeout:
+        if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
             print(f"Read timeout: {err}")
         else:
             trace = traceback.format_exc()
