@@ -242,6 +242,7 @@ class LogicHandle(Initialize):
                 lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
             frame["open_somewhere"] = frame.apply(lambda row: self.conds_open_somewhere(row), axis=1)
