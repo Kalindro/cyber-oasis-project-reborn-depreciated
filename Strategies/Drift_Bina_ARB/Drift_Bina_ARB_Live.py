@@ -35,7 +35,7 @@ class Initialize:
 
     def __init__(self):
         self.ZSCORE_PERIOD = 360
-        self.FAST_AVG = 12
+        self.FAST_AVG = 18
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
         self.MIN_RANGE = 0.36
