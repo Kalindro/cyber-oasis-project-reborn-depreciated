@@ -136,6 +136,8 @@ class DataHandle(Initialize):
                     print(f"Read timeout: {err}")
                 else:
                     trace = traceback.format_exc()
+                    print(err)
+                    print(type(err))
                     print(f"Error on data: {err}\n{trace}")
                 time.sleep(1)
 
@@ -524,6 +526,8 @@ class LogicHandle(Initialize):
                     print(f"Read timeout: {err}")
                 else:
                     trace = traceback.format_exc()
+                    print(err)
+                    print(type(err))
                     print(f"Error on logic: {err}\n{trace}")
             time.sleep(1)
 
