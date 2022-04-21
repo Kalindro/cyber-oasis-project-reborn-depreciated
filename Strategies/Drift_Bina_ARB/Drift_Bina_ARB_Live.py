@@ -93,6 +93,7 @@ class DataHandle(Initialize):
         arb_df["bina_price"] = bina_prices["mark_price"]
         arb_df["drift_price"] = drift_prices["mark_price"]
         arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
+        arb_df["gap_abs"] = abs(arb_df["gap_perc"])
         arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
         arb_df.reset_index(inplace=True)
         arb_df.set_index("timestamp", inplace=True)
@@ -241,7 +242,6 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            frame["gap_abs"] = abs(frame["gap_perc"])
             frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median()
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
