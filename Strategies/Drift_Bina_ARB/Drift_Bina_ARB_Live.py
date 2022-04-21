@@ -45,7 +45,7 @@ class Initialize:
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
-        self.SAVE_ALL_HISTORY = True
+        self.LIMIT_DATA = True
 
     @staticmethod
     def read_historical_dataframe():
@@ -102,10 +102,10 @@ class DataHandle(Initialize):
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
         historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
-        if self.SAVE_ALL_HISTORY:
-            historical_arb_df.to_excel(f"{project_path}/History_data/Drift/5S/All_history_price_gaps_5S.xlsx")
-        live_historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
-        return live_historical_arb_df
+        if self.LIMIT_DATA:
+            historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
+
+        return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
         print("Running data side...")
