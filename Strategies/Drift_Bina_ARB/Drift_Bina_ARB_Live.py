@@ -45,7 +45,7 @@ class Initialize:
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
-        self.LIMIT_DATA = True
+        self.LIMIT_DATA = False
 
     @staticmethod
     def read_historical_dataframe():
