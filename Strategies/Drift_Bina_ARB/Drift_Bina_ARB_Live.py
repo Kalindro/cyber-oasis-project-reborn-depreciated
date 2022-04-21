@@ -122,8 +122,9 @@ class DataHandle(Initialize):
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
 
                 elapsed = time.time() - data_start_time
-                if elapsed < 2:
-                    time.sleep(2 - elapsed)
+                expected = 2.5
+                if elapsed < expected:
+                    time.sleep(expected - elapsed)
                 elif elapsed > 3:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.time() - data_start_time, 2)))
 
@@ -508,8 +509,9 @@ class LogicHandle(Initialize):
                                         i += 1
 
                 elapsed = time.time() - logic_start_time
-                if elapsed < 2:
-                    time.sleep(2 - elapsed)
+                expected = 2.5
+                if elapsed < expected:
+                    time.sleep(expected - elapsed)
                 elif elapsed > 5:
                     pass
                     # print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
