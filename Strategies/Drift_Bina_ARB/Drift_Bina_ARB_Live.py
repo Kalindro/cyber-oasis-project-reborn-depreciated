@@ -285,11 +285,11 @@ class LogicHandle(Initialize):
                     print("Changing leverage")
                     binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
 
-        if binance_positions.isolated.any():
-            for _, row in binance_positions.iterrows():
-                if row["isolated"]:
-                    print("Changing margin type")
-                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
+        # if binance_positions.isolated.any():
+        #     for _, row in binance_positions.iterrows():
+        #         if row["isolated"]:
+        #             print("Changing margin type")
+        #             binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
     async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
         playable_coins_list = fresh_data.index.unique()
