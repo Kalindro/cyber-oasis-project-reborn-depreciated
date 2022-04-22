@@ -34,18 +34,16 @@ project_path = Path(current_path).parent.parent
 class Initialize:
 
     def __init__(self):
+        self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = 360
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_RANGE = 0.36
-        self.MIN_GAP_ON_RANGE = 0.14
         self.MIN_CLOSING_GAP = 0.04
         self.LEVERAGE = 4
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
-        self.LIMIT_DATA = True
 
     @staticmethod
     def read_historical_dataframe():
@@ -141,6 +139,8 @@ class DataHandle(Initialize):
                     trace = traceback.format_exc()
                     print(err)
                     print(type(err))
+                    print(err.__cause__)
+                    print(type(err.__cause__))
                     print(f"Error on data: {err}\n{trace}")
                 time.sleep(1)
 
@@ -324,7 +324,7 @@ class LogicHandle(Initialize):
                          "binance_play_value": float(binance_balances['total']) * 0.80,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.80,
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
-                         # "coin_target_value": 15 * self.LEVERAGE}
+
         if printing:
             print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
@@ -547,6 +547,8 @@ class LogicHandle(Initialize):
                     trace = traceback.format_exc()
                     print(err)
                     print(type(err))
+                    print(err.__cause__)
+                    print(type(err.__cause__))
                     print(f"Error on logic: {err}\n{trace}")
             time.sleep(1)
 
