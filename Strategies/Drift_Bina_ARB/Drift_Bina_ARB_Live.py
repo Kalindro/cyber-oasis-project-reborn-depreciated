@@ -40,7 +40,7 @@ class Initialize:
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
         self.MIN_CLOSING_GAP = 0.04
-        self.LEVERAGE = 4
+        self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -287,9 +287,9 @@ class LogicHandle(Initialize):
 
         if (~binance_positions.isolated).any():
             for _, row in binance_positions.iterrows():
-                if not row["isolated"]:
+                if row["isolated"]:
                     print("Changing margin type")
-                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
+                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
     async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
         playable_coins_list = fresh_data.index.unique()
