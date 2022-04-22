@@ -39,7 +39,7 @@ class Initialize:
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_CLOSING_GAP = 0.04
+        self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
