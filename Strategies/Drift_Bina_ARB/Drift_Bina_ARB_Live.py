@@ -141,6 +141,8 @@ class DataHandle(Initialize):
                     print(type(err))
                     print(err.__cause__)
                     print(type(err.__cause__))
+                    print(err.__context__)
+                    print(type(err.__context__))
                     print(f"Error on data: {err}\n{trace}")
                 time.sleep(1)
 
@@ -549,6 +551,8 @@ class LogicHandle(Initialize):
                     print(type(err))
                     print(err.__cause__)
                     print(type(err.__cause__))
+                    print(err.__context__)
+                    print(type(err.__context__))
                     print(f"Error on logic: {err}\n{trace}")
             time.sleep(1)
 
