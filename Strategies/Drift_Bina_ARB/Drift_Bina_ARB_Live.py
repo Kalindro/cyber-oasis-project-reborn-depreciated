@@ -45,7 +45,7 @@ class Initialize:
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
-        self.LIMIT_DATA = False
+        self.LIMIT_DATA = True
 
     @staticmethod
     def read_historical_dataframe():
@@ -196,6 +196,7 @@ class LogicHandle(Initialize):
             return False
 
     def conds_open_long_drift(self, row):
+        print(row["gap_perc"])
         conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
         conds2 = row["gap_perc"] > row["top_avg_gaps"]
         conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
@@ -205,6 +206,7 @@ class LogicHandle(Initialize):
             return False
 
     def conds_open_short_drift(self, row):
+        print(row["gap_perc"])
         conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
         conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
         conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
@@ -214,6 +216,7 @@ class LogicHandle(Initialize):
             return False
 
     def conds_close_long_drift(self, row):
+        print(row["gap_perc"])
         conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
         conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
         conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
@@ -223,6 +226,7 @@ class LogicHandle(Initialize):
             return False
 
     def conds_close_short_drift(self, row):
+        print(row["gap_perc"])
         conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
         conds2 = row["gap_perc"] > row["top_avg_gaps"]
         conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
