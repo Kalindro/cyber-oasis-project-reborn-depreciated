@@ -196,44 +196,56 @@ class LogicHandle(Initialize):
             return False
 
     def conds_open_long_drift(self, row):
-        print(row["gap_perc"])
-        conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
-        conds2 = row["gap_perc"] > row["top_avg_gaps"]
-        conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
+            conds2 = row["gap_perc"] > row["top_avg_gaps"]
+            conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_open_short_drift(self, row):
-        print(row["gap_perc"])
-        conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
-        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-        conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
+            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+            conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_close_long_drift(self, row):
-        print(row["gap_perc"])
-        conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
-        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-        conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
+            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+            conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_close_short_drift(self, row):
-        print(row["gap_perc"])
-        conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
-        conds2 = row["gap_perc"] > row["top_avg_gaps"]
-        conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
+            conds2 = row["gap_perc"] > row["top_avg_gaps"]
+            conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def fresh_data_aggregator(self):
         fresh_data = df()
