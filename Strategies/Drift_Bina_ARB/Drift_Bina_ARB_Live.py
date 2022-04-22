@@ -285,7 +285,7 @@ class LogicHandle(Initialize):
                     print("Changing leverage")
                     binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
 
-        if (~binance_positions.isolated).any():
+        if binance_positions.isolated.any():
             for _, row in binance_positions.iterrows():
                 if row["isolated"]:
                     print("Changing margin type")
