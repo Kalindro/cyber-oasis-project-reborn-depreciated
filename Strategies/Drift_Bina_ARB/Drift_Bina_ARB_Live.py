@@ -550,8 +550,8 @@ class LogicHandle(Initialize):
                 elif elapsed > 5:
                     pass
                     # print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
-                print(x)
-                if x > 100:
+
+                if x > 50:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
