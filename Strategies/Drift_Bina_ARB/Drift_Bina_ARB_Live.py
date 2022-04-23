@@ -101,8 +101,10 @@ class DataHandle(Initialize):
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
         historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
+
         if self.LIMIT_DATA:
             historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
+
         return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
@@ -206,9 +208,14 @@ class LogicHandle(Initialize):
                 return True
             else:
                 return False
+
         except Exception as xd:
+            trace = traceback.format_exc()
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["top_avg_gaps"])
 
     def conds_open_short_drift(self, row):
         try:
@@ -220,8 +227,12 @@ class LogicHandle(Initialize):
             else:
                 return False
         except Exception as xd:
+            trace = traceback.format_exc()
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def conds_close_long_drift(self, row):
         try:
@@ -234,7 +245,10 @@ class LogicHandle(Initialize):
                 return False
         except Exception as xd:
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def conds_close_short_drift(self, row):
         try:
@@ -247,7 +261,10 @@ class LogicHandle(Initialize):
                 return False
         except Exception as xd:
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def fresh_data_aggregator(self):
         fresh_data = df()

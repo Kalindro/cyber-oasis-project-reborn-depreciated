@@ -34,14 +34,13 @@ project_path = Path(current_path).parent.parent
 class Initialize:
 
     def __init__(self):
+        self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = 360
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_RANGE = 0.36
-        self.MIN_GAP_ON_RANGE = 0.14
-        self.MIN_CLOSING_GAP = 0.08
-        self.LEVERAGE = 4
+        self.MIN_CLOSING_GAP = 0.02
+        self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -92,6 +91,7 @@ class DataHandle(Initialize):
         arb_df["bina_price"] = bina_prices["mark_price"]
         arb_df["drift_price"] = drift_prices["mark_price"]
         arb_df["gap_perc"] = (arb_df["bina_price"] - arb_df["drift_price"]) / arb_df["bina_price"] * 100
+        arb_df["gap_abs"] = abs(arb_df["gap_perc"])
         arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
         arb_df.reset_index(inplace=True)
         arb_df.set_index("timestamp", inplace=True)
@@ -101,8 +101,8 @@ class DataHandle(Initialize):
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
         historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
-        historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
-
+        if self.LIMIT_DATA:
+            historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
         return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
@@ -139,6 +139,10 @@ class DataHandle(Initialize):
                     trace = traceback.format_exc()
                     print(err)
                     print(type(err))
+                    print(err.__cause__)
+                    print(type(err.__cause__))
+                    print(err.__context__)
+                    print(type(err.__context__))
                     print(f"Error on data: {err}\n{trace}")
                 time.sleep(1)
 
@@ -194,40 +198,56 @@ class LogicHandle(Initialize):
             return False
 
     def conds_open_long_drift(self, row):
-        conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
-        conds2 = row["gap_perc"] > row["top_avg_gaps"]
-        conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
+            conds2 = row["gap_perc"] > row["top_avg_gaps"]
+            conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_open_short_drift(self, row):
-        conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
-        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-        conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
+            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+            conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_close_long_drift(self, row):
-        conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
-        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-        conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
+            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+            conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def conds_close_short_drift(self, row):
-        conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
-        conds2 = row["gap_perc"] > row["top_avg_gaps"]
-        conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
-        if conds1 and conds2 and conds3:
-            return True
-        else:
-            return False
+        try:
+            conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
+            conds2 = row["gap_perc"] > row["top_avg_gaps"]
+            conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
+            if conds1 and conds2 and conds3:
+                return True
+            else:
+                return False
+        except Exception as xd:
+            print(xd)
+            print(row["gap_perc"])
 
     def fresh_data_aggregator(self):
         fresh_data = df()
@@ -240,7 +260,6 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            frame["gap_abs"] = abs(frame["gap_perc"])
             frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median()
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
@@ -266,11 +285,11 @@ class LogicHandle(Initialize):
                     print("Changing leverage")
                     binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
 
-        if (~binance_positions.isolated).any():
-            for _, row in binance_positions.iterrows():
-                if not row["isolated"]:
-                    print("Changing margin type")
-                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="ISOLATED")
+        # if binance_positions.isolated.any():
+        #     for _, row in binance_positions.iterrows():
+        #         if row["isolated"]:
+        #             print("Changing margin type")
+        #             binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
     async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
         playable_coins_list = fresh_data.index.unique()
@@ -307,9 +326,9 @@ class LogicHandle(Initialize):
                          "binance_play_value": float(binance_balances['total']) * 0.80,
                          "drift_play_value": float(drift_balances['total_collateral']) * 0.80,
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
-                         # "coin_target_value": 15 * self.LEVERAGE}
+
         if printing:
-            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}" + Style.RESET_ALL)
+            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}, Bina: {balances_dict['binance']:.2f} Drift: {balances_dict['drift']:.2f}" + Style.RESET_ALL)
         time.sleep(1.5)
 
         return balances_dict
@@ -530,6 +549,10 @@ class LogicHandle(Initialize):
                     trace = traceback.format_exc()
                     print(err)
                     print(type(err))
+                    print(err.__cause__)
+                    print(type(err.__cause__))
+                    print(err.__context__)
+                    print(type(err.__context__))
                     print(f"Error on logic: {err}\n{trace}")
             time.sleep(1)
 
