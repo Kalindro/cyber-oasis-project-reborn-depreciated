@@ -39,7 +39,7 @@ class Initialize:
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_CLOSING_GAP = 0.00
+        self.MIN_CLOSING_GAP = 0.03
         self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
@@ -51,7 +51,7 @@ class Initialize:
         while True:
             try:
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
-                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]):
+                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0
                 break
             except:
