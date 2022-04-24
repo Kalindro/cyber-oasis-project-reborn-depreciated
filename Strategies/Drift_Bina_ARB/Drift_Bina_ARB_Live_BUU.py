@@ -36,7 +36,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
-        self.ZSCORE_PERIOD = 1800
+        self.ZSCORE_PERIOD = 360
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
@@ -134,8 +134,6 @@ class DataHandle(Initialize):
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
                     x = 0
-
-                return historical_arb_df
 
             except Exception as err:
                 if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
@@ -418,10 +416,10 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on open positions: {err}")
+                                            print(f"Unconfirmed TX Error on buys: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on open positions: {err}\n{trace}")
+                                            print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -458,10 +456,10 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on open positions: {err}")
+                                            print(f"Unconfirmed TX Error on buys: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on open positions: {err}\n{trace}")
+                                            print(f"Error on buys: {err}\n{trace}")
                                         time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -497,11 +495,11 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on closing positions: {err}")
+                                            print(f"Unconfirmed TX Error on buys: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(15)
+                                            print(f"Error on buys: {err}\n{trace}")
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -533,11 +531,11 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on closing positions: {err}")
+                                            print(f"Unconfirmed TX Error on buys: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(15)
+                                            print(f"Error on buys: {err}\n{trace}")
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
