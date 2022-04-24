@@ -4,6 +4,7 @@ import datetime as dt
 
 import httpcore
 import httpx
+import requests.exceptions
 import solana
 import sys
 
@@ -39,7 +40,7 @@ class Initialize:
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_CLOSING_GAP = 0.03
+        self.MIN_CLOSING_GAP = 0.00
         self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
@@ -135,8 +136,8 @@ class DataHandle(Initialize):
                     x = 0
 
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
-                    print(f"Read timeout: {err}")
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                    print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
                     print(err)
@@ -560,8 +561,8 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
-                    print(f"Read timeout: {err}")
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                    print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
                     print(err)
