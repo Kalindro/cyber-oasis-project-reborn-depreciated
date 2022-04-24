@@ -4,6 +4,7 @@ import datetime as dt
 
 import httpcore
 import httpx
+import requests.exceptions
 import solana
 import sys
 
@@ -39,7 +40,7 @@ class Initialize:
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_CLOSING_GAP = 0.02
+        self.MIN_CLOSING_GAP = 0.00
         self.LEVERAGE = 5
         self.COINS_AT_ONCE = 4
         self.DRIFT_BIG_N = 1_000_000
@@ -51,7 +52,7 @@ class Initialize:
         while True:
             try:
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
-                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]):
+                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0
                 break
             except:
@@ -101,8 +102,10 @@ class DataHandle(Initialize):
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
         historical_arb_df = historical_arb_df[historical_arb_df["bina_price"].notna()]
+
         if self.LIMIT_DATA:
             historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
+
         return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
@@ -132,9 +135,11 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
+                return historical_arb_df
+
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
-                    print(f"Read timeout: {err}")
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                    print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
                     print(err)
@@ -206,9 +211,14 @@ class LogicHandle(Initialize):
                 return True
             else:
                 return False
+
         except Exception as xd:
+            trace = traceback.format_exc()
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["top_avg_gaps"])
 
     def conds_open_short_drift(self, row):
         try:
@@ -220,8 +230,12 @@ class LogicHandle(Initialize):
             else:
                 return False
         except Exception as xd:
+            trace = traceback.format_exc()
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def conds_close_long_drift(self, row):
         try:
@@ -234,7 +248,10 @@ class LogicHandle(Initialize):
                 return False
         except Exception as xd:
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def conds_close_short_drift(self, row):
         try:
@@ -247,7 +264,10 @@ class LogicHandle(Initialize):
                 return False
         except Exception as xd:
             print(xd)
+            print(trace)
             print(row["gap_perc"])
+            print(row["fast_avg_gap"])
+            print(row["bottom_avg_gaps"])
 
     def fresh_data_aggregator(self):
         fresh_data = df()
@@ -398,10 +418,10 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on buys: {err}")
+                                            print(f"Unconfirmed TX Error on open positions: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on buys: {err}\n{trace}")
+                                            print(f"Error on open positions: {err}\n{trace}")
                                         time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -438,10 +458,10 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on buys: {err}")
+                                            print(f"Unconfirmed TX Error on open positions: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on buys: {err}\n{trace}")
+                                            print(f"Error on open positions: {err}\n{trace}")
                                         time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -477,11 +497,11 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on buys: {err}")
+                                            print(f"Unconfirmed TX Error on closing positions: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(45)
+                                            print(f"Error on closing positions: {err}\n{trace}")
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -513,11 +533,11 @@ class LogicHandle(Initialize):
                                         break
                                     except Exception as err:
                                         if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on buys: {err}")
+                                            print(f"Unconfirmed TX Error on closing positions: {err}")
                                         else:
                                             trace = traceback.format_exc()
-                                            print(f"Error on buys: {err}\n{trace}")
-                                        time.sleep(45)
+                                            print(f"Error on closing positions: {err}\n{trace}")
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -534,7 +554,7 @@ class LogicHandle(Initialize):
                     pass
                     # print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
 
-                if x > 100:
+                if x > 50:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
@@ -543,8 +563,8 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout):
-                    print(f"Read timeout: {err}")
+                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                    print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
                     print(err)
