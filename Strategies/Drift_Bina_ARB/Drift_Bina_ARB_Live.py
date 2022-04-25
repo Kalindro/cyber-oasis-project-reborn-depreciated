@@ -343,7 +343,6 @@ class LogicHandle(Initialize):
             try:
                 logic_start_time = time.time()
                 fresh_data = self.fresh_data_aggregator()
-                print(fresh_data)
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
                 best_coins_open = [coin for coin in play_dataframe.index]
                 best_coins_open.reverse()
