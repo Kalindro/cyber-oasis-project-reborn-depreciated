@@ -37,7 +37,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
-        self.ZSCORE_PERIOD = 1800
+        self.ZSCORE_PERIOD = 6 * 3600 / 5  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
@@ -54,10 +54,10 @@ class Initialize:
             try:
                 print(i)
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
-                print(historical_arb_df.head())
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
-                    x = 5/0
-                break
+                    x = 5/0  # Exception force
+                else:
+                    break
             except Exception as err:
                 if i > 30:
                     print(f"Something wrong with CSV, creating fresh: {err}")
@@ -138,7 +138,8 @@ class DataHandle(Initialize):
                     x = 0
 
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                if ((type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError)
+                        or (type(err.__context__) == httpx.ConnectError)):
                     print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
@@ -563,7 +564,8 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
-                if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
+                if ((type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError)
+                        or (type(err.__context__) == httpx.ConnectError)):
                     print(f"Read timeout/connection error: {err}")
                 else:
                     trace = traceback.format_exc()
