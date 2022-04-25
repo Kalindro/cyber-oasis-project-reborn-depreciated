@@ -37,7 +37,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
-        self.ZSCORE_PERIOD = int(0.5 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
+        self.ZSCORE_PERIOD = int(3 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
@@ -62,10 +62,10 @@ class Initialize:
                 #     print(f"Something wrong with CSV, creating fresh: {err}")
                 #     historical_arb_df = df()
                 #     break
-                if i > 5:
+                if i > 25:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
-                    time.sleep((randint(2, 5) / 10))
+                    time.sleep((randint(1, 2) / 10))
             finally:
                 i += 1
 
@@ -369,6 +369,7 @@ class LogicHandle(Initialize):
             try:
                 logic_start_time = time.time()
                 fresh_data = self.fresh_data_aggregator()
+                print(fresh_data)
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
                 best_coins_open = [coin for coin in play_dataframe.index]
                 best_coins_open.reverse()
