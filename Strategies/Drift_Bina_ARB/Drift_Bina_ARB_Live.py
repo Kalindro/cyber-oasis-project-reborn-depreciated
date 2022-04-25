@@ -58,10 +58,6 @@ class Initialize:
                 else:
                     break
             except Exception as err:
-                # if i > 30:
-                #     print(f"Something wrong with CSV, creating fresh: {err}")
-                #     historical_arb_df = df()
-                #     break
                 if i > 25:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
@@ -204,79 +200,49 @@ class LogicHandle(Initialize):
             return False
 
     def conds_open_long_drift(self, row):
-        try:
-            conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
-            conds2 = row["gap_perc"] > row["top_avg_gaps"]
-            conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
-            conds4 = row["gap_perc"] > row["fast_avg_gap"]
+        conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
+        conds2 = row["gap_perc"] > row["top_avg_gaps"]
+        conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
+        conds4 = row["gap_perc"] > row["fast_avg_gap"]
 
-            if conds1 and conds2 and conds3 and conds4:
-                return True
-            else:
-                return False
+        if conds1 and conds2 and conds3 and conds4:
+            return True
+        else:
+            return False
 
-        except Exception as xd:
-            trace = traceback.format_exc()
-            print(xd)
-            print(trace)
-            print(row["gap_perc"])
-            print(row["fast_avg_gap"])
-            print(row["top_avg_gaps"])
 
     def conds_open_short_drift(self, row):
-        try:
-            conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
-            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-            conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
-            conds4 = row["gap_perc"] < row["fast_avg_gap"]
+        conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
+        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+        conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
+        conds4 = row["gap_perc"] < row["fast_avg_gap"]
 
-            if conds1 and conds2 and conds3 and conds4:
-                return True
-            else:
-                return False
-        except Exception as xd:
-            trace = traceback.format_exc()
-            print(xd)
-            print(trace)
-            print(row["gap_perc"])
-            print(row["fast_avg_gap"])
-            print(row["bottom_avg_gaps"])
+        if conds1 and conds2 and conds3 and conds4:
+            return True
+        else:
+            return False
 
     def conds_close_long_drift(self, row):
-        try:
-            conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
-            conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
-            conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
-            conds4 = row["gap_perc"] < row["fast_avg_gap"]
+        conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
+        conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
+        conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
+        conds4 = row["gap_perc"] < row["fast_avg_gap"]
 
-            if conds1 and conds2 and conds3 and conds4:
-                return True
-            else:
-                return False
-        except Exception as xd:
-            print(xd)
-            print(trace)
-            print(row["gap_perc"])
-            print(row["fast_avg_gap"])
-            print(row["bottom_avg_gaps"])
+        if conds1 and conds2 and conds3 and conds4:
+            return True
+        else:
+            return False
 
     def conds_close_short_drift(self, row):
-        try:
-            conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
-            conds2 = row["gap_perc"] > row["top_avg_gaps"]
-            conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
-            conds4 = row["gap_perc"] > row["fast_avg_gap"]
+        conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
+        conds2 = row["gap_perc"] > row["top_avg_gaps"]
+        conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
+        conds4 = row["gap_perc"] > row["fast_avg_gap"]
 
-            if conds1 and conds2 and conds3 and conds4:
-                return True
-            else:
-                return False
-        except Exception as xd:
-            print(xd)
-            print(trace)
-            print(row["gap_perc"])
-            print(row["fast_avg_gap"])
-            print(row["bottom_avg_gaps"])
+        if conds1 and conds2 and conds3 and conds4:
+            return True
+        else:
+            return False
 
     def fresh_data_aggregator(self):
         fresh_data = df()
@@ -314,11 +280,11 @@ class LogicHandle(Initialize):
                     print("Changing leverage")
                     binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
 
-        # if binance_positions.isolated.any():
-        #     for _, row in binance_positions.iterrows():
-        #         if row["isolated"]:
-        #             print("Changing margin type")
-        #             binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
+        if binance_positions.isolated.any():
+            for _, row in binance_positions.iterrows():
+                if row["isolated"]:
+                    print("Changing margin type")
+                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
     async def get_positions_summary(self, fresh_data, API_binance, API_drift, printing=True, sleeping=True):
         playable_coins_list = fresh_data.index.unique()
