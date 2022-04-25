@@ -56,16 +56,13 @@ class Initialize:
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0  # Exception force
                 else:
-                    break
+                    return historical_arb_df
             except Exception as err:
-                if i > 25:
+                i += 1
+                if i > 10:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
-                    time.sleep((randint(2, 5) / 10))
-            finally:
-                i += 1
-
-        return historical_arb_df
+                    time.sleep(0.5)
 
     @staticmethod
     def initiate_binance():
