@@ -57,13 +57,13 @@ class Initialize:
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0
                 break
-            except:
+            except Exception as err:
                 if i > 30:
-                    print("Something wrong with CSV, creating fresh")
+                    print(f"Something wrong with CSV, creating fresh: {err}")
                     historical_arb_df = df()
                     break
                 elif i > 5:
-                    print("Reading historical DF CSV Fail")
+                    print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep((randint(2, 5) / 10))
             finally:
                 i += 1
