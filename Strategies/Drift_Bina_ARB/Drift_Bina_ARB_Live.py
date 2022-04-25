@@ -63,7 +63,7 @@ class Initialize:
                     break
                 elif i > 5:
                     print("Reading historical DF CSV Fail")
-                    time.sleep(0.2)
+                    time.sleep(0.5)
             finally:
                 i += 1
 
