@@ -561,7 +561,7 @@ if __name__ == "__main__":
     try:
         p1 = Process(target=DataHandle().main)
         p1.start()
-        time.sleep(5)
+        time.sleep(10)
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
