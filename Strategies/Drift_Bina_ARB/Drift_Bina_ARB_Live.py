@@ -63,10 +63,10 @@ class Initialize:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep(0.5)
-                if i > 20:
-                    print("Something wrong with CSV, creating fresh")
-                    historical_arb_df = df()
-                    return historical_arb_df
+                # if i > 20:
+                #     print("Something wrong with CSV, creating fresh")
+                #     historical_arb_df = df()
+                #     return historical_arb_df
 
     @staticmethod
     def initiate_binance():
