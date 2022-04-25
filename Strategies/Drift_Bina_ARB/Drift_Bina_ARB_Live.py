@@ -61,7 +61,7 @@ class Initialize:
                     print("Something wrong with CSV, creating fresh")
                     break
                 else:
-                    # print("Reading historical DF CSV Fail")
+                    print("Reading historical DF CSV Fail")
                     time.sleep(0.2)
             finally:
                 i += 1
@@ -378,7 +378,7 @@ class LogicHandle(Initialize):
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
-                    # print("Not enough data or wrong load, logic sleeping...")
+                    print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(5)
                     continue
 
@@ -552,7 +552,7 @@ class LogicHandle(Initialize):
                     time.sleep(expected - elapsed)
                 elif elapsed > 5:
                     pass
-                    # print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
+                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
 
                 if x > 50:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
