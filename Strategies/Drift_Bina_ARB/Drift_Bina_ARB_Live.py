@@ -62,7 +62,7 @@ class Initialize:
                     print(f"Something wrong with CSV, creating fresh: {err}")
                     historical_arb_df = df()
                     break
-                else:
+                elif i > 5:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep((randint(2, 5) / 10))
