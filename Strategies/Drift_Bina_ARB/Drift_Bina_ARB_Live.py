@@ -52,11 +52,8 @@ class Initialize:
         i = 0
         while True:
             try:
-                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
-                if np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
-                    x = 5/0  # Exception force
-                else:
-                    return historical_arb_df
+                historical_arb_df = df()
+                return historical_arb_df
             except Exception as err:
                 i += 1
                 if i > 10:
