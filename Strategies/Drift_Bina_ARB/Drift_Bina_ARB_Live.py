@@ -37,7 +37,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
-        self.ZSCORE_PERIOD = int(6 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
+        self.ZSCORE_PERIOD = int(0.5 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
@@ -58,11 +58,11 @@ class Initialize:
                 else:
                     break
             except Exception as err:
-                if i > 30:
-                    print(f"Something wrong with CSV, creating fresh: {err}")
-                    historical_arb_df = df()
-                    break
-                elif i > 5:
+                # if i > 30:
+                #     print(f"Something wrong with CSV, creating fresh: {err}")
+                #     historical_arb_df = df()
+                #     break
+                if i > 5:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep((randint(2, 5) / 10))
