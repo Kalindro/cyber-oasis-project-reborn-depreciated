@@ -52,14 +52,21 @@ class Initialize:
         i = 0
         while True:
             try:
-                historical_arb_df = df()
-                return historical_arb_df
+                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
+                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
+                    x = 5/0  # Exception force
+                else:
+                    return historical_arb_df
             except Exception as err:
                 i += 1
                 if i > 10:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep(0.5)
+                elif i > 30:
+                    print("Something wrong with CSV, creating fresh")
+                    historical_arb_df = df()
+                    return historical_arb_df
 
     @staticmethod
     def initiate_binance():
