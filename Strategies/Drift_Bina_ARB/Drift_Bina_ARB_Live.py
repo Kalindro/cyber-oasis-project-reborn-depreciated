@@ -8,6 +8,7 @@ import requests.exceptions
 import solana
 import sys
 
+from random import randint
 from multiprocessing import Process
 from colorama import Fore, Back, Style
 from pathlib import Path
@@ -63,7 +64,7 @@ class Initialize:
                     break
                 elif i > 5:
                     print("Reading historical DF CSV Fail")
-                    time.sleep(0.5)
+                    time.sleep((randint(2, 5) / 10))
             finally:
                 i += 1
 
