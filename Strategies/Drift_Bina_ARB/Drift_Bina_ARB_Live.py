@@ -105,7 +105,7 @@ class DataHandle(Initialize):
 
         if self.LIMIT_DATA:
             historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
-
+        print(historical_arb_df)
         return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
