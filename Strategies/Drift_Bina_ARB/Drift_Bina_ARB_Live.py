@@ -105,7 +105,7 @@ class DataHandle(Initialize):
 
         if self.LIMIT_DATA:
             historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
-        print(historical_arb_df)
+
         return historical_arb_df
 
     async def run_constant_parallel_fresh_data_update(self):
@@ -119,7 +119,7 @@ class DataHandle(Initialize):
         while True:
             try:
                 data_start_time = time.time()
-
+                print("HALO?")
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
 
