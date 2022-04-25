@@ -61,7 +61,7 @@ class Initialize:
                 if i > 25:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
-                    time.sleep((randint(1, 2) / 10))
+                    time.sleep((randint(2, 5) / 10))
             finally:
                 i += 1
 
