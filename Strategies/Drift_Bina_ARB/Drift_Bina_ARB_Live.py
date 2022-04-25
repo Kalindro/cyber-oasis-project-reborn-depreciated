@@ -119,7 +119,6 @@ class DataHandle(Initialize):
         while True:
             try:
                 data_start_time = time.time()
-                print("HALO?")
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                 historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
 
@@ -134,8 +133,6 @@ class DataHandle(Initialize):
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
                     x = 0
-
-                return historical_arb_df
 
             except Exception as err:
                 if (type(err) == httpcore.ReadTimeout) or (type(err) == httpx.ReadTimeout) or (type(err) == requests.exceptions.ConnectionError):
