@@ -51,12 +51,13 @@ class Initialize:
         i = 0
         while True:
             try:
+                print(i)
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True)
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0
                 break
             except:
-                if i > 25:
+                if i > 30:
                     print("Something wrong with CSV, creating fresh")
                     historical_arb_df = df()
                     break
