@@ -208,7 +208,9 @@ class LogicHandle(Initialize):
             conds1 = row["gap_perc"] > self.MIN_REGULAR_GAP
             conds2 = row["gap_perc"] > row["top_avg_gaps"]
             conds3 = row["fast_avg_gap"] > self.MIN_REGULAR_GAP
-            if conds1 and conds2 and conds3:
+            conds4 = row["gap_perc"] > row["fast_avg_gap"]
+
+            if conds1 and conds2 and conds3 and conds4:
                 return True
             else:
                 return False
@@ -226,7 +228,9 @@ class LogicHandle(Initialize):
             conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
             conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
             conds3 = row["fast_avg_gap"] < -self.MIN_REGULAR_GAP
-            if conds1 and conds2 and conds3:
+            conds4 = row["gap_perc"] < row["fast_avg_gap"]
+
+            if conds1 and conds2 and conds3 and conds4:
                 return True
             else:
                 return False
@@ -243,7 +247,9 @@ class LogicHandle(Initialize):
             conds1 = row["gap_perc"] < -self.MIN_CLOSING_GAP
             conds2 = row["gap_perc"] < row["bottom_avg_gaps"]
             conds3 = row["fast_avg_gap"] < -self.MIN_CLOSING_GAP
-            if conds1 and conds2 and conds3:
+            conds4 = row["gap_perc"] < row["fast_avg_gap"]
+
+            if conds1 and conds2 and conds3 and conds4:
                 return True
             else:
                 return False
@@ -259,7 +265,9 @@ class LogicHandle(Initialize):
             conds1 = row["gap_perc"] > self.MIN_CLOSING_GAP
             conds2 = row["gap_perc"] > row["top_avg_gaps"]
             conds3 = row["fast_avg_gap"] > self.MIN_CLOSING_GAP
-            if conds1 and conds2 and conds3:
+            conds4 = row["gap_perc"] > row["fast_avg_gap"]
+
+            if conds1 and conds2 and conds3 and conds4:
                 return True
             else:
                 return False
