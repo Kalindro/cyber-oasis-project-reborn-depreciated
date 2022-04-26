@@ -53,11 +53,11 @@ class Initialize:
         i = 0
         while True:
             try:
-                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv"
-                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv"
+                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle"
+                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle"
                 shutil.copyfile(source, destination)
                 time.sleep(0.3)
-                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv", index_col=0, parse_dates=True, low_memory=False)
+                historical_arb_df = pd.read_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle")
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0  # Exception force
                 else:
@@ -126,7 +126,7 @@ class DataHandle(Initialize):
                 data_start_time = time.time()
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                 if len(historical_arb_df) > 2:
-                    historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv")
+                    historical_arb_df.to_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle")
                 else:
                     print("Probowal zapisac pusta kurwe ock czemu")
 
@@ -256,7 +256,6 @@ class LogicHandle(Initialize):
         fresh_data = df()
 
         historical_arb_df = self.read_historical_dataframe()
-        print(len(historical_arb_df))
 
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
@@ -362,8 +361,6 @@ class LogicHandle(Initialize):
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
-                    print("OCK")
-                    print(fresh_data)
                     print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(5)
                     continue
