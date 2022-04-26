@@ -256,6 +256,7 @@ class LogicHandle(Initialize):
         fresh_data = df()
 
         historical_arb_df = self.read_historical_dataframe()
+        print(len(historical_arb_df))
 
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
