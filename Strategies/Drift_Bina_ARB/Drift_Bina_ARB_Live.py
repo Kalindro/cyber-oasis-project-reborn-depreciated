@@ -66,10 +66,10 @@ class Initialize:
                 i += 1
                 if i > 10:
                     print(i)
-                    print(f"Reading historical DF CSV Fail: {err}")
+                    print(f"Reading historical DF Fail: {err}")
                     time.sleep(0.2)
                 if i > 20:
-                    print("Something wrong with CSV, creating fresh")
+                    print("Something wrong with historical read, creating fresh")
                     historical_arb_df = df()
                     return historical_arb_df
 
