@@ -53,13 +53,10 @@ class Initialize:
         i = 0
         while True:
             try:
-                try:
-                    source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv"
-                    destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv"
-                    print("?")
-                    shutil.copyfile(source, destination)
-                except Exception as err:
-                    raise err
+                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv"
+                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv"
+                print("?")
+                shutil.copyfile(source, destination)
                 historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv", index_col=0, parse_dates=True, low_memory=False)
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0  # Exception force
