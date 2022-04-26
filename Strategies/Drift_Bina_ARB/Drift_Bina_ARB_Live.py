@@ -53,11 +53,11 @@ class Initialize:
         i = 0
         while True:
             try:
-                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle"
-                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle"
+                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.parquet"
+                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.parquet"
                 shutil.copyfile(source, destination)
                 time.sleep(0.3)
-                historical_arb_df = pd.read_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle")
+                historical_arb_df = pd.read_parquet(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.parquet")
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0  # Exception force
                 else:
@@ -126,7 +126,7 @@ class DataHandle(Initialize):
                 data_start_time = time.time()
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                 if len(historical_arb_df) > 2:
-                    historical_arb_df.to_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle")
+                    historical_arb_df.to_parquet(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.parquet")
                 else:
                     print("Probowal zapisac pusta kurwe ock czemu")
 
