@@ -7,6 +7,7 @@ import httpx
 import requests.exceptions
 import solana
 import sys
+import shutil
 
 from random import randint
 from multiprocessing import Process
@@ -52,7 +53,10 @@ class Initialize:
         i = 0
         while True:
             try:
-                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv", index_col=0, parse_dates=True, low_memory=False)
+                source = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv"
+                destination = f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv"
+                shutil.copyfile(source, destination)
+                historical_arb_df = pd.read_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.csv", index_col=0, parse_dates=True, low_memory=False)
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     x = 5/0  # Exception force
                 else:
@@ -120,7 +124,7 @@ class DataHandle(Initialize):
             try:
                 data_start_time = time.time()
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
+                historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv")
 
                 elapsed = time.time() - data_start_time
                 expected = 2.5
@@ -210,7 +214,6 @@ class LogicHandle(Initialize):
             return True
         else:
             return False
-
 
     def conds_open_short_drift(self, row):
         conds1 = row["gap_perc"] < -self.MIN_REGULAR_GAP
