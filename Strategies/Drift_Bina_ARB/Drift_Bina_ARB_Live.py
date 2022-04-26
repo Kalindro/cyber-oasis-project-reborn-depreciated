@@ -358,6 +358,8 @@ class LogicHandle(Initialize):
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
+                    print("OCK")
+                    print(fresh_data)
                     print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(5)
                     continue
