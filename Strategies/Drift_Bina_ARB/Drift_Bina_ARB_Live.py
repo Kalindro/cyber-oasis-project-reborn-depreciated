@@ -38,7 +38,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
-        self.ZSCORE_PERIOD = int(3 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
+        self.ZSCORE_PERIOD = int(0.5 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
@@ -68,10 +68,10 @@ class Initialize:
                     print(i)
                     print(f"Reading historical DF CSV Fail: {err}")
                     time.sleep(0.2)
-                # if i > 20:
-                #     print("Something wrong with CSV, creating fresh")
-                #     historical_arb_df = df()
-                #     return historical_arb_df
+                if i > 20:
+                    print("Something wrong with CSV, creating fresh")
+                    historical_arb_df = df()
+                    return historical_arb_df
 
     @staticmethod
     def initiate_binance():
@@ -125,7 +125,10 @@ class DataHandle(Initialize):
             try:
                 data_start_time = time.time()
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
-                historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv")
+                if len(historical_arb_df) > 2:
+                    historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.csv")
+                else:
+                    print("Probowal zapisac pusta kurwe ock czemu")
 
                 elapsed = time.time() - data_start_time
                 expected = 2.5
