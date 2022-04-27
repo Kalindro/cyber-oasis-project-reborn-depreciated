@@ -189,15 +189,8 @@ class LogicHandle(Initialize):
             return False
 
     @staticmethod
-    def conds_inplay_somewhere(row):
-        if row["open_l_drift"] or row["open_s_drift"]:
-            return True
-        else:
-            return False
-
-    @staticmethod
     def conds_open_somewhere(row):
-        if row["drift_inplay"] or row["binance_inplay"]:
+        if row["open_l_drift"] or row["open_s_drift"]:
             return True
         else:
             return False
@@ -257,7 +250,7 @@ class LogicHandle(Initialize):
         fresh_data = df()
 
         historical_arb_df = self.read_historical_dataframe()
-
+        print(historical_arb_df)
         playable_coins = historical_arb_df.tail(100).symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
@@ -272,6 +265,7 @@ class LogicHandle(Initialize):
             frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: self.conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: self.conds_open_short_drift(row), axis=1)
+            print(frame)
             frame["open_somewhere"] = frame.apply(lambda row: self.conds_open_somewhere(row), axis=1)
             frame["close_l_drift"] = frame.apply(lambda row: self.conds_close_long_drift(row), axis=1)
             frame["close_s_drift"] = frame.apply(lambda row: self.conds_close_short_drift(row), axis=1)
