@@ -366,12 +366,11 @@ class LogicHandle(Initialize):
                     fresh_data = self.fresh_data_aggregator()
                     test_time = time.perf_counter()
                     coin_row = fresh_data.loc[coin]
-                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
                     coin_symbol = coin
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
-
+                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
                     print(f"Logic selecting coin: {round(time.perf_counter() - logic_start_time, 2)}")
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
