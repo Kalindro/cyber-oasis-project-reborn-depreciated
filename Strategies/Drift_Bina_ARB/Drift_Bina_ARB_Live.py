@@ -258,7 +258,7 @@ class LogicHandle(Initialize):
 
         historical_arb_df = self.read_historical_dataframe()
 
-        playable_coins = historical_arb_df.symbol.unique()
+        playable_coins = historical_arb_df.tail(100).symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
@@ -314,7 +314,6 @@ class LogicHandle(Initialize):
         positions_dataframe["inplay"] = positions_dataframe.apply(lambda row: self.conds_inplay(row), axis=1)
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
-        positions_dataframe["inplay_somewhere"] = positions_dataframe.apply(lambda row: self.conds_inplay_somewhere(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
         if printing:
             print(positions_dataframe)
@@ -357,7 +356,7 @@ class LogicHandle(Initialize):
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
                 best_coins_open = [coin for coin in play_dataframe.index]
                 best_coins_open.reverse()
-                play_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay_somewhere"]].index]
+                play_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
                 play_symbols_list_pre = play_symbols_list + best_coins_open
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
