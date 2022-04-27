@@ -277,6 +277,7 @@ class LogicHandle(Initialize):
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
+        fresh_data.reset_index(inplace=True)
         fresh_data.set_index("symbol", inplace=True)
 
         return fresh_data
