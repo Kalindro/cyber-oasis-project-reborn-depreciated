@@ -353,6 +353,8 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
+                play_symbols_list_final = ["BTC"]
+
                 print(f"Initial logic before data check, list: {round(time.perf_counter() - logic_start_time, 2)}")
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
