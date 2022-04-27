@@ -175,13 +175,6 @@ class LogicHandle(Initialize):
             return False
 
     @staticmethod
-    def conds_noplay(row):
-        if (abs(row["binance_pos"]) == 0) and (abs(row["drift_pos"]) == 0):
-            return True
-        else:
-            return False
-
-    @staticmethod
     def conds_binance_inplay(row):
         if abs(row["binance_pos"]) > 0:
             return True
@@ -196,8 +189,15 @@ class LogicHandle(Initialize):
             return False
 
     @staticmethod
-    def conds_open_somewhere(row):
+    def conds_inplay_somewhere(row):
         if row["open_l_drift"] or row["open_s_drift"]:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def conds_open_somewhere(row):
+        if row["drift_inplay"] or row["binance_inplay"]:
             return True
         else:
             return False
@@ -312,9 +312,9 @@ class LogicHandle(Initialize):
         positions_dataframe["binance_pair"] = binance_positions["pair"]
         positions_dataframe["drift_pair"] = fresh_data.loc[positions_dataframe.index, "drift_pair"].astype(int)
         positions_dataframe["inplay"] = positions_dataframe.apply(lambda row: self.conds_inplay(row), axis=1)
-        positions_dataframe["noplay"] = positions_dataframe.apply(lambda row: self.conds_noplay(row), axis=1)
         positions_dataframe["binance_inplay"] = positions_dataframe.apply(lambda row: self.conds_binance_inplay(row), axis=1)
         positions_dataframe["drift_inplay"] = positions_dataframe.apply(lambda row: self.conds_drift_inplay(row), axis=1)
+        positions_dataframe["inplay_somewhere"] = positions_dataframe.apply(lambda row: self.conds_inplay_somewhere(row), axis=1)
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: self.conds_imbalance(row), axis=1)
         if printing:
             print(positions_dataframe)
@@ -357,9 +357,8 @@ class LogicHandle(Initialize):
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
                 best_coins_open = [coin for coin in play_dataframe.index]
                 best_coins_open.reverse()
-                play_symbols_binance_list = [coin for coin in positions_dataframe.loc[positions_dataframe["binance_inplay"]].index]
-                play_symbols_drift_list = [coin for coin in positions_dataframe.loc[positions_dataframe["drift_inplay"]].index]
-                play_symbols_list_pre = play_symbols_binance_list + play_symbols_drift_list + best_coins_open
+                play_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay_somewhere"]].index]
+                play_symbols_list_pre = play_symbols_list + best_coins_open
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
