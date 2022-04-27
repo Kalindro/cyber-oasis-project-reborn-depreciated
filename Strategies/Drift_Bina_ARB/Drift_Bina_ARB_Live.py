@@ -355,7 +355,7 @@ class LogicHandle(Initialize):
 
                 play_symbols_list_final = ["BTC"]
 
-                print(f"Initial logic before data check, list: {round(time.perf_counter() - logic_start_time, 2)}")
+                print(f"Logic only list: {round(time.perf_counter() - logic_start_time, 2)}")
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
@@ -363,15 +363,15 @@ class LogicHandle(Initialize):
                     continue
 
                 for coin in play_symbols_list_final:
-                    fresh_data = self.fresh_data_aggregator()
                     test_time = time.perf_counter()
+                    fresh_data = self.fresh_data_aggregator()
                     coin_row = fresh_data.loc[coin]
                     coin_symbol = coin
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
-                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
-                    print(f"Logic selecting coin: {round(time.perf_counter() - logic_start_time, 2)}")
+                    print(f"Test time only selecting coin:{round(time.perf_counter() - test_time, 2)}")
+                    print(f"Logic selecting coin (plus potential list): {round(time.perf_counter() - logic_start_time, 2)}")
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
