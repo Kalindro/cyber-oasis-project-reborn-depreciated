@@ -372,7 +372,7 @@ class LogicHandle(Initialize):
                 for coin in play_symbols_list_final:
                     test_time = time.perf_counter()
                     fresh_data = self.fresh_data_aggregator()
-                    print(f"Test time:{test_time - time.perf_counter()}")
+                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
                     coin_row = fresh_data.loc[coin]
                     coin_symbol = coin
                     coin_pair = coin_row["binance_pair"]
