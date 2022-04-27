@@ -250,7 +250,7 @@ class LogicHandle(Initialize):
         fresh_data = df()
 
         historical_arb_df = self.read_historical_dataframe()
-        playable_coins = historical_arb_df.tail(100).symbol.unique()
+        playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
