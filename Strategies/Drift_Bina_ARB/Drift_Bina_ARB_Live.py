@@ -402,7 +402,7 @@ class LogicHandle(Initialize):
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
-                                        time.sleep(1.5)
+                                        time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                                         break
                                     except Exception as err:
@@ -442,7 +442,7 @@ class LogicHandle(Initialize):
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
-                                        time.sleep(1.5)
+                                        time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                                         break
                                     except Exception as err:
@@ -481,7 +481,7 @@ class LogicHandle(Initialize):
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
-                                        time.sleep(1.5)
+                                        time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                                         break
                                     except Exception as err:
@@ -517,7 +517,7 @@ class LogicHandle(Initialize):
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
-                                        time.sleep(1.5)
+                                        time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
                                         break
                                     except Exception as err:
