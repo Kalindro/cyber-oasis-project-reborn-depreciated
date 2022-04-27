@@ -363,10 +363,10 @@ class LogicHandle(Initialize):
                     continue
 
                 for coin in play_symbols_list_final:
-                    test_time = time.perf_counter()
                     fresh_data = self.fresh_data_aggregator()
-                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
+                    test_time = time.perf_counter()
                     coin_row = fresh_data.loc[coin]
+                    print(f"Test time:{round(time.perf_counter() - test_time, 2)}")
                     coin_symbol = coin
                     coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
