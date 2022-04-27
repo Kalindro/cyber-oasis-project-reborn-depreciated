@@ -62,6 +62,7 @@ class Initialize:
                     x = 5/0  # Exception force
                 else:
                     return historical_arb_df
+
             except Exception as err:
                 i += 1
                 if i > 10:
@@ -123,19 +124,19 @@ class DataHandle(Initialize):
         x = 0
         while True:
             try:
-                data_start_time = time.time()
+                data_start_time = time.perf_counter()
                 historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
                 if len(historical_arb_df) > 2:
                     historical_arb_df.to_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle")
                 else:
                     print("Probowal zapisac pusta kurwe ock czemu")
 
-                elapsed = time.time() - data_start_time
+                elapsed = time.perf_counter() - data_start_time
                 expected = 2.5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
                 elif elapsed > 3:
-                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.time() - data_start_time, 2)))
+                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.perf_counter() - data_start_time, 2)))
 
                 if x > 250:
                     API_drift = await self.initiate_drift()
@@ -351,7 +352,7 @@ class LogicHandle(Initialize):
         x = 0
         while True:
             try:
-                logic_start_time = time.time()
+                logic_start_time = time.perf_counter()
                 fresh_data = self.fresh_data_aggregator()
                 play_dataframe = fresh_data[fresh_data["open_somewhere"]]
                 best_coins_open = [coin for coin in play_dataframe.index]
@@ -362,7 +363,7 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
-                print(f"Initial logic before data check, list: {round(time.time() - logic_start_time, 2)}")
+                print(f"Initial logic before data check, list: {round(time.perf_counter() - logic_start_time, 2)}")
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
@@ -377,7 +378,7 @@ class LogicHandle(Initialize):
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
 
-                    print(f"Logic selecting coin: {round(time.time() - logic_start_time, 2)}")
+                    print(f"Logic selecting coin: {round(time.perf_counter() - logic_start_time, 2)}")
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
@@ -392,13 +393,13 @@ class LogicHandle(Initialize):
                                     try:
                                         print(f"Try number: {i}")
                                         if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                            drift_orders = time.time()
+                                            drift_orders = time.perf_counter()
                                             long_drift = await drift_open_market_long(API=API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
-                                            print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
                                         if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.time()
+                                            bina_orders = time.perf_counter()
                                             short_binance = binance_futures_open_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -432,13 +433,13 @@ class LogicHandle(Initialize):
                                     try:
                                         print(f"Try number: {i}")
                                         if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                            drift_orders = time.time()
+                                            drift_orders = time.perf_counter()
                                             short_drift = await drift_open_market_short(API=API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
-                                            print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
                                         if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.time()
+                                            bina_orders = time.perf_counter()
                                             long_binance = binance_futures_open_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -471,13 +472,13 @@ class LogicHandle(Initialize):
                                     try:
                                         print(f"Try number: {i}")
                                         if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                            drift_orders = time.time()
+                                            drift_orders = time.perf_counter()
                                             close_drift_long = await drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
-                                            print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
                                         if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.time()
+                                            bina_orders = time.perf_counter()
                                             close_binance_short = binance_futures_close_market_short(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -507,13 +508,13 @@ class LogicHandle(Initialize):
                                     try:
                                         print(f"Try number: {i}")
                                         if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                            drift_orders = time.time()
+                                            drift_orders = time.perf_counter()
                                             close_drift_short = await drift_close_order(API=API_drift, drift_index=coin_row["drift_pair"])
-                                            print("--- Drift orders %s seconds ---" % (round(time.time() - drift_orders, 2)))
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
                                         if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.time()
+                                            bina_orders = time.perf_counter()
                                             close_binance_long = binance_futures_close_market_long(API=API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.time() - bina_orders, 2)))
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
@@ -535,15 +536,15 @@ class LogicHandle(Initialize):
                                             break
                                         i += 1
 
-                    print(f"Logic only logic positions: {round(time.time() - logic_start_time, 2)}")
+                    print(f"Logic only logic positions: {round(time.perf_counter() - logic_start_time, 2)}")
 
-                elapsed = time.time() - logic_start_time
+                elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
                 elif elapsed > 5:
                     pass
-                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.time() - logic_start_time, 2)))
+                    print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
                 if x > 50:
                     balances_dict = await self.get_balances_summary(API_binance=API_binance, API_drift=API_drift)
