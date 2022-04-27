@@ -278,7 +278,7 @@ class LogicHandle(Initialize):
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
         fresh_data.reset_index(inplace=True)
-        fresh_data.rename(columns={"index": "timestamp"})
+        fresh_data.rename(columns={"index": "timestamp"}, inplace=True)
         fresh_data.set_index("symbol", inplace=True)
 
         return fresh_data
