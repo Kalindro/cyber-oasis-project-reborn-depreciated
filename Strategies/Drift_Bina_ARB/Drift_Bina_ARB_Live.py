@@ -491,7 +491,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(15)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
@@ -527,7 +527,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(15)
+                                        time.sleep(45)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
