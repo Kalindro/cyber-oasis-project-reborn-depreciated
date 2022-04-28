@@ -39,7 +39,7 @@ class Initialize:
     def __init__(self):
         self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = int(3 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
-        self.FAST_AVG = 24
+        self.FAST_AVG = 18
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
         self.MIN_CLOSING_GAP = 0.00
@@ -144,8 +144,8 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
-
+            except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
+                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -547,7 +547,8 @@ class LogicHandle(Initialize):
 
                 x += 1
 
-            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+            except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
+                    requests.exceptions.ConnectionError,requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -574,7 +575,8 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout, requests.exceptions.ConnectionError,
+            requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
         print(f"Read timeout/connection error: {err}")
         time.sleep(1)
 
