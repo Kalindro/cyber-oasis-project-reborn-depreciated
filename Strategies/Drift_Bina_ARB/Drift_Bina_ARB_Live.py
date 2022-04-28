@@ -143,7 +143,8 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, httpx.ConnectError) as err:
+            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -545,7 +546,7 @@ class LogicHandle(Initialize):
 
                 x += 1
 
-            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, httpx.ConnectError) as err:
+            except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -572,7 +573,7 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, httpx.ConnectError) as err:
+    except (httpcore.ReadTimeout, httpx.ReadTimeout, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
         print(f"Read timeout/connection error: {err}")
         time.sleep(1)
 
