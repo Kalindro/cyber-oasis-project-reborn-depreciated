@@ -138,7 +138,8 @@ class DataHandle(Initialize):
                 elif elapsed > 3:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.perf_counter() - data_start_time, 2)))
 
-                if x > 250:
+                if x > 50:
+                    historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()
                     x = 0
