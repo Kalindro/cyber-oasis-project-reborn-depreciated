@@ -249,19 +249,19 @@ class LogicHandle(Initialize):
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            return True
+            return True, positions_dataframe
 
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            return True
+            return True, positions_dataframe
 
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            return True
+            return True, positions_dataframe
         else:
-            return False
+            return False, positions_dataframe
 
     def fresh_data_aggregator(self):
         fresh_data = df()
@@ -523,7 +523,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on closing positions: {err}\n{trace}")
-                                        imbalance_status = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
                                         else:
