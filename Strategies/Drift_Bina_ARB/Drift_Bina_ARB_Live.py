@@ -10,7 +10,7 @@ import sys
 import shutil
 
 from multiprocessing import Process
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 from pathlib import Path
 from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
@@ -21,9 +21,9 @@ from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
-        asyncio.set_event_loop_policy(
-            asyncio.WindowsSelectorEventLoopPolicy()
-        )
+    asyncio.set_event_loop_policy(
+        asyncio.WindowsSelectorEventLoopPolicy()
+    )
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -58,7 +58,7 @@ class Initialize:
                 time.sleep(0.3)
                 historical_arb_df = pd.read_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle")
                 if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["bina_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
-                    x = 5/0  # Exception force
+                    _ = 5/0  # Exception force
                 else:
                     return historical_arb_df
 
@@ -83,6 +83,8 @@ class Initialize:
 
 
 class DataHandle(Initialize):
+    def __init__(self):
+        Initialize.__init__(self)
 
     async def update_history_dataframe(self, historical_arb_df, API_drift, API_binance):
         arb_df = df()
@@ -158,10 +160,13 @@ class DataHandle(Initialize):
                 time.sleep(1)
 
     def main(self):
-            asyncio.run(self.run_constant_parallel_fresh_data_update())
+        asyncio.run(self.run_constant_parallel_fresh_data_update())
 
 
 class LogicHandle(Initialize):
+
+    def __init__(self):
+        Initialize.__init__(self)
 
     @staticmethod
     def conds_inplay(row):
@@ -591,7 +596,7 @@ class LogicHandle(Initialize):
                 x += 1
 
             except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-                    requests.exceptions.ConnectionError,requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
