@@ -9,7 +9,6 @@ import solana
 import sys
 import shutil
 
-from random import randint
 from multiprocessing import Process
 from colorama import Fore, Back, Style
 from pathlib import Path
@@ -84,8 +83,6 @@ class Initialize:
 
 
 class DataHandle(Initialize):
-    def __init__(self):
-        Initialize.__init__(self)
 
     async def update_history_dataframe(self, historical_arb_df, API_drift, API_binance):
         arb_df = df()
@@ -165,9 +162,6 @@ class DataHandle(Initialize):
 
 
 class LogicHandle(Initialize):
-
-    def __init__(self):
-        Initialize.__init__(self)
 
     @staticmethod
     def conds_inplay(row):
