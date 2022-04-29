@@ -35,11 +35,6 @@ AMM_PRECISION = 1e13
 FUNDING_PRECISION = 1e4
 
 
-async def get_balance(self):
-    collateral = (await self.clearing_house.get_user_account()).collateral
-    return collateral
-
-
 async def drift_get_margin_account_info(API):
     margin_info = dict()
     margin_info["total_collateral"] = await API["drift_user"].get_total_collateral()/QUOTE_PRECISION
