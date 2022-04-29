@@ -43,7 +43,7 @@ class Initialize:
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
         self.MIN_CLOSING_GAP = 0.00
-        self.LEVERAGE = 5
+        self.LEVERAGE = 4
         self.COINS_AT_ONCE = 5
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
@@ -405,14 +405,26 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on open positions: {err}\n{trace}")
-                                        time.sleep(45)
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-                                            pass
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
                                         else:
                                             break
-                                        i += 1
 
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
@@ -445,14 +457,26 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on open positions: {err}\n{trace}")
-                                        time.sleep(45)
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-                                            pass
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
                                         else:
                                             break
-                                        i += 1
 
                     else:
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -484,14 +508,27 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(45)
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-                                            pass
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
                                         else:
                                             break
-                                        i += 1
+
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
@@ -520,14 +557,26 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Error on closing positions: {err}\n{trace}")
-                                        time.sleep(45)
+                                        time.sleep(15)
                                         positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
                                                                                                API_binance=API_binance)
                                         if positions_dataframe.loc[coin_symbol, "imbalance"]:
-                                            pass
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
+                                        time.sleep(15)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data=fresh_data, API_drift=API_drift,
+                                                                                               API_binance=API_binance)
+                                        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+                                            i += 1
+                                            continue
                                         else:
                                             break
-                                        i += 1
 
                     print(f"Logic only logic positions: {round(time.perf_counter() - logic_start_time, 2)}")
 
