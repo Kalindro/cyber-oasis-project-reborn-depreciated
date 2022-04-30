@@ -390,7 +390,6 @@ class LogicHandle(Initialize):
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
                     print(f"Test time only selecting coin: {round(time.perf_counter() - test_time, 2)}")
-                    print(f"Logic selecting coin (plus potential list): {round(time.perf_counter() - logic_start_time, 2)}")
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
                         if coin_row["open_l_drift"]:
