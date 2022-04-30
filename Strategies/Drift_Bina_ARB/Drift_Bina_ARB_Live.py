@@ -374,7 +374,7 @@ class LogicHandle(Initialize):
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
-                    time.sleep(5)
+                    time.sleep(30)
                     continue
 
                 for coin in play_symbols_list_final:
