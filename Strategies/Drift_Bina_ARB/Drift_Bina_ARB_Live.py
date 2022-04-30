@@ -366,13 +366,15 @@ class LogicHandle(Initialize):
             try:
                 logic_start_time = time.perf_counter()
                 fresh_data = self.fresh_data_aggregator()
-                play_dataframe = fresh_data[fresh_data["open_somewhere"]]
-                best_coins_open = [coin for coin in play_dataframe.index]
-                best_coins_open.reverse()
-                play_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
-                play_symbols_list_pre = play_symbols_list + best_coins_open
-                play_symbols_list_final = []
-                [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
+                play_symbols_list_final = list(fresh_data.index.unique())
+                play_symbols_list_final.reverse()
+                # play_dataframe = fresh_data[fresh_data["open_somewhere"]]
+                # best_coins_open = [coin for coin in play_dataframe.index]
+                # best_coins_open.reverse()
+                # play_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
+                # play_symbols_list_pre = play_symbols_list + best_coins_open
+                # play_symbols_list_final = []
+                # [play_symbols_list_final.append(symbol) for symbol in play_symbols_list_pre if symbol not in play_symbols_list_final]
 
                 print(f"Logic only list: {round(time.perf_counter() - logic_start_time, 2)}")
 
