@@ -423,6 +423,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Err: {err}")
+                                            print(f"Message: {err['message']}")
                                             print(f"Err type: {type(err)}")
                                             print(f"Err cause: {err.__cause__}")
                                             print(f"Err cause type: {type(err.__cause__)}")
@@ -465,6 +466,7 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Err: {err}")
+                                            print(f"Message: {err['message']}")
                                             print(f"Err type: {type(err)}")
                                             print(f"Err cause: {err.__cause__}")
                                             print(f"Err cause type: {type(err.__cause__)}")
@@ -506,12 +508,13 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Err: {err}")
+                                            print(f"Message: {err['message']}")
                                             print(f"Err type: {type(err)}")
                                             print(f"Err cause: {err.__cause__}")
                                             print(f"Err cause type: {type(err.__cause__)}")
                                             print(f"Err context: {err.__context__}")
                                             print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on closing positions: {err}\n{trace}")
+                                            print(f"Error on open positions: {err}\n{trace}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
@@ -545,12 +548,13 @@ class LogicHandle(Initialize):
                                         else:
                                             trace = traceback.format_exc()
                                             print(f"Err: {err}")
+                                            print(f"Message: {err['message']}")
                                             print(f"Err type: {type(err)}")
                                             print(f"Err cause: {err.__cause__}")
                                             print(f"Err cause type: {type(err.__cause__)}")
                                             print(f"Err context: {err.__context__}")
                                             print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on closing positions: {err}\n{trace}")
+                                            print(f"Error on open positions: {err}\n{trace}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
