@@ -156,7 +156,7 @@ class DataHandle(Initialize):
                 print(f"Err context: {err.__context__}")
                 print(f"Err context type: {type(err.__context__)}")
                 print(f"Error on data: {err}\n{trace}")
-                time.sleep(1)
+                time.sleep(5)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_fresh_data_update())
@@ -596,7 +596,7 @@ class LogicHandle(Initialize):
                 print(f"Err context: {err.__context__}")
                 print(f"Err context type: {type(err.__context__)}")
                 print(f"Error on logic: {err}\n{trace}")
-                time.sleep(1)
+                time.sleep(5)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
@@ -624,4 +624,4 @@ if __name__ == "__main__":
         print(f"Err context: {err.__context__}")
         print(f"Err context type: {type(err.__context__)}")
         print(f"Error on main: {err}\n{trace}")
-        time.sleep(1)
+        time.sleep(5)
