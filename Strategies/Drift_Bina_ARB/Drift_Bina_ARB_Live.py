@@ -249,18 +249,22 @@ class LogicHandle(Initialize):
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
+            print("Imbalance on first check")
             return True, positions_dataframe
 
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
+            print("Imbalance on second check")
             return True, positions_dataframe
 
         time.sleep(15)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
+            print("Imbalance on third check")
             return True, positions_dataframe
         else:
+            print("No imbalance after third check")
             return False, positions_dataframe
 
     def fresh_data_aggregator(self):
