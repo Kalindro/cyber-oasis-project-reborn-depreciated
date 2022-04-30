@@ -532,8 +532,6 @@ class LogicHandle(Initialize):
                                         else:
                                             break
 
-                    print(f"Logic only logic positions: {round(time.perf_counter() - logic_start_time, 2)}")
-
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
                 if elapsed < expected:
