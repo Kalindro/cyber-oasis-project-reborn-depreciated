@@ -276,7 +276,6 @@ class LogicHandle(Initialize):
         for key in coin_dataframes_dict.keys():
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
-        data_calc_start_time = time.perf_counter()
         for frame in coin_dataframes_dict.values():
             frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median()
             frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
@@ -295,7 +294,6 @@ class LogicHandle(Initialize):
         fresh_data.reset_index(inplace=True)
         fresh_data.rename(columns={"index": "timestamp"}, inplace=True)
         fresh_data.set_index("symbol", inplace=True)
-        print(f"Data calc: {round(time.perf_counter() - data_calc_start_time, 2)}")
 
         return fresh_data
 
