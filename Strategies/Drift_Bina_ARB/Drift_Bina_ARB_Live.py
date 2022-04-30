@@ -246,20 +246,25 @@ class LogicConds(Initialize):
 class LogicHandle(Initialize):
 
     async def imbalance_checker(self, fresh_data, coin_symbol, API_drift, API_binance):
+        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
+        if positions_dataframe.loc[coin_symbol, "imbalance"]:
+            print("Imbalance on initial check")
+            return True, positions_dataframe
+
         time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
             print("Imbalance on first check")
             return True, positions_dataframe
 
         time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
             print("Imbalance on second check")
             return True, positions_dataframe
 
         time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
         if positions_dataframe.loc[coin_symbol, "imbalance"]:
             print("Imbalance on third check")
             return True, positions_dataframe
@@ -422,7 +427,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            break
+                                            return
 
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
@@ -458,7 +463,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            break
+                                            return
 
                     else:
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -493,7 +498,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            break
+                                            return
 
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
@@ -526,7 +531,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            break
+                                            return
 
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
