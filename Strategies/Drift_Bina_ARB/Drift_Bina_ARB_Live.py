@@ -335,10 +335,10 @@ class LogicHandle(Initialize):
         binance_balances = binance_futures_get_balance(API_binance).loc["USDT"]
         drift_balances = await drift_get_margin_account_info(API_drift)
         balances_dict = {"binance": float(binance_balances['total']),
-                         "drift": float(drift_balances['total_collateral']),
-                         "sum": float(binance_balances['total']) + float(drift_balances['total_collateral']),
+                         "drift": float(drift_balances['collateral']),
+                         "sum": float(binance_balances['total']) + float(drift_balances['collateral']),
                          "binance_play_value": float(binance_balances['total']) * 0.80,
-                         "drift_play_value": float(drift_balances['total_collateral']) * 0.80,
+                         "drift_play_value": float(drift_balances['collateral']) * 0.80,
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
 
         if printing:
