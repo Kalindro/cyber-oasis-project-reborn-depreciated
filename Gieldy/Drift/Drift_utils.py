@@ -73,6 +73,7 @@ async def drift_load_positions(API):
     positions_df["quote_asset_amount"] /= QUOTE_PRECISION
     positions_df = pd.DataFrame(MARKETS)[["symbol", "market_index"]].merge(positions_df)
     positions_df.loc[positions_df.base_asset_amount == 0, :] = np.nan
+    positions_df = positions_df[positions_df["market_index"].notna()]
     positions_df["notional"] = np.array(await (async_apply(positions_df["market_index"], API["drift_user"].get_position_value))) / QUOTE_PRECISION
     positions_df["entry_price"] = (positions_df["quote_asset_amount"] / positions_df["base_asset_amount"]).abs()
     positions_df["exit_price"] = (positions_df["notional"] / positions_df["base_asset_amount"]).abs()
