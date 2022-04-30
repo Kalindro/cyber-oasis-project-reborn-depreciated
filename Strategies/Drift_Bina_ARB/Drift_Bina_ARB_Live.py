@@ -418,25 +418,23 @@ class LogicHandle(Initialize):
                                         time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
-                                    except Exception as err:
-                                        if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on open positions: {err}")
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Message: {dir(err)}")
-                                            print(f"Message: {err[0]}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on open positions: {err}\n{trace}")
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
                                         else:
                                             return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
 
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
@@ -462,25 +460,23 @@ class LogicHandle(Initialize):
                                         time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
-                                    except Exception as err:
-                                        if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on open positions: {err}")
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Message: {dir(err)}")
-                                            print(f"Message: {err[0]}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on open positions: {err}\n{trace}")
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
                                         else:
                                             return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
 
                     else:
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -505,25 +501,23 @@ class LogicHandle(Initialize):
                                         time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
-                                    except Exception as err:
-                                        if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Message: {dir(err)}")
-                                            print(f"Message: {err[0]}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on close positions: {err}\n{trace}")
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
                                         else:
                                             return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
 
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
@@ -546,25 +540,24 @@ class LogicHandle(Initialize):
                                         time.sleep(2)
                                         balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
-                                    except Exception as err:
-                                        if type(err) == solana.rpc.core.UnconfirmedTxError:
-                                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Message: {dir(err)}")
-                                            print(f"Message: {err[0]}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on close positions: {err}\n{trace}")
+
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
                                         else:
                                             return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
 
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
