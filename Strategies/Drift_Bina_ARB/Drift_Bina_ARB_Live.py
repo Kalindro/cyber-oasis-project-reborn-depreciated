@@ -414,8 +414,6 @@ class LogicHandle(Initialize):
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -456,8 +454,6 @@ class LogicHandle(Initialize):
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -497,8 +493,6 @@ class LogicHandle(Initialize):
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(2)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -536,8 +530,6 @@ class LogicHandle(Initialize):
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
                                         time.sleep(3)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
 
                                     except solana.rpc.core.UnconfirmedTxError as err:
