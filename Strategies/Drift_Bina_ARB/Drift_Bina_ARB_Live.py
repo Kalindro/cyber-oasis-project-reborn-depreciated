@@ -372,13 +372,14 @@ class LogicHandle(Initialize):
             try:
                 logic_start_time = time.perf_counter()
                 fresh_data = self.fresh_data_aggregator()
-                play_dataframe = fresh_data[fresh_data["open_somewhere"]]
-                best_coins_open = [coin for coin in play_dataframe.index]
-                best_coins_open.reverse()
-                inplay_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
-                inplay_symbols_list_pre = inplay_symbols_list + best_coins_open
+                not_inplay_list = [coin for coin in positions_dataframe.loc[~positions_dataframe["inplay"]].index]
+                not_inplay_data = fresh_data[fresh_data.index.isin(not_inplay_list)]
+                top_to_be_open_coins = [coin for coin in not_inplay_data.tail(2).index]
+                top_to_be_open_coins.reverse()
+                inplay_coins = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
+                play_sombols_list = inplay_coins + top_to_be_open_coins
                 play_symbols_list_final = []
-                [play_symbols_list_final.append(symbol) for symbol in inplay_symbols_list_pre if symbol not in play_symbols_list_final]
+                [play_symbols_list_final.append(symbol) for symbol in play_sombols_list if symbol not in play_symbols_list_final]
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
