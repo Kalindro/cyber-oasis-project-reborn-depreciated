@@ -412,7 +412,7 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             short_binance = binance_futures_open_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
@@ -452,7 +452,7 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             long_binance = binance_futures_open_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
@@ -491,7 +491,7 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             close_binance_short = binance_futures_close_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
@@ -528,7 +528,7 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             close_binance_long = binance_futures_close_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
 
