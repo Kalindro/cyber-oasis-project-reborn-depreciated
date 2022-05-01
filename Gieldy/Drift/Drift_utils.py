@@ -38,9 +38,6 @@ FUNDING_PRECISION = 1e4
 async def drift_get_margin_account_info(API):
     margin_info = dict()
     margin_info["collateral"] = await API["drift_user"].get_collateral()/QUOTE_PRECISION
-    # margin_info["free_collateral"] = await API["drift_user"].get_free_collateral()/QUOTE_PRECISION
-    # margin_info["leverage"] = await API["drift_user"].get_leverage()
-    # margin_info["X"] = await API["drift_user"].get_total_position_value()/QUOTE_PRECISION
 
     return margin_info
 
