@@ -39,12 +39,13 @@ class Initialize:
     def __init__(self):
         self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
-        self.FAST_AVG = 18
+        self.FAST_AVG = 24
         self.QUARTILE = 0.15
         self.MIN_REGULAR_GAP = 0.44
-        self.MIN_CLOSING_GAP = 0.00
+        self.SECOND_LAYER_GAP = 0.85
+        self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
-        self.COINS_AT_ONCE = 5
+        self.COINS_AT_ONCE = 6
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
 
@@ -288,10 +289,8 @@ class LogicHandle(Initialize):
                 lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
             frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
                 lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
-            # frame["gap_range"] = abs(frame["top_avg_gaps"] - frame["bottom_avg_gaps"])
             frame["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
             frame["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
-            frame["open_somewhere"] = frame.apply(lambda row: LogicConds().conds_open_somewhere(row), axis=1)
             frame["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
             frame["close_s_drift"] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
@@ -372,13 +371,14 @@ class LogicHandle(Initialize):
             try:
                 logic_start_time = time.perf_counter()
                 fresh_data = self.fresh_data_aggregator()
-                play_dataframe = fresh_data[fresh_data["open_somewhere"]]
-                best_coins_open = [coin for coin in play_dataframe.index]
-                best_coins_open.reverse()
-                inplay_symbols_list = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
-                inplay_symbols_list_pre = inplay_symbols_list + best_coins_open
+                not_inplay_list = [coin for coin in positions_dataframe.loc[~positions_dataframe["inplay"]].index]
+                not_inplay_data = fresh_data[fresh_data.index.isin(not_inplay_list)]
+                top_to_be_open_coins = [coin for coin in not_inplay_data.tail(2).index]
+                top_to_be_open_coins.reverse()
+                inplay_coins = [coin for coin in positions_dataframe.loc[positions_dataframe["inplay"]].index]
+                play_sombols_list = inplay_coins + top_to_be_open_coins
                 play_symbols_list_final = []
-                [play_symbols_list_final.append(symbol) for symbol in inplay_symbols_list_pre if symbol not in play_symbols_list_final]
+                [play_symbols_list_final.append(symbol) for symbol in play_sombols_list if symbol not in play_symbols_list_final]
 
                 if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
@@ -413,10 +413,8 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             short_binance = binance_futures_open_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -455,10 +453,8 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             long_binance = binance_futures_open_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -496,10 +492,8 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             close_binance_short = binance_futures_close_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(2)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
@@ -535,10 +529,8 @@ class LogicHandle(Initialize):
                                             bina_orders = time.perf_counter()
                                             close_binance_long = binance_futures_close_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
                                             print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                                        time.sleep(3)
+                                        time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                                        time.sleep(3)
-                                        balances_dict = await self.get_balances_summary(API_drift, API_binance)
                                         break
 
                                     except solana.rpc.core.UnconfirmedTxError as err:
@@ -563,11 +555,11 @@ class LogicHandle(Initialize):
                 expected = 2.5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
-                elif elapsed > 25:
+                elif elapsed > 35:
                     pass
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
-                if x > 50:
+                if x > 25:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
                     API_drift = await self.initiate_drift()
                     API_binance = self.initiate_binance()

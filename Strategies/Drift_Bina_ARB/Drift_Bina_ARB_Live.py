@@ -597,7 +597,7 @@ if __name__ == "__main__":
     except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout, requests.exceptions.ConnectionError,
             requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
         print(f"Read timeout/connection error: {err}")
-        time.sleep(1)
+        time.sleep(5)
 
     except Exception as err:
         trace = traceback.format_exc()
