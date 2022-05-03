@@ -12,18 +12,13 @@ from driftpy.types import (
     User,
     UserPositions,
 )
-from driftpy.constants.markets import MARKETS
-from driftpy.constants.numeric_constants import MARK_PRICE_PRECISION, QUOTE_PRECISION
-from driftpy.clearing_house_user import ClearingHouseUser
-import asyncio
-
-from datetime import datetime, timedelta
-from pythclient.pythaccounts import PythPriceAccount
-from pythclient.solana import (SolanaClient, SolanaPublicKey, SOLANA_DEVNET_HTTP_ENDPOINT, SOLANA_DEVNET_WS_ENDPOINT,
-                               SOLANA_MAINNET_HTTP_ENDPOINT, SOLANA_MAINNET_HTTP_ENDPOINT)
 
 import pandas as pd
 import numpy as np
+
+from driftpy.constants.markets import MARKETS
+from driftpy.constants.numeric_constants import MARK_PRICE_PRECISION, QUOTE_PRECISION
+from datetime import datetime, timedelta
 
 
 pd.set_option('display.max_rows', None)
@@ -125,3 +120,4 @@ async def drift_close_order(API, drift_index):
     close_position = await API["drift_acct"].close_position(market_index=drift_index)
 
     return close_position
+

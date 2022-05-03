@@ -1,8 +1,8 @@
 import traceback
-import os
+import asyncio
 import datetime as dt
 
-
+import os
 import httpcore
 import httpx
 import requests.exceptions
@@ -143,7 +143,8 @@ class DataHandle(Initialize):
                     x = 0
 
             except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
+                    httpx.RemoteProtocolError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -379,7 +380,7 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_sombols_list if symbol not in play_symbols_list_final]
 
-                if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
+                if np.isnan(fresh_data.iloc[-4]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(30)
                     continue
@@ -594,8 +595,9 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout, requests.exceptions.ConnectionError,
-            requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
+            requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
+            httpx.RemoteProtocolError) as err:
         print(f"Read timeout/connection error: {err}")
         time.sleep(5)
 
