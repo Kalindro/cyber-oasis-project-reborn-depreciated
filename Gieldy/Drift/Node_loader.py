@@ -7,7 +7,7 @@ from anchorpy import Idl, Program, Provider
 CONFIG = {
     "mainnet": {
         "ENV": "mainnet-beta",
-        "URL": "https://nd-731-153-782.p2pify.com/071e0d7d61f5f457db707dbecb6696bf",
+        "URL": "https://sol.getblock.io/mainnet/?api_key=34e5495d-eae6-4e51-97e7-4eff7d926394",
         # "URL": "https://api.mainnet-beta.solana.com/",
         "PYTH_ORACLE_MAPPING_ADDRESS": "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
         "CLEARING_HOUSE_PROGRAM_ID": "dammHkt7jmytvbS3nHTxQNEcP59aE57nxwV21YdqEDN",
