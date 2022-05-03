@@ -39,9 +39,9 @@ class Initialize:
     def __init__(self):
         self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
-        self.FAST_AVG = 24
+        self.FAST_AVG = 28
         self.QUARTILE = 0.15
-        self.MIN_REGULAR_GAP = 0.44
+        self.MIN_REGULAR_GAP = 0.45
         self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
         self.COINS_AT_ONCE = 5
