@@ -575,6 +575,7 @@ class LogicHandle(Initialize):
                                                                  precisions_dataframe, API_drift, API_binance)
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
                 execute_all_logic = shark_pool.imap(partial_logic_orders_execute, play_symbols_list_final)
+                print(execute_all_logic)
                 shark_pool.close()
                 shark_pool.join()
 
