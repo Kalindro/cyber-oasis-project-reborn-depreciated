@@ -1,8 +1,7 @@
 import traceback
 import os
 import datetime as dt
-
-
+import asyncio
 import httpcore
 import httpx
 import requests.exceptions
@@ -17,8 +16,9 @@ from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance_1
-from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_2
+from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance
+from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_private
+from Gieldy.Drift.API_initiation_Drift_Public import API_initiation as API_drift_public
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
@@ -39,15 +39,15 @@ class Initialize:
     def __init__(self):
         self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
-        self.FAST_AVG = 24
+        self.FAST_AVG = 28
         self.QUARTILE = 0.15
-        self.MIN_REGULAR_GAP = 0.44
-        self.SECOND_LAYER_GAP = 0.85
+        self.MIN_REGULAR_GAP = 0.45
         self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
         self.COINS_AT_ONCE = 6
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
+        self.CLOSE_ONLY_MODE = False
 
     @staticmethod
     def read_historical_dataframe():
@@ -77,11 +77,15 @@ class Initialize:
 
     @staticmethod
     def initiate_binance():
-        return API_binance_1()
+        return API_binance()
 
     @staticmethod
-    async def initiate_drift():
-        return await API_drift_2()
+    async def initiate_drift_private():
+        return await API_drift_private()
+
+    @staticmethod
+    async def initiate_drift_public():
+        return await API_drift_public()
 
 
 class DataHandle(Initialize):
@@ -116,15 +120,15 @@ class DataHandle(Initialize):
     async def run_constant_parallel_fresh_data_update(self):
         print("Running data side...")
 
-        API_drift = await self.initiate_drift()
+        API_drift = await self.initiate_drift_public()
         API_binance = self.initiate_binance()
-        historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
+        historical_arb_df = await self.update_history_dataframe(self.read_historical_dataframe(), API_drift, API_binance)
 
         x = 0
         while True:
             try:
                 data_start_time = time.perf_counter()
-                historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                historical_arb_df = await self.update_history_dataframe(historical_arb_df, API_drift, API_binance)
                 if len(historical_arb_df) > 2:
                     historical_arb_df.to_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle")
                 else:
@@ -139,12 +143,13 @@ class DataHandle(Initialize):
 
                 if x > 500:
                     historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
-                    API_drift = await self.initiate_drift()
+                    API_drift = await self.initiate_drift_public()
                     API_binance = self.initiate_binance()
                     x = 0
 
             except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
+                    httpx.RemoteProtocolError) as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
@@ -315,7 +320,7 @@ class LogicHandle(Initialize):
                     print("Changing margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
-    async def get_positions_summary(self, fresh_data, API_drift, API_binance, printing=True, sleeping=True):
+    async def get_positions_summary(self, fresh_data, API_drift, API_binance, printing=True):
         playable_coins_list = fresh_data.index.unique()
         binance_positions = binance_futures_positions(API_binance)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins_list)]
@@ -335,8 +340,6 @@ class LogicHandle(Initialize):
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: LogicConds().conds_imbalance(row), axis=1)
         if printing:
             print(positions_dataframe)
-        if sleeping:
-            time.sleep(1.5)
 
         return positions_dataframe
 
@@ -352,13 +355,12 @@ class LogicHandle(Initialize):
 
         if printing:
             print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}, Bina: {balances_dict['binance']:.2f} Drift: {balances_dict['drift']:.2f}" + Style.RESET_ALL)
-        time.sleep(1.5)
 
         return balances_dict
 
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
-        API_drift = await self.initiate_drift()
+        API_drift = await self.initiate_drift_private()
         API_binance = self.initiate_binance()
         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
         fresh_data = self.fresh_data_aggregator()
@@ -380,7 +382,7 @@ class LogicHandle(Initialize):
                 play_symbols_list_final = []
                 [play_symbols_list_final.append(symbol) for symbol in play_sombols_list if symbol not in play_symbols_list_final]
 
-                if np.isnan(fresh_data.iloc[-1]["top_avg_gaps"]):
+                if np.isnan(fresh_data.iloc[-4]["top_avg_gaps"]):
                     print("Not enough data or wrong load, logic sleeping...")
                     time.sleep(30)
                     continue
@@ -393,7 +395,7 @@ class LogicHandle(Initialize):
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
 
-                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
+                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
                         if coin_row["open_l_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -561,7 +563,7 @@ class LogicHandle(Initialize):
 
                 if x > 25:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
-                    API_drift = await self.initiate_drift()
+                    API_drift = await self.initiate_drift_private()
                     API_binance = self.initiate_binance()
                     x = 0
 
@@ -595,10 +597,11 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout, requests.exceptions.ConnectionError,
-            requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
+            requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
+            httpx.RemoteProtocolError) as err:
         print(f"Read timeout/connection error: {err}")
-        time.sleep(1)
+        time.sleep(5)
 
     except Exception as err:
         trace = traceback.format_exc()
