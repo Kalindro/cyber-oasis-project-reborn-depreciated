@@ -576,7 +576,7 @@ class LogicHandle(Initialize):
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
                 pizda = functools.partial(self.logic_orders_execute, fresh_data, balances_dict, positions_dataframe,precisions_dataframe,
                                           API_drift, API_binance)
-                amap(pizda, ["BTC", "ETH"])
+                chuj = [await pizda(elem) for elem in play_symbols_list_final]
                 shark_pool.close()
                 shark_pool.join()
 
