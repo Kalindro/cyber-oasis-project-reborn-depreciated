@@ -367,7 +367,7 @@ class LogicHandle(Initialize):
         coin_pair = coin_row["binance_pair"]
         coin_bina_price = coin_row["bina_price"]
         coin_drift_price = coin_row["drift_price"]
-        print(coin_row)
+        print(coin)
 
         if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
             if coin_row["open_l_drift"]:
@@ -575,7 +575,7 @@ class LogicHandle(Initialize):
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
                 pizda = functools.partial(self.logic_orders_execute, fresh_data, balances_dict, positions_dataframe,precisions_dataframe,
                                           API_drift, API_binance)
-                await pizda("BTC")
+                await pizda(["BTC", "ETH"])
                 shark_pool.close()
                 shark_pool.join()
 
