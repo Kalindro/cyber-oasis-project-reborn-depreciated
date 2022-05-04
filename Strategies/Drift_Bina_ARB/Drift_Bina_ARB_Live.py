@@ -571,7 +571,7 @@ class LogicHandle(Initialize):
                     continue
 
                 print("TU?")
-                partial_logic_orders_execute = functools.partial(func=self.logic_orders_execute, fresh_data=fresh_data, balances_dict=balances_dict,
+                partial_logic_orders_execute = functools.partial(self.logic_orders_execute, fresh_data=fresh_data, balances_dict=balances_dict,
                                                                  positions_dataframe=positions_dataframe, precisions_dataframe=precisions_dataframe,
                                                                  API_drift=API_drift, API_binance=API_binance)
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
