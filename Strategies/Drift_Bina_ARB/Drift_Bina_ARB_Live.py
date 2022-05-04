@@ -40,7 +40,7 @@ class Initialize:
         self.LIMIT_DATA = True
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 28
-        self.QUARTILE = 0.15
+        self.QUARTILE = 0.20
         self.MIN_REGULAR_GAP = 0.45
         self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
@@ -435,7 +435,8 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
-
+                                    finally:
+                                        i += 1
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -475,6 +476,8 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
+                                    finally:
+                                        i += 1
 
                     else:
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -514,7 +517,8 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
-
+                                    finally:
+                                        i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
                             if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
@@ -552,7 +556,8 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
-
+                                    finally:
+                                        i += 1
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
                 if elapsed < expected:
