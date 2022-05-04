@@ -540,6 +540,7 @@ class LogicHandle(Initialize):
                             print(f"Err context: {err.__context__}")
                             print(f"Err context type: {type(err.__context__)}")
                             print(f"Error on close positions: {err}\n{trace}")
+            return 5
 
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
