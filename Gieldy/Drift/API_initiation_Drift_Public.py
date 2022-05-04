@@ -20,7 +20,7 @@ os.environ["ANCHOR_WALLET"] = f"{project_path}/Gieldy/APIs/Solana_Drift_Bina_ARB
 
 async def API_initiation():
     user_account = dict()
-    user_account["drift_acct"] = await ClearingHouse.create(program=my_load_program())
+    user_account["drift_acct"] = await ClearingHouse.create(program=my_load_program(private=False))
     user_account["drift_user"] = ClearingHouseUser(user_account["drift_acct"], user_account["drift_acct"].program.provider.wallet.public_key)
     user_account["drift_user_acct"] = await user_account["drift_user"].get_user_account()
 

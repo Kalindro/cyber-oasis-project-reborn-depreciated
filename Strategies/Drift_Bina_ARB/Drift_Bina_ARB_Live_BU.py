@@ -18,7 +18,7 @@ from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
 from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance_1
-from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
+from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_2
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:

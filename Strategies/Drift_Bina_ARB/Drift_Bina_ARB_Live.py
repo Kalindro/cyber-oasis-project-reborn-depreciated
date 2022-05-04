@@ -16,8 +16,9 @@ from Gieldy.Binance.Binance_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance_1
-from Gieldy.Drift.API_initiation_Drift_USDC import API_initiation as API_drift_2
+from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance
+from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_private
+from Gieldy.Drift.API_initiation_Drift_Public import API_initiation as API_drift_public
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
@@ -46,6 +47,7 @@ class Initialize:
         self.COINS_AT_ONCE = 5
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
+        self.CLOSE_ONLY_MODE = False
 
     @staticmethod
     def read_historical_dataframe():
@@ -75,11 +77,15 @@ class Initialize:
 
     @staticmethod
     def initiate_binance():
-        return API_binance_1()
+        return API_binance()
 
     @staticmethod
-    async def initiate_drift():
-        return await API_drift_2()
+    async def initiate_drift_private():
+        return await API_drift_private()
+
+    @staticmethod
+    async def initiate_drift_public():
+        return await API_drift_public()
 
 
 class DataHandle(Initialize):
@@ -114,15 +120,15 @@ class DataHandle(Initialize):
     async def run_constant_parallel_fresh_data_update(self):
         print("Running data side...")
 
-        API_drift = await self.initiate_drift()
+        API_drift = await self.initiate_drift_public()
         API_binance = self.initiate_binance()
-        historical_arb_df = await self.update_history_dataframe(historical_arb_df=self.read_historical_dataframe(), API_drift=API_drift, API_binance=API_binance)
+        historical_arb_df = await self.update_history_dataframe(self.read_historical_dataframe(), API_drift, API_binance)
 
         x = 0
         while True:
             try:
                 data_start_time = time.perf_counter()
-                historical_arb_df = await self.update_history_dataframe(historical_arb_df=historical_arb_df, API_drift=API_drift, API_binance=API_binance)
+                historical_arb_df = await self.update_history_dataframe(historical_arb_df, API_drift, API_binance)
                 if len(historical_arb_df) > 2:
                     historical_arb_df.to_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_LIVE_WRITE.pickle")
                 else:
@@ -137,7 +143,7 @@ class DataHandle(Initialize):
 
                 if x > 500:
                     historical_arb_df.to_csv(f"{project_path}/History_data/Drift/5S/Price_gaps_5S.csv")
-                    API_drift = await self.initiate_drift()
+                    API_drift = await self.initiate_drift_public()
                     API_binance = self.initiate_binance()
                     x = 0
 
@@ -357,7 +363,7 @@ class LogicHandle(Initialize):
 
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
-        API_drift = await self.initiate_drift()
+        API_drift = await self.initiate_drift_private()
         API_binance = self.initiate_binance()
         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
         fresh_data = self.fresh_data_aggregator()
@@ -392,7 +398,7 @@ class LogicHandle(Initialize):
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
 
-                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE):
+                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
                         if coin_row["open_l_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
@@ -560,7 +566,7 @@ class LogicHandle(Initialize):
 
                 if x > 25:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
-                    API_drift = await self.initiate_drift()
+                    API_drift = await self.initiate_drift_private()
                     API_binance = self.initiate_binance()
                     x = 0
 
