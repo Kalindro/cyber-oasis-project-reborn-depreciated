@@ -8,10 +8,7 @@ import requests.exceptions
 import solana
 import sys
 import shutil
-import multiprocessing
-import functools
 
-from asyncstdlib.builtins import map as amap
 from multiprocessing import Process
 from colorama import Fore, Style
 from pathlib import Path
@@ -361,188 +358,6 @@ class LogicHandle(Initialize):
 
         return balances_dict
 
-    async def logic_orders_execute(self, fresh_data, balances_dict, positions_dataframe, precisions_dataframe, API_drift, API_binance, coin):
-        print("MIejsce ma")
-        coin_row = fresh_data.loc[coin]
-        coin_symbol = coin
-        coin_pair = coin_row["binance_pair"]
-        coin_bina_price = coin_row["bina_price"]
-        coin_drift_price = coin_row["drift_price"]
-        print(coin)
-
-        if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
-            if coin_row["open_l_drift"]:
-                coin_target_value = balances_dict["coin_target_value"]
-                bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
-                drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                    print(
-                        Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
-                    print(fresh_data)
-                    i = 1
-                    while True:
-                        try:
-                            print(f"Try number: {i}")
-                            if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                drift_orders = time.perf_counter()
-                                long_drift = await drift_open_market_long(API_drift, amount=drift_open_value * self.DRIFT_BIG_N,
-                                                                          drift_index=coin_row["drift_pair"])
-                                print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                            if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                bina_orders = time.perf_counter()
-                                short_binance = binance_futures_open_market_short(API_binance, pair=coin_row["binance_pair"],
-                                                                                  amount=bina_open_amount)
-                                print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                            time.sleep(4)
-                            positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                            break
-                        except solana.rpc.core.UnconfirmedTxError as err:
-                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                            imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift,
-                                                                                                 API_binance)
-                            if imbalance_status:
-                                continue
-                            else:
-                                return
-                        except Exception as err:
-                            trace = traceback.format_exc()
-                            print(f"Err: {err}")
-                            print(f"Message: {dir(err)}")
-                            print(f"Err type: {type(err)}")
-                            print(f"Err cause: {err.__cause__}")
-                            print(f"Err cause type: {type(err.__cause__)}")
-                            print(f"Err context: {err.__context__}")
-                            print(f"Err context type: {type(err.__context__)}")
-                            print(f"Error on close positions: {err}\n{trace}")
-
-            elif coin_row["open_s_drift"]:
-                coin_target_value = balances_dict["coin_target_value"]
-                bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
-                drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                    print(
-                        Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
-                    print(fresh_data)
-                    i = 1
-                    while True:
-                        try:
-                            print(f"Try number: {i}")
-                            if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                drift_orders = time.perf_counter()
-                                short_drift = await drift_open_market_short(API_drift, amount=drift_open_value * self.DRIFT_BIG_N,
-                                                                            drift_index=coin_row["drift_pair"])
-                                print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                            if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                bina_orders = time.perf_counter()
-                                long_binance = binance_futures_open_market_long(API_binance, pair=coin_row["binance_pair"],
-                                                                                amount=bina_open_amount)
-                                print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                            time.sleep(4)
-                            positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                            break
-                        except solana.rpc.core.UnconfirmedTxError as err:
-                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                            imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift,
-                                                                                                 API_binance)
-                            if imbalance_status:
-                                continue
-                            else:
-                                return
-                        except Exception as err:
-                            trace = traceback.format_exc()
-                            print(f"Err: {err}")
-                            print(f"Message: {dir(err)}")
-                            print(f"Err type: {type(err)}")
-                            print(f"Err cause: {err.__cause__}")
-                            print(f"Err cause type: {type(err.__cause__)}")
-                            print(f"Err context: {err.__context__}")
-                            print(f"Err context type: {type(err.__context__)}")
-                            print(f"Error on close positions: {err}\n{trace}")
-
-        else:
-            bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1),
-                                      precisions_dataframe.loc[coin_pair, "amount_precision"])
-            if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
-                if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                    print(
-                        Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
-                    print(fresh_data)
-                    i = 1
-                    while True:
-                        try:
-                            print(f"Try number: {i}")
-                            if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                drift_orders = time.perf_counter()
-                                close_drift_long = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
-                                print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                            if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                bina_orders = time.perf_counter()
-                                close_binance_short = binance_futures_close_market_short(API_binance, pair=coin_row["binance_pair"],
-                                                                                         amount=bina_close_amount)
-                                print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                            time.sleep(4)
-                            positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                            break
-                        except solana.rpc.core.UnconfirmedTxError as err:
-                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                            imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift,
-                                                                                                 API_binance)
-                            if imbalance_status:
-                                continue
-                            else:
-                                return
-                        except Exception as err:
-                            trace = traceback.format_exc()
-                            print(f"Err: {err}")
-                            print(f"Message: {dir(err)}")
-                            print(f"Err type: {type(err)}")
-                            print(f"Err cause: {err.__cause__}")
-                            print(f"Err cause type: {type(err.__cause__)}")
-                            print(f"Err context: {err.__context__}")
-                            print(f"Err context type: {type(err.__context__)}")
-                            print(f"Error on close positions: {err}\n{trace}")
-
-            elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
-                if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
-                    print(
-                        Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
-                    print(fresh_data)
-                    i = 1
-                    while True:
-                        try:
-                            print(f"Try number: {i}")
-                            if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
-                                drift_orders = time.perf_counter()
-                                close_drift_short = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
-                                print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                            if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                bina_orders = time.perf_counter()
-                                close_binance_long = binance_futures_close_market_long(API_binance, pair=coin_row["binance_pair"],
-                                                                                       amount=bina_close_amount)
-                                print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
-                            time.sleep(4)
-                            positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
-                            break
-
-                        except solana.rpc.core.UnconfirmedTxError as err:
-                            print(f"Unconfirmed TX Error on closing positions: {err}")
-                            imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift,
-                                                                                                 API_binance)
-                            if imbalance_status:
-                                continue
-                            else:
-                                return
-                        except Exception as err:
-                            trace = traceback.format_exc()
-                            print(f"Err: {err}")
-                            print(f"Message: {dir(err)}")
-                            print(f"Err type: {type(err)}")
-                            print(f"Err cause: {err.__cause__}")
-                            print(f"Err cause type: {type(err.__cause__)}")
-                            print(f"Err context: {err.__context__}")
-                            print(f"Err context type: {type(err.__context__)}")
-                            print(f"Error on close positions: {err}\n{trace}")
-
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
         API_drift = await self.initiate_drift_private()
@@ -572,19 +387,177 @@ class LogicHandle(Initialize):
                     time.sleep(30)
                     continue
 
-                print("TU?")
-                shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
-                pizda = functools.partial(self.logic_orders_execute, fresh_data, balances_dict, positions_dataframe,precisions_dataframe,
-                                          API_drift, API_binance)
-                chuj = [await pizda(elem) for elem in play_symbols_list_final]
-                shark_pool.close()
-                shark_pool.join()
+                for coin in play_symbols_list_final:
+                    fresh_data = self.fresh_data_aggregator()
+                    coin_row = fresh_data.loc[coin]
+                    coin_symbol = coin
+                    coin_pair = coin_row["binance_pair"]
+                    coin_bina_price = coin_row["bina_price"]
+                    coin_drift_price = coin_row["drift_price"]
+
+                    if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
+                        if coin_row["open_l_drift"]:
+                            coin_target_value = balances_dict["coin_target_value"]
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
+                            if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
+                                print(fresh_data)
+                                i = 1
+                                while True:
+                                    try:
+                                        print(f"Try number: {i}")
+                                        if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                            drift_orders = time.perf_counter()
+                                            long_drift = await drift_open_market_long(API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
+                                        if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                            bina_orders = time.perf_counter()
+                                            short_binance = binance_futures_open_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        time.sleep(4)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+                                        break
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        if imbalance_status:
+                                            continue
+                                        else:
+                                            return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
+
+                        elif coin_row["open_s_drift"]:
+                            coin_target_value = balances_dict["coin_target_value"]
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
+                            if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
+                                print(fresh_data)
+                                i = 1
+                                while True:
+                                    try:
+                                        print(f"Try number: {i}")
+                                        if not positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                            drift_orders = time.perf_counter()
+                                            short_drift = await drift_open_market_short(API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
+                                        if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                            bina_orders = time.perf_counter()
+                                            long_binance = binance_futures_open_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        time.sleep(4)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+                                        break
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        if imbalance_status:
+                                            continue
+                                        else:
+                                            return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
+
+                    else:
+                        bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_pair, "amount_precision"])
+                        if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
+                            if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
+                                print(fresh_data)
+                                i = 1
+                                while True:
+                                    try:
+                                        print(f"Try number: {i}")
+                                        if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                            drift_orders = time.perf_counter()
+                                            close_drift_long = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
+                                        if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                            bina_orders = time.perf_counter()
+                                            close_binance_short = binance_futures_close_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        time.sleep(4)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+                                        break
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        if imbalance_status:
+                                            continue
+                                        else:
+                                            return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
+
+                        elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
+                            if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
+                                print(fresh_data)
+                                i = 1
+                                while True:
+                                    try:
+                                        print(f"Try number: {i}")
+                                        if positions_dataframe.loc[coin_symbol, "drift_inplay"]:
+                                            drift_orders = time.perf_counter()
+                                            close_drift_short = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
+                                            print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
+                                        if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
+                                            bina_orders = time.perf_counter()
+                                            close_binance_long = binance_futures_close_market_long(API_binance, pair=coin_row["binance_pair"], amount=bina_close_amount)
+                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        time.sleep(4)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+                                        break
+
+                                    except solana.rpc.core.UnconfirmedTxError as err:
+                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        if imbalance_status:
+                                            continue
+                                        else:
+                                            return
+                                    except Exception as err:
+                                        trace = traceback.format_exc()
+                                        print(f"Err: {err}")
+                                        print(f"Message: {dir(err)}")
+                                        print(f"Err type: {type(err)}")
+                                        print(f"Err cause: {err.__cause__}")
+                                        print(f"Err cause type: {type(err.__cause__)}")
+                                        print(f"Err context: {err.__context__}")
+                                        print(f"Err context type: {type(err.__context__)}")
+                                        print(f"Error on close positions: {err}\n{trace}")
 
                 elapsed = time.perf_counter() - logic_start_time
-                expected = 7.5
+                expected = 2.5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
-                elif elapsed > 30:
+                elif elapsed > 35:
                     pass
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
