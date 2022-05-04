@@ -361,6 +361,7 @@ class LogicHandle(Initialize):
         return balances_dict
 
     async def logic_orders_execute(self, fresh_data, balances_dict, positions_dataframe, precisions_dataframe, API_drift, API_binance, coin):
+        print("MIejsce ma")
         coin_row = fresh_data.loc[coin]
         coin_symbol = coin
         coin_pair = coin_row["binance_pair"]
