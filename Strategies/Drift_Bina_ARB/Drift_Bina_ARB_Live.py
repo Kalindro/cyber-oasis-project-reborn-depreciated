@@ -11,6 +11,7 @@ import shutil
 import multiprocessing
 import functools
 
+from asyncstdlib.builtins import map as amap
 from multiprocessing import Process
 from colorama import Fore, Style
 from pathlib import Path
@@ -575,7 +576,7 @@ class LogicHandle(Initialize):
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
                 pizda = functools.partial(self.logic_orders_execute, fresh_data, balances_dict, positions_dataframe,precisions_dataframe,
                                           API_drift, API_binance)
-                await pizda(["BTC", "ETH"])
+                amap(pizda, ["BTC", "ETH"])
                 shark_pool.close()
                 shark_pool.join()
 
