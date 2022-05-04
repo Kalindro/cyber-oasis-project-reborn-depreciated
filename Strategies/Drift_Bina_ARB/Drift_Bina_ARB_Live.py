@@ -573,7 +573,8 @@ class LogicHandle(Initialize):
                 print("TU?")
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
                 pizda = functools.partial(self.logic_orders_execute, fresh_data, balances_dict, positions_dataframe,precisions_dataframe,
-                                          API_drift, API_binance, "BTC")
+                                          API_drift, API_binance)
+                await pizda("BTC")
                 shark_pool.close()
                 shark_pool.join()
 
