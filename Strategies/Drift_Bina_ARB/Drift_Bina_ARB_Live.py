@@ -367,6 +367,7 @@ class LogicHandle(Initialize):
         coin_pair = coin_row["binance_pair"]
         coin_bina_price = coin_row["bina_price"]
         coin_drift_price = coin_row["drift_price"]
+        print(coin_row)
 
         if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
             if coin_row["open_l_drift"]:
