@@ -541,9 +541,6 @@ class LogicHandle(Initialize):
                             print(f"Err context type: {type(err.__context__)}")
                             print(f"Error on close positions: {err}\n{trace}")
 
-    def kutarate(self,fresh_data, balances_dict, positions_dataframe, precisions_dataframe, API_drift, API_binance, coin):
-        asyncio.run(self.logic_orders_execute(fresh_data, balances_dict, positions_dataframe, precisions_dataframe, API_drift, API_binance, coin))
-
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
         API_drift = await self.initiate_drift_private()
@@ -574,11 +571,11 @@ class LogicHandle(Initialize):
                     continue
 
                 print("TU?")
-                partial_logic_orders_execute = functools.partial(self.kutarate, fresh_data=fresh_data, balances_dict=balances_dict,
+                partial_logic_orders_execute = functools.partial(self.logic_orders_execute, fresh_data=fresh_data, balances_dict=balances_dict,
                                                                  positions_dataframe=positions_dataframe, precisions_dataframe=precisions_dataframe,
                                                                  API_drift=API_drift, API_binance=API_binance)
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
-                execute_all_logic = shark_pool.imap(partial_logic_orders_execute, play_symbols_list_final)
+                execute_all_logic = shark_pool.map_async(partial_logic_orders_execute, play_symbols_list_final)
                 print(execute_all_logic)
                 shark_pool.close()
                 shark_pool.join()
