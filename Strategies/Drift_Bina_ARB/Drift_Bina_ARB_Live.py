@@ -320,7 +320,7 @@ class LogicHandle(Initialize):
                     print("Changing margin type")
                     binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
 
-    async def get_positions_summary(self, fresh_data, API_drift, API_binance, printing=True, sleeping=True):
+    async def get_positions_summary(self, fresh_data, API_drift, API_binance, printing=True):
         playable_coins_list = fresh_data.index.unique()
         binance_positions = binance_futures_positions(API_binance)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins_list)]
@@ -340,8 +340,6 @@ class LogicHandle(Initialize):
         positions_dataframe["imbalance"] = positions_dataframe.apply(lambda row: LogicConds().conds_imbalance(row), axis=1)
         if printing:
             print(positions_dataframe)
-        if sleeping:
-            time.sleep(1.5)
 
         return positions_dataframe
 
@@ -357,7 +355,6 @@ class LogicHandle(Initialize):
 
         if printing:
             print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}, Bina: {balances_dict['binance']:.2f} Drift: {balances_dict['drift']:.2f}" + Style.RESET_ALL)
-        time.sleep(1.5)
 
         return balances_dict
 
