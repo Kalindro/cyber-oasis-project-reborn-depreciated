@@ -540,7 +540,6 @@ class LogicHandle(Initialize):
                             print(f"Err context: {err.__context__}")
                             print(f"Err context type: {type(err.__context__)}")
                             print(f"Error on close positions: {err}\n{trace}")
-            return 5
 
     async def run_constant_parallel_logic(self):
         print("Running logic side...")
@@ -572,12 +571,9 @@ class LogicHandle(Initialize):
                     continue
 
                 print("TU?")
-                partial_logic_orders_execute = functools.partial(self.logic_orders_execute, fresh_data=fresh_data, balances_dict=balances_dict,
-                                                                 positions_dataframe=positions_dataframe, precisions_dataframe=precisions_dataframe,
-                                                                 API_drift=API_drift, API_binance=API_binance)
                 shark_pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
-                execute_all_logic = shark_pool.map_async(partial_logic_orders_execute, play_symbols_list_final)
-                print(execute_all_logic)
+                execute_all_logic = shark_pool.apply_async(func=self.logic_orders_execute, args=(fresh_data, balances_dict, positions_dataframe,
+                                                           precisions_dataframe, API_drift, API_binance, play_symbols_list_final))
                 shark_pool.close()
                 shark_pool.join()
 
