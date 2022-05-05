@@ -33,6 +33,10 @@ pd.set_option('display.width', None)
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
 
+timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
+                  requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
+                    httpx.RemoteProtocolError)
+
 
 class Initialize:
 
@@ -147,22 +151,24 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-            except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
-                    httpx.RemoteProtocolError) as err:
+            except timeout_errors as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
             except Exception as err:
-                trace = traceback.format_exc()
-                print(f"Err: {err}")
-                print(f"Err type: {type(err)}")
-                print(f"Err cause: {err.__cause__}")
-                print(f"Err cause type: {type(err.__cause__)}")
-                print(f"Err context: {err.__context__}")
-                print(f"Err context type: {type(err.__context__)}")
-                print(f"Error on data: {err}\n{trace}")
-                time.sleep(5)
+                if type(err.__context__) in timeout_errors:
+                    print(f"Read timeout/connection error: {err}")
+                    time.sleep(1)
+                else:
+                    trace = traceback.format_exc()
+                    print(f"Err: {err}")
+                    print(f"Err type: {type(err)}")
+                    print(f"Err cause: {err.__cause__}")
+                    print(f"Err cause type: {type(err.__cause__)}")
+                    print(f"Err context: {err.__context__}")
+                    print(f"Err context type: {type(err.__context__)}")
+                    print(f"Error on data: {err}\n{trace}")
+                    time.sleep(5)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_fresh_data_update())
@@ -354,7 +360,8 @@ class LogicHandle(Initialize):
                          "coin_target_value": float(binance_balances['total']) * 0.80 * self.LEVERAGE / self.COINS_AT_ONCE}
 
         if printing:
-            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.2f}, Bina: {balances_dict['binance']:.2f} Drift: {balances_dict['drift']:.2f}" + Style.RESET_ALL)
+            print(Fore.GREEN + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))}: Account value sum: {balances_dict['sum']:.0f},"
+                               f" Bina: {balances_dict['binance']:.0f} Drift: {balances_dict['drift']:.0f}" + Style.RESET_ALL)
 
         return balances_dict
 
@@ -574,21 +581,24 @@ class LogicHandle(Initialize):
 
                 x += 1
 
-            except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-                    requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError) as err:
+            except timeout_errors as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
 
             except Exception as err:
-                trace = traceback.format_exc()
-                print(f"Err: {err}")
-                print(f"Err type: {type(err)}")
-                print(f"Err cause: {err.__cause__}")
-                print(f"Err cause type: {type(err.__cause__)}")
-                print(f"Err context: {err.__context__}")
-                print(f"Err context type: {type(err.__context__)}")
-                print(f"Error on logic: {err}\n{trace}")
-                time.sleep(5)
+                if type(err.__context__) in timeout_errors:
+                    print(f"Read timeout/connection error: {err}")
+                    time.sleep(1)
+                else:
+                    trace = traceback.format_exc()
+                    print(f"Err: {err}")
+                    print(f"Err type: {type(err)}")
+                    print(f"Err cause: {err.__cause__}")
+                    print(f"Err cause type: {type(err.__cause__)}")
+                    print(f"Err context: {err.__context__}")
+                    print(f"Err context type: {type(err.__context__)}")
+                    print(f"Error on data: {err}\n{trace}")
+                    time.sleep(5)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
@@ -602,19 +612,21 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
-            requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
-            httpx.RemoteProtocolError) as err:
+    except timeout_errors as err:
         print(f"Read timeout/connection error: {err}")
-        time.sleep(5)
+        time.sleep(1)
 
     except Exception as err:
-        trace = traceback.format_exc()
-        print(f"Err: {err}")
-        print(f"Err type: {type(err)}")
-        print(f"Err cause: {err.__cause__}")
-        print(f"Err cause type: {type(err.__cause__)}")
-        print(f"Err context: {err.__context__}")
-        print(f"Err context type: {type(err.__context__)}")
-        print(f"Error on main: {err}\n{trace}")
-        time.sleep(5)
+        if type(err.__context__) in timeout_errors:
+            print(f"Read timeout/connection error: {err}")
+            time.sleep(1)
+        else:
+            trace = traceback.format_exc()
+            print(f"Err: {err}")
+            print(f"Err type: {type(err)}")
+            print(f"Err cause: {err.__cause__}")
+            print(f"Err cause type: {type(err.__cause__)}")
+            print(f"Err context: {err.__context__}")
+            print(f"Err context type: {type(err.__context__)}")
+            print(f"Error on data: {err}\n{trace}")
+            time.sleep(5)
