@@ -560,7 +560,7 @@ class LogicHandle(Initialize):
                 expected = 5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
-                elif elapsed > 1:
+                elif elapsed > 0.000001:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
                 if loop_counter_logic > 25:
