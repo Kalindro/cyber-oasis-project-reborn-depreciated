@@ -138,7 +138,7 @@ class DataHandle(Initialize):
                 expected = 2.5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
-                elif elapsed > 3:
+                elif elapsed > 4:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Data loop %s seconds ---" % (round(time.perf_counter() - data_start_time, 2)))
 
                 if x > 500:
@@ -566,7 +566,7 @@ class LogicHandle(Initialize):
                     pass
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
-                if x > 25:
+                if x > 50:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
                     API_drift = await self.initiate_drift_private()
                     API_binance = self.initiate_binance()
