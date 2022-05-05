@@ -557,13 +557,13 @@ class LogicHandle(Initialize):
                                         err_counter_orders += 1
 
                 elapsed = time.perf_counter() - logic_start_time
-                expected = 2.5
+                expected = 5
                 if elapsed < expected:
                     time.sleep(expected - elapsed)
-                elif elapsed > 30:
+                elif elapsed > 1:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
-                if loop_counter_logic > 1:
+                if loop_counter_logic > 25:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
                     API_drift = await self.initiate_drift_private()
                     API_binance = self.initiate_binance()
