@@ -7,14 +7,15 @@ from anchorpy import Idl, Program, Provider
 CONFIG = {
     "mainnet_private": {
         "ENV": "mainnet-beta",
-        "URL": "https://api.mainnet-beta.solana.com/",
+        "URL": "https://nd-731-153-782.p2pify.com/071e0d7d61f5f457db707dbecb6696bf",
         "PYTH_ORACLE_MAPPING_ADDRESS": "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
         "CLEARING_HOUSE_PROGRAM_ID": "dammHkt7jmytvbS3nHTxQNEcP59aE57nxwV21YdqEDN",
         "USDC_MINT_ADDRESS": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
     },
     "mainnet_public": {
         "ENV": "mainnet-beta",
-        "URL": "https://api.mainnet-beta.solana.com/",
+        "URL": "https://nd-731-153-782.p2pify.com/071e0d7d61f5f457db707dbecb6696bf",
+        # "URL": "https://api.mainnet-beta.solana.com/",
         "PYTH_ORACLE_MAPPING_ADDRESS": "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
         "CLEARING_HOUSE_PROGRAM_ID": "dammHkt7jmytvbS3nHTxQNEcP59aE57nxwV21YdqEDN",
         "USDC_MINT_ADDRESS": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
