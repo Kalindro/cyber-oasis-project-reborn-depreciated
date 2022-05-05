@@ -38,6 +38,25 @@ timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemotePr
                     httpx.RemoteProtocolError)
 
 
+def exception_handler(error_input_handle):
+    if (type(error_input_handle) in timeout_errors) or (type(error_input_handle.__context__) in timeout_errors):
+        print(f"Read timeout/connection error: {error_input_handle}")
+        time.sleep(1)
+    elif ("too many requests for" in str(error_input_handle).lower()) or ("too many requests for" in str(error_input_handle.__context__).lower()):
+        print(f"Too many requests: {error_input_handle}")
+        time.sleep(5)
+    else:
+        trace = traceback.format_exc()
+        print(f"Err: {error_input_handle}")
+        print(f"Err type: {type(error_input_handle)}")
+        print(f"Err cause: {error_input_handle.__cause__}")
+        print(f"Err cause type: {type(error_input_handle.__cause__)}")
+        print(f"Err context: {error_input_handle.__context__}")
+        print(f"Err context type: {type(error_input_handle.__context__)}")
+        print(f"Full error and trace: {error_input_handle}\n{trace}")
+        time.sleep(5)
+
+
 class Initialize:
 
     def __init__(self):
@@ -45,11 +64,10 @@ class Initialize:
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 28
         self.QUARTILE = 0.20
-        self.QUARTILE_PERIOD = int(self.ZSCORE_PERIOD * self.QUARTILE)
         self.MIN_REGULAR_GAP = 0.45
         self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
-        self.COINS_AT_ONCE = 6
+        self.COINS_AT_ONCE = 5
         self.DRIFT_BIG_N = 1_000_000
         self.DRIFT_USDC_PRECISION = 4
         self.CLOSE_ONLY_MODE = False
@@ -122,32 +140,6 @@ class DataHandle(Initialize):
 
         return historical_arb_df
 
-    def fresh_data_aggregator(self, historical_arb_df):
-        fresh_data = df()
-        playable_coins = historical_arb_df.symbol.unique()
-        coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
-        for key in coin_dataframes_dict.keys():
-            coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
-
-        for frame in coin_dataframes_dict.values():
-            frame["fast_avg_gap"].iloc[-1] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median() * 0.95
-            frame["top_avg_gaps"].iloc[-1] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
-                lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
-            frame["bottom_avg_gaps"].iloc[-1] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
-                lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
-            frame["open_l_drift"].iloc[-1] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
-            frame["open_s_drift"].iloc[-1] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
-            frame["close_l_drift"].iloc[-1] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
-            frame["close_s_drift"].iloc[-1] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
-            fresh_data = fresh_data.append(frame.iloc[-1])
-
-        fresh_data.sort_values(by=["gap_abs"], inplace=True)
-        fresh_data.reset_index(inplace=True)
-        fresh_data.rename(columns={"index": "timestamp"}, inplace=True)
-        fresh_data.set_index("symbol", inplace=True)
-
-        return fresh_data
-
     async def run_constant_parallel_fresh_data_update(self):
         print("Running data side...")
 
@@ -178,24 +170,9 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-            except timeout_errors as err:
-                print(f"Read timeout/connection error: {err}")
-                time.sleep(1)
-
             except Exception as err:
-                if type(err.__context__) in timeout_errors:
-                    print(f"Read timeout/connection error: {err}")
-                    time.sleep(1)
-                else:
-                    trace = traceback.format_exc()
-                    print(f"Err: {err}")
-                    print(f"Err type: {type(err)}")
-                    print(f"Err cause: {err.__cause__}")
-                    print(f"Err cause type: {type(err.__cause__)}")
-                    print(f"Err context: {err.__context__}")
-                    print(f"Err context type: {type(err.__context__)}")
-                    print(f"Error on data: {err}\n{trace}")
-                    time.sleep(5)
+                print("Error on data below")
+                exception_handler(err)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_fresh_data_update())
@@ -314,7 +291,6 @@ class LogicHandle(Initialize):
 
     def fresh_data_aggregator(self):
         fresh_data = df()
-
         historical_arb_df = self.read_historical_dataframe()
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
@@ -322,15 +298,15 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            row = dict()
-            row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
-            row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median()
-            row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median()
-            row["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
-            row["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
-            row["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
-            row["close_s_drift"] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
-            print(row)
+            frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median() * 0.95
+            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
+            frame["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
+            frame["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
+            frame["close_s_drift"] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
@@ -460,17 +436,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
-                                    finally:
+                                        exception_handler(err)
                                         i += 1
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
@@ -502,16 +468,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
 
@@ -544,16 +501,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
@@ -575,7 +523,6 @@ class LogicHandle(Initialize):
                                         time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
-
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
@@ -584,18 +531,10 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
+
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
                 if elapsed < expected:
@@ -612,24 +551,9 @@ class LogicHandle(Initialize):
 
                 x += 1
 
-            except timeout_errors as err:
-                print(f"Read timeout/connection error: {err}")
-                time.sleep(1)
-
             except Exception as err:
-                if type(err.__context__) in timeout_errors:
-                    print(f"Read timeout/connection error: {err}")
-                    time.sleep(1)
-                else:
-                    trace = traceback.format_exc()
-                    print(f"Err: {err}")
-                    print(f"Err type: {type(err)}")
-                    print(f"Err cause: {err.__cause__}")
-                    print(f"Err cause type: {type(err.__cause__)}")
-                    print(f"Err context: {err.__context__}")
-                    print(f"Err context type: {type(err.__context__)}")
-                    print(f"Error on data: {err}\n{trace}")
-                    time.sleep(5)
+                print("Error on logic below")
+                exception_handler(err)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
@@ -643,21 +567,6 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except timeout_errors as err:
-        print(f"Read timeout/connection error: {err}")
-        time.sleep(1)
-
     except Exception as err:
-        if type(err.__context__) in timeout_errors:
-            print(f"Read timeout/connection error: {err}")
-            time.sleep(1)
-        else:
-            trace = traceback.format_exc()
-            print(f"Err: {err}")
-            print(f"Err type: {type(err)}")
-            print(f"Err cause: {err.__cause__}")
-            print(f"Err cause type: {type(err.__cause__)}")
-            print(f"Err context: {err.__context__}")
-            print(f"Err context type: {type(err.__context__)}")
-            print(f"Error on data: {err}\n{trace}")
-            time.sleep(5)
+        print("Error on main below")
+        exception_handler(err)
