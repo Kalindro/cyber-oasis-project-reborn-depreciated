@@ -581,23 +581,5 @@ if __name__ == "__main__":
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
-    except timeout_errors as err:
-        print(f"Read timeout/connection error: {err}")
-        time.sleep(1)
     except Exception as err:
-        if type(err.__context__) in timeout_errors:
-            print(f"Read timeout/connection error: {err}")
-            time.sleep(1)
-        elif "too many requests for" in str(err.__context__).lower():
-            print(f"Too many requests: {err}")
-            time.sleep(5)
-        else:
-            trace = traceback.format_exc()
-            print(f"Err: {err}")
-            print(f"Err type: {type(err)}")
-            print(f"Err cause: {err.__cause__}")
-            print(f"Err cause type: {type(err.__cause__)}")
-            print(f"Err context: {err.__context__}")
-            print(f"Err context type: {type(err.__context__)}")
-            print(f"Error on data: {err}\n{trace}")
-            time.sleep(5)
+        exception_handler(err)
