@@ -154,11 +154,13 @@ class DataHandle(Initialize):
             except timeout_errors as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
-
             except Exception as err:
                 if type(err.__context__) in timeout_errors:
                     print(f"Read timeout/connection error: {err}")
                     time.sleep(1)
+                elif "too many requests for" in str(err.__context__).lower():
+                    print(f"Too many requests: {err}")
+                    time.sleep(5)
                 else:
                     trace = traceback.format_exc()
                     print(f"Err: {err}")
@@ -433,16 +435,22 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        if type(err.__context__) in timeout_errors:
+                                            print(f"Read timeout/connection error: {err}")
+                                            time.sleep(1)
+                                        elif "too many requests for" in str(err.__context__).lower():
+                                            print(f"Too many requests: {err}")
+                                            time.sleep(5)
+                                        else:
+                                            trace = traceback.format_exc()
+                                            print(f"Err: {err}")
+                                            print(f"Err type: {type(err)}")
+                                            print(f"Err cause: {err.__cause__}")
+                                            print(f"Err cause type: {type(err.__cause__)}")
+                                            print(f"Err context: {err.__context__}")
+                                            print(f"Err context type: {type(err.__context__)}")
+                                            print(f"Error on data: {err}\n{trace}")
+                                            time.sleep(5)
                                     finally:
                                         i += 1
                         elif coin_row["open_s_drift"]:
@@ -475,16 +483,22 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        if type(err.__context__) in timeout_errors:
+                                            print(f"Read timeout/connection error: {err}")
+                                            time.sleep(1)
+                                        elif "too many requests for" in str(err.__context__).lower():
+                                            print(f"Too many requests: {err}")
+                                            time.sleep(5)
+                                        else:
+                                            trace = traceback.format_exc()
+                                            print(f"Err: {err}")
+                                            print(f"Err type: {type(err)}")
+                                            print(f"Err cause: {err.__cause__}")
+                                            print(f"Err cause type: {type(err.__cause__)}")
+                                            print(f"Err context: {err.__context__}")
+                                            print(f"Err context type: {type(err.__context__)}")
+                                            print(f"Error on data: {err}\n{trace}")
+                                            time.sleep(5)
                                     finally:
                                         i += 1
 
@@ -517,16 +531,22 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        if type(err.__context__) in timeout_errors:
+                                            print(f"Read timeout/connection error: {err}")
+                                            time.sleep(1)
+                                        elif "too many requests for" in str(err.__context__).lower():
+                                            print(f"Too many requests: {err}")
+                                            time.sleep(5)
+                                        else:
+                                            trace = traceback.format_exc()
+                                            print(f"Err: {err}")
+                                            print(f"Err type: {type(err)}")
+                                            print(f"Err cause: {err.__cause__}")
+                                            print(f"Err cause type: {type(err.__cause__)}")
+                                            print(f"Err context: {err.__context__}")
+                                            print(f"Err context type: {type(err.__context__)}")
+                                            print(f"Error on data: {err}\n{trace}")
+                                            time.sleep(5)
                                     finally:
                                         i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
@@ -556,17 +576,26 @@ class LogicHandle(Initialize):
                                             continue
                                         else:
                                             return
+                                    except timeout_errors as err:
+                                        print(f"Read timeout/connection error: {err}")
+                                        time.sleep(1)
                                     except Exception as err:
-                                        trace = traceback.format_exc()
-                                        print(f"Err: {err}")
-                                        print(f"Message: {dir(err)}")
-                                        print(f"Err type: {type(err)}")
-                                        print(f"Err cause: {err.__cause__}")
-                                        print(f"Err cause type: {type(err.__cause__)}")
-                                        print(f"Err context: {err.__context__}")
-                                        print(f"Err context type: {type(err.__context__)}")
-                                        print(f"Error on close positions: {err}\n{trace}")
-                                        time.sleep(3)
+                                        if type(err.__context__) in timeout_errors:
+                                            print(f"Read timeout/connection error: {err}")
+                                            time.sleep(1)
+                                        elif "too many requests for" in str(err.__context__).lower():
+                                            print(f"Too many requests: {err}")
+                                            time.sleep(5)
+                                        else:
+                                            trace = traceback.format_exc()
+                                            print(f"Err: {err}")
+                                            print(f"Err type: {type(err)}")
+                                            print(f"Err cause: {err.__cause__}")
+                                            print(f"Err cause type: {type(err.__cause__)}")
+                                            print(f"Err context: {err.__context__}")
+                                            print(f"Err context type: {type(err.__context__)}")
+                                            print(f"Error on data: {err}\n{trace}")
+                                            time.sleep(5)
                                     finally:
                                         i += 1
                 elapsed = time.perf_counter() - logic_start_time
@@ -588,11 +617,13 @@ class LogicHandle(Initialize):
             except timeout_errors as err:
                 print(f"Read timeout/connection error: {err}")
                 time.sleep(1)
-
             except Exception as err:
                 if type(err.__context__) in timeout_errors:
                     print(f"Read timeout/connection error: {err}")
                     time.sleep(1)
+                elif "too many requests for" in str(err.__context__).lower():
+                    print(f"Too many requests: {err}")
+                    time.sleep(5)
                 else:
                     trace = traceback.format_exc()
                     print(f"Err: {err}")
@@ -619,11 +650,13 @@ if __name__ == "__main__":
     except timeout_errors as err:
         print(f"Read timeout/connection error: {err}")
         time.sleep(1)
-
     except Exception as err:
         if type(err.__context__) in timeout_errors:
             print(f"Read timeout/connection error: {err}")
             time.sleep(1)
+        elif "too many requests for" in str(err.__context__).lower():
+            print(f"Too many requests: {err}")
+            time.sleep(5)
         else:
             trace = traceback.format_exc()
             print(f"Err: {err}")
