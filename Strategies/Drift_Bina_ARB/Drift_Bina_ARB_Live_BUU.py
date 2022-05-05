@@ -299,13 +299,10 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            row = df()
+            row = dict()
             row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
-            print(frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95)
-            print(row)
             row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median()
             row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median()
-            print(row)
             row["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
             row["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
             row["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
@@ -432,7 +429,7 @@ class LogicHandle(Initialize):
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
-                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        print(f"Unconfirmed TX Error on opening positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
@@ -464,7 +461,7 @@ class LogicHandle(Initialize):
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
-                                        print(f"Unconfirmed TX Error on closing positions: {err}")
+                                        print(f"Unconfirmed TX Error on opening positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
                                         if imbalance_status:
                                             continue
