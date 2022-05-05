@@ -64,7 +64,6 @@ class Initialize:
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 28
         self.QUARTILE = 0.20
-        self.QUARTILE_PERIOD = int(0.20 * self.ZSCORE_PERIOD)
         self.MIN_REGULAR_GAP = 0.45
         self.MIN_CLOSING_GAP = 0.02
         self.LEVERAGE = 4
@@ -299,17 +298,15 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            row = df()
-            row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
-            print(frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95)
-            print(row)
-            row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median()
-            row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median()
-            print(row)
-            row["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
-            row["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
-            row["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
-            row["close_s_drift"] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
+            frame["fast_avg_gap"] = frame["gap_perc"].rolling(self.FAST_AVG, self.FAST_AVG).median() * 0.95
+            frame["top_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=True)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["bottom_avg_gaps"] = frame["gap_perc"].rolling(self.ZSCORE_PERIOD, self.ZSCORE_PERIOD).apply(
+                lambda x: np.median(sorted(x, reverse=False)[:int(self.QUARTILE * self.ZSCORE_PERIOD)]))
+            frame["open_l_drift"] = frame.apply(lambda row: LogicConds().conds_open_long_drift(row), axis=1)
+            frame["open_s_drift"] = frame.apply(lambda row: LogicConds().conds_open_short_drift(row), axis=1)
+            frame["close_l_drift"] = frame.apply(lambda row: LogicConds().conds_close_long_drift(row), axis=1)
+            frame["close_s_drift"] = frame.apply(lambda row: LogicConds().conds_close_short_drift(row), axis=1)
             fresh_data = fresh_data.append(frame.iloc[-1])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
