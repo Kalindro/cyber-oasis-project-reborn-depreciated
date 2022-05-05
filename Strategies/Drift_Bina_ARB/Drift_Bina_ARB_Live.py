@@ -436,23 +436,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        if type(err.__context__) in timeout_errors:
-                                            print(f"Read timeout/connection error: {err}")
-                                            time.sleep(1)
-                                        elif "too many requests for" in str(err.__context__).lower():
-                                            print(f"Too many requests: {err}")
-                                            time.sleep(5)
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on data: {err}\n{trace}")
-                                            time.sleep(5)
-                                    finally:
+                                        exception_handler(err)
                                         i += 1
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
