@@ -442,6 +442,7 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
+                                        time.sleep(3)
                                     finally:
                                         i += 1
                         elif coin_row["open_s_drift"]:
@@ -483,6 +484,7 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
+                                        time.sleep(3)
                                     finally:
                                         i += 1
 
@@ -524,6 +526,7 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
+                                        time.sleep(3)
                                     finally:
                                         i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
@@ -563,6 +566,7 @@ class LogicHandle(Initialize):
                                         print(f"Err context: {err.__context__}")
                                         print(f"Err context type: {type(err.__context__)}")
                                         print(f"Error on close positions: {err}\n{trace}")
+                                        time.sleep(3)
                                     finally:
                                         i += 1
                 elapsed = time.perf_counter() - logic_start_time
