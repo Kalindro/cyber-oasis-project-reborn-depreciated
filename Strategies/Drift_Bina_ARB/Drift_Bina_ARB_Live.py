@@ -53,7 +53,7 @@ def exception_handler(error_input_handle):
         print(f"Err cause type: {type(error_input_handle.__cause__)}")
         print(f"Err context: {error_input_handle.__context__}")
         print(f"Err context type: {type(error_input_handle.__context__)}")
-        print(f"Error on data/logic/orders: {error_input_handle}\n{trace}")
+        print(f"Full error and trace: {error_input_handle}\n{trace}")
         time.sleep(5)
 
 
@@ -171,6 +171,7 @@ class DataHandle(Initialize):
                     x = 0
 
             except Exception as err:
+                print("Error on data below")
                 exception_handler(err)
 
     def main(self):
@@ -290,7 +291,6 @@ class LogicHandle(Initialize):
 
     def fresh_data_aggregator(self):
         fresh_data = df()
-
         historical_arb_df = self.read_historical_dataframe()
         playable_coins = historical_arb_df.symbol.unique()
         coin_dataframes_dict = {elem: pd.DataFrame for elem in playable_coins}
@@ -534,6 +534,7 @@ class LogicHandle(Initialize):
                                         exception_handler(err)
                                     finally:
                                         i += 1
+
                 elapsed = time.perf_counter() - logic_start_time
                 expected = 2.5
                 if elapsed < expected:
@@ -551,6 +552,7 @@ class LogicHandle(Initialize):
                 x += 1
 
             except Exception as err:
+                print("Error on logic below")
                 exception_handler(err)
 
     def main(self):
@@ -566,4 +568,5 @@ if __name__ == "__main__":
         p2.start()
 
     except Exception as err:
+        print("Error on main below")
         exception_handler(err)
