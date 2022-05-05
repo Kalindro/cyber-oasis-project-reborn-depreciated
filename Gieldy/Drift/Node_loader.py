@@ -7,7 +7,7 @@ from anchorpy import Idl, Program, Provider
 CONFIG = {
     "mainnet_private": {
         "ENV": "mainnet-beta",
-        "URL": "https://restless-holy-grass.solana-mainnet.quiknode.pro/75107233f1992613d0a16aba6a402fc317a4feac",
+        "URL": "https://api.mainnet-beta.solana.com/",
         "PYTH_ORACLE_MAPPING_ADDRESS": "AHtgzX45WTKfkPG53L6WYhGEXwQkN1BVknET3sVsLL8J",
         "CLEARING_HOUSE_PROGRAM_ID": "dammHkt7jmytvbS3nHTxQNEcP59aE57nxwV21YdqEDN",
         "USDC_MINT_ADDRESS": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
