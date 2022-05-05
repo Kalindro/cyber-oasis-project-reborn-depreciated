@@ -38,6 +38,25 @@ timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemotePr
                     httpx.RemoteProtocolError)
 
 
+def exception_handler(error_input_handle):
+    if (type(error_input_handle) in timeout_errors) or (type(error_input_handle.__context__) in timeout_errors):
+        print(f"Read timeout/connection error: {error_input_handle}")
+        time.sleep(1)
+    elif ("too many requests for" in str(error_input_handle).lower()) or ("too many requests for" in str(error_input_handle.__context__).lower()):
+        print(f"Too many requests: {error_input_handle}")
+        time.sleep(5)
+    else:
+        trace = traceback.format_exc()
+        print(f"Err: {error_input_handle}")
+        print(f"Err type: {type(error_input_handle)}")
+        print(f"Err cause: {error_input_handle.__cause__}")
+        print(f"Err cause type: {type(error_input_handle.__cause__)}")
+        print(f"Err context: {error_input_handle.__context__}")
+        print(f"Err context type: {type(error_input_handle.__context__)}")
+        print(f"Error on data/logic/orders: {error_input_handle}\n{trace}")
+        time.sleep(5)
+
+
 class Initialize:
 
     def __init__(self):
@@ -151,26 +170,8 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     x = 0
 
-            except timeout_errors as err:
-                print(f"Read timeout/connection error: {err}")
-                time.sleep(1)
             except Exception as err:
-                if type(err.__context__) in timeout_errors:
-                    print(f"Read timeout/connection error: {err}")
-                    time.sleep(1)
-                elif "too many requests for" in str(err.__context__).lower():
-                    print(f"Too many requests: {err}")
-                    time.sleep(5)
-                else:
-                    trace = traceback.format_exc()
-                    print(f"Err: {err}")
-                    print(f"Err type: {type(err)}")
-                    print(f"Err cause: {err.__cause__}")
-                    print(f"Err cause type: {type(err.__cause__)}")
-                    print(f"Err context: {err.__context__}")
-                    print(f"Err context type: {type(err.__context__)}")
-                    print(f"Error on data: {err}\n{trace}")
-                    time.sleep(5)
+                exception_handler(err)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_fresh_data_update())
@@ -483,22 +484,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        if type(err.__context__) in timeout_errors:
-                                            print(f"Read timeout/connection error: {err}")
-                                            time.sleep(1)
-                                        elif "too many requests for" in str(err.__context__).lower():
-                                            print(f"Too many requests: {err}")
-                                            time.sleep(5)
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on data: {err}\n{trace}")
-                                            time.sleep(5)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
 
@@ -531,22 +517,7 @@ class LogicHandle(Initialize):
                                         else:
                                             return
                                     except Exception as err:
-                                        if type(err.__context__) in timeout_errors:
-                                            print(f"Read timeout/connection error: {err}")
-                                            time.sleep(1)
-                                        elif "too many requests for" in str(err.__context__).lower():
-                                            print(f"Too many requests: {err}")
-                                            time.sleep(5)
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on data: {err}\n{trace}")
-                                            time.sleep(5)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
@@ -568,7 +539,6 @@ class LogicHandle(Initialize):
                                         time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
                                         break
-
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
@@ -576,26 +546,8 @@ class LogicHandle(Initialize):
                                             continue
                                         else:
                                             return
-                                    except timeout_errors as err:
-                                        print(f"Read timeout/connection error: {err}")
-                                        time.sleep(1)
                                     except Exception as err:
-                                        if type(err.__context__) in timeout_errors:
-                                            print(f"Read timeout/connection error: {err}")
-                                            time.sleep(1)
-                                        elif "too many requests for" in str(err.__context__).lower():
-                                            print(f"Too many requests: {err}")
-                                            time.sleep(5)
-                                        else:
-                                            trace = traceback.format_exc()
-                                            print(f"Err: {err}")
-                                            print(f"Err type: {type(err)}")
-                                            print(f"Err cause: {err.__cause__}")
-                                            print(f"Err cause type: {type(err.__cause__)}")
-                                            print(f"Err context: {err.__context__}")
-                                            print(f"Err context type: {type(err.__context__)}")
-                                            print(f"Error on data: {err}\n{trace}")
-                                            time.sleep(5)
+                                        exception_handler(err)
                                     finally:
                                         i += 1
                 elapsed = time.perf_counter() - logic_start_time
@@ -614,26 +566,8 @@ class LogicHandle(Initialize):
 
                 x += 1
 
-            except timeout_errors as err:
-                print(f"Read timeout/connection error: {err}")
-                time.sleep(1)
             except Exception as err:
-                if type(err.__context__) in timeout_errors:
-                    print(f"Read timeout/connection error: {err}")
-                    time.sleep(1)
-                elif "too many requests for" in str(err.__context__).lower():
-                    print(f"Too many requests: {err}")
-                    time.sleep(5)
-                else:
-                    trace = traceback.format_exc()
-                    print(f"Err: {err}")
-                    print(f"Err type: {type(err)}")
-                    print(f"Err cause: {err.__cause__}")
-                    print(f"Err cause type: {type(err.__cause__)}")
-                    print(f"Err context: {err.__context__}")
-                    print(f"Err context type: {type(err.__context__)}")
-                    print(f"Error on data: {err}\n{trace}")
-                    time.sleep(5)
+                exception_handler(err)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
