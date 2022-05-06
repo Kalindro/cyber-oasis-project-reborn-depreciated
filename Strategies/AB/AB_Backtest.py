@@ -308,7 +308,7 @@ def backtest_AB_l(API, base, start=date.fromisoformat("2021-01-01"), end=date.fr
     shark_pool.join()
 
     plot = True if TICKERS_MODE == 1 else False
-    ETH_full_history = get_history_full(pair="ETH/USDT", start=start, end=end, fresh_live_history=False, timeframe=TIMEFRAME, API=API)
+    ETH_full_history = get_history_full(pair="ETH/USDT", start=start, end=end, fresh_live_history_no_save_read=False, timeframe=TIMEFRAME, API=API)
     ETH_data_ready = PandasData(dataname=ETH_full_history, name="ETH/USDT", plot=not plot)
     cerebro.adddata(ETH_data_ready)
 

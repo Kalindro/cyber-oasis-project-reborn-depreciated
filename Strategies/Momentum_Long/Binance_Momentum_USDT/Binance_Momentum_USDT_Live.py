@@ -1,4 +1,4 @@
-from Gieldy.Binance.API_initiation_Binance_AB_USDT import API_initiation
+from Gieldy.Binance.Manual_initiation.API_initiation_Binance_AB_USDT import API_initiation
 
 from Strategies.Momentum_Long.Momentum_Live import live_momentum_L
 

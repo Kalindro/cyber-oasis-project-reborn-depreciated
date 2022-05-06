@@ -78,7 +78,7 @@ def momentum_l_function(API):
             end = date.today() + timedelta(days=2)
             start = end - timedelta(days=30)
 
-            eth_history = get_history_full("ETH/USDT", start=start, end=end, fresh_live_history=True, timeframe=TIMEFRAME, API=API)
+            eth_history = get_history_full("ETH/USDT", start=start, end=end, fresh_live_history_no_save_read=True, timeframe=TIMEFRAME, API=API)
             eth_history["SMA"] = talib.SMA(eth_history["close"], timeperiod=ETH_SMA_PERIOD)
             bull_market_bool = eth_history["close"][-2] > eth_history["SMA"][-2]
 

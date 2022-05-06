@@ -8,15 +8,16 @@ import requests.exceptions
 import solana
 import sys
 import shutil
+import time
 
 from multiprocessing import Process
 from colorama import Fore, Style
 from pathlib import Path
-from Gieldy.Binance.Binance_utils import *
+from Gieldy.Binance.Binance_futures_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Binance.API_initiation_Binance_Spot_Futures_USDT import API_initiation as API_binance
+from Gieldy.Binance.API_initiation_Binance_futures import API_initiation as API_binance
 from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_private
 from Gieldy.Drift.API_initiation_Drift_Public import API_initiation as API_drift_public
 
@@ -123,7 +124,7 @@ class DataHandle(Initialize):
         arb_df = df()
 
         drift_prices = await drift_get_pair_prices_rates(API_drift)
-        bina_prices = binance_get_futures_pair_prices_rates(API_binance)
+        bina_prices = binance_futures_get_pair_prices(API_binance)
         arb_df["drift_pair"] = drift_prices["market_index"]
         arb_df["binance_pair"] = bina_prices["pair"]
         arb_df = arb_df[["binance_pair", "drift_pair"]]

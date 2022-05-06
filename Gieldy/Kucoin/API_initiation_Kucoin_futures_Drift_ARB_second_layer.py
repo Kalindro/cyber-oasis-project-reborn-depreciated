@@ -6,25 +6,22 @@ from configparser import ConfigParser
 
 
 def API_initiation():
-    name = "Kucoin AB USDT"
+    name = "Kucoin futures Drift ARB second layer"
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{project_path}/Gieldy/APIs/Kucoin_AB_USDT.ini")
+    parser.read(f"{project_path}/Gieldy/APIs/Kucoin_futures_Drift_ARB_second_layer")
 
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
     passphrase = parser.get("Trade_keys", "Passphrase")
 
     general_client = Client(api_key=public_key, api_secret=secret_key, passphrase=passphrase)
-    # Trade_client = Trade(Public_key, Secret_key, Passphrase, is_sandbox = False)
-    trade_client = general_client
 
     API = {"name": name,
-           "general_client": general_client,
-           "trade_client": trade_client
+           "general_client": general_client
            }
 
     return API

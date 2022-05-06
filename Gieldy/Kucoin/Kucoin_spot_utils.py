@@ -107,21 +107,15 @@ def kucoin_get_pairs_precisions_status(API):
 def kucoin_get_pairs_prices(API):
     general_client = API["general_client"]
 
-    all_tickers = general_client.get_ticker()["ticker"]
+    pairs_dataframe = df(general_client.get_symbol_list())
+    pairs_dataframe.rename(columns={"symbol": "pair", "baseCurrency": "symbol", "quoteCurrency": "quote", "enableTrading": "status",
+                                    "baseMinSize": "min_order_amount", "quoteMinSize": "min_order_value"}, inplace=True)
+    pairs_dataframe = pairs_dataframe[pairs_dataframe.quote.str.contains("USDT")]
+    pairs_dataframe.pop("name")
+    pairs_dataframe.set_index("symbol", inplace=True)
+    pairs_dataframe["amount_precision"] = pairs_dataframe.apply(lambda row: int(abs(Decimal(row["baseIncrement"]).as_tuple().exponent)), axis=1)
+    pairs_dataframe["price_precision"] = pairs_dataframe.apply(lambda row: int(abs(Decimal(row["priceIncrement"]).as_tuple().exponent)), axis=1)
 
-    tickers_dataframe = df()
-    tickers_dataframe[["pair", "price"]] = [[Ticker["symbol"].upper(), float(Ticker["sell"])] for Ticker in all_tickers if
-                                            Ticker["symbol"].endswith(("BTC", "ETH", "USDT"))]
-    for index, row in tickers_dataframe.iterrows():
-        if row["pair"].endswith("USDT"):
-            tickers_dataframe.loc[index, "pair"] = row["pair"][:-5] + "/USDT"
-        if row["pair"].endswith("BTC"):
-            tickers_dataframe.loc[index, "pair"] = row["pair"][:-4] + "/BTC"
-        if row["pair"].endswith("ETH"):
-            tickers_dataframe.loc[index, "pair"] = row["pair"][:-4] + "/ETH"
-    tickers_dataframe.set_index("pair", inplace=True)
-
-    return tickers_dataframe
 
 
 def kucoin_get_balances(API):

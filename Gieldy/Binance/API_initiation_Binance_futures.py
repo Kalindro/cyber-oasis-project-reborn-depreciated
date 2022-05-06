@@ -6,13 +6,14 @@ from configparser import ConfigParser
 
 
 def API_initiation():
-    name = "Binance AB USDT"
+    name = "Binance Futures USDT"
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
-    parser.read(f"{project_path}/Gieldy/APIs/Binance_AB_USDT.ini")
+    parser.read(f"{project_path}/Gieldy/APIs/Binance_futures.ini")
+
     public_key = parser.get("Trade_keys", "Public_key")
     secret_key = parser.get("Trade_keys", "Secret_key")
 

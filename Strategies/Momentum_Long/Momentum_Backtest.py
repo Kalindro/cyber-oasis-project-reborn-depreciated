@@ -123,7 +123,7 @@ class RunBacktest:
         shark_pool.close()
         shark_pool.join()
 
-        ETH_full_history = get_history_full(pair="ETH/USDT", start=self.backtest_settings["START"], end=self.backtest_settings["END"], fresh_live_history=False, timeframe=self.backtest_settings["TIMEFRAME"], API=API)
+        ETH_full_history = get_history_full(pair="ETH/USDT", start=self.backtest_settings["START"], end=self.backtest_settings["END"], fresh_live_history_no_save_read=False, timeframe=self.backtest_settings["TIMEFRAME"], API=API)
 
         print("Got history for all the coins")
 

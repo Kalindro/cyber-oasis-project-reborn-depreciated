@@ -1,6 +1,6 @@
 import time
 
-from Gieldy.Binance.API_initiation_Binance_AB_USDT import API_initiation as API_Binance_AB_USDT
+from Gieldy.Binance.Manual_initiation.API_initiation_Binance_AB_USDT import API_initiation as API_Binance_AB_USDT
 from Gieldy.Refractor_general.Get_history import get_history_full
 from Strategies.Utility.Global_cancel_all_orders.AB_global_cancel_all_orders import AB_global_cancel_all_orders
 
@@ -21,7 +21,7 @@ class GlobalCancelOverseer:
 
     def global_cancel(self):
         btc_history = get_history_full(pair="BTC/USDT", timeframe="1D", start=self.start, end=self.time_now,
-                                       fresh_live_history=True, API=API_Binance_AB_USDT())
+                                       fresh_live_history_no_save_read=True, API=API_Binance_AB_USDT())
 
         btc_history["high_2d"] = btc_history["high"].rolling(2).max()
         btc_history["low_2d"] = btc_history["low"].rolling(2).min()

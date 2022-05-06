@@ -1,9 +1,13 @@
 import datetime
-from random import randint
+import os
 import time
-from datetime import timedelta, date
 import pandas as pd
+import datetime as dt
+
+from random import randint
+from datetime import timedelta, date
 from pandas import DataFrame as df
+from pathlib import Path
 
 from Gieldy.Refractor_general.Main_refracting import get_history_fragment_for_func
 
@@ -13,10 +17,13 @@ pd.set_option('display.width', None)
 
 
 # Getting history function
-def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
+def get_history_full(pair, timeframe, start, fresh_live_history_no_save_read, API, end=None):
     print(f"Getting {pair} history")
-
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    project_path = Path(current_path).parent.parent
     name = API["name"]
+
+    if end is None: end = dt.datetime.now()
 
     if "huobi" in name.lower():
         exchange = "Huobi"
@@ -45,9 +52,9 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     history_dataframe_saved = None
     ohlc = {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum", "pair": "last", "symbol": "last"}
 
-    if not fresh_live_history:
+    if not fresh_live_history_no_save_read:
         try:
-            history_dataframe_saved = pd.read_csv(f"{root}/History_data/{exchange}/15MIN/{pair_for_data}_15MIN.csv", index_col=0,
+            history_dataframe_saved = pd.read_csv(f"{project_path}/History_data/{exchange}/15MIN/{pair_for_data}_15MIN.csv", index_col=0,
                                                   parse_dates=True)
             print("Saved history found")
             if history_dataframe_saved.iloc[-1].name.date() >= end:
@@ -67,7 +74,7 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     candles_limit = 800  # 33 days
     addition_limit = 75
 
-    timeframe_for_data = "15MIN" if not fresh_live_history else timeframe.upper()
+    timeframe_for_data = "15MIN" if not fresh_live_history_no_save_read else timeframe.upper()
 
     if timeframe_for_data == "15MIN":
         days = candles_limit / 24 / 4
@@ -90,7 +97,7 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
 
     delta = end - start
     days_of_history = delta.days
-    since = start if fresh_live_history else last_date
+    since = start if fresh_live_history_no_save_read else last_date
     to = since + timedelta(days=days) + timedelta(days=addition)
     history_dataframe_final = df()
 
@@ -129,8 +136,8 @@ def get_history_full(pair, timeframe, start, end, fresh_live_history, API):
     history_dataframe_final.dropna(inplace=True)
     history_dataframe_final.drop_duplicates(keep="last", inplace=True)
 
-    if not fresh_live_history and timeframe_for_data == "15MIN":
-        history_dataframe_final.to_csv(f"{root}/History_data/{exchange}/15MIN/{pair_for_data}_15MIN.csv")
+    if not fresh_live_history_no_save_read and timeframe_for_data == "15MIN":
+        history_dataframe_final.to_csv(f"{project_path}/History_data/{exchange}/15MIN/{pair_for_data}_15MIN.csv")
 
         print(f"Saved {pair} CSV")
 

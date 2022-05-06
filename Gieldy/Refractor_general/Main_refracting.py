@@ -1,7 +1,7 @@
-from Gieldy.Huobi.Huobi_utils import *
-from Gieldy.Binance.Binance_utils import *
-from Gieldy.Kucoin.Kucoin_utils import *
-from Gieldy.Gateio.Gateio_utils import *
+from Gieldy.Huobi.Huobi_spot_utils import *
+from Gieldy.Binance.Binance_spot_utils import *
+from Gieldy.Kucoin.Kucoin_spot_utils import *
+from Gieldy.Gateio.Gateio_spot_utils import *
 from Gieldy.Okx.Okx_utils import *
 from Gieldy.FTX.FTX_utils import *
 

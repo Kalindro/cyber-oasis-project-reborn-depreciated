@@ -40,7 +40,7 @@ def ticker_filter(ticker, all_tickers_dataframe, all_pairs_precisions_status, fo
 
     try:
         ticker_history = get_history_full(pair=ticker, timeframe="1D", start=date.fromisoformat("2018-01-01"), end=date.today(),
-                                          fresh_live_history=True, API=API)
+                                          fresh_live_history_no_save_read=True, API=API)
     except Exception as err:
         print(f"Error on history for {ticker}, {err}")
         approved_list["error"] = ticker
