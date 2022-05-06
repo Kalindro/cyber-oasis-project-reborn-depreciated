@@ -571,5 +571,4 @@ if __name__ == "__main__":
 
     except Exception as err:
         print("Error on main below")
-        main_error_counter += 1
-        main_error_counter = exception_handler(err, main_error_counter)
+        exception_handler(err)
