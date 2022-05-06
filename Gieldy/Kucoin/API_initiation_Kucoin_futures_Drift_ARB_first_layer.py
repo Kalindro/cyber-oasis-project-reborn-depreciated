@@ -28,7 +28,7 @@ def API_initiation():
     API = {"name": name,
            "general_client": general_client,
            "trade_client": trade_client,
-           "user_client": user_client
+           "user_client": user_client,
            }
 
     return API

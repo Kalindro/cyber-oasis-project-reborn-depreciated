@@ -330,25 +330,12 @@ class LogicHandle(Initialize):
 
         return fresh_data
 
-    def binance_futures_margin_leverage_check(self, API_binance, binance_positions):
-        if (~binance_positions.leverage.isin([str(self.LEVERAGE)])).any():
-            for _, row in binance_positions.iterrows():
-                if row["leverage"] != self.LEVERAGE:
-                    print("Changing leverage")
-                    binance_futures_change_leverage(API_binance, pair=row["pair"], leverage=self.LEVERAGE)
-
-        if binance_positions.isolated.any():
-            for _, row in binance_positions.iterrows():
-                if row["isolated"]:
-                    print("Changing margin type")
-                    binance_futures_change_marin_type(API_binance, pair=row["pair"], type="CROSSED")
-
     async def get_positions_summary(self, fresh_data, API_drift, API_binance, printing=True):
         playable_coins_list = fresh_data.index.unique()
         binance_positions = binance_futures_positions(API_binance)
         binance_positions = binance_positions[binance_positions.index.isin(playable_coins_list)]
         drift_positions = await drift_load_positions(API_drift)
-        self.binance_futures_margin_leverage_check(API_binance, binance_positions)
+        binance_futures_margin_leverage_check(API_binance, self.LEVERAGE)
 
         positions_dataframe = df()
         positions_dataframe.index = binance_positions.index

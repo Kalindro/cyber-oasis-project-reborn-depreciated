@@ -125,3 +125,18 @@ def binance_futures_change_marin_type(API, pair, type):
 
     general_client.futures_change_margin_type(symbol=pair, marginType=type)
 
+
+def binance_futures_margin_leverage_check(API, leverage, cross=True):
+    margin = "CROSSED" if cross else "ISOLATED"
+    binance_positions = binance_futures_positions(API)
+    if (~binance_positions.leverage.isin([str(leverage)])).any():
+        for _, row in binance_positions.iterrows():
+            if row["leverage"] != leverage:
+                print("Changing leverage")
+                binance_futures_change_leverage(API=API, pair=row["pair"], leverage=leverage)
+
+    if binance_positions.isolated.any():
+        for _, row in binance_positions.iterrows():
+            if row["isolated"]:
+                print("Changing margin type")
+                binance_futures_change_marin_type(API=API, pair=row["pair"], type=margin)
