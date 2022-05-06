@@ -39,7 +39,7 @@ timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemotePr
                     httpx.RemoteProtocolError)
 
 
-def exception_handler(error_input_handle, counter):
+def exception_handler(error_input_handle, counter=1):
     if (type(error_input_handle) in timeout_errors) or (type(error_input_handle.__context__) in timeout_errors):
         print(f"Read timeout/connection error: {error_input_handle}")
         time.sleep(1)
@@ -60,7 +60,6 @@ def exception_handler(error_input_handle, counter):
         print("Major error, requests burn, sleeping big time")
         time.sleep(108_000)
         counter = 0
-        return counter
 
 
 class Initialize:
@@ -155,7 +154,6 @@ class DataHandle(Initialize):
         historical_arb_df = await self.update_history_dataframe(self.read_historical_dataframe(), API_drift, API_binance)
 
         save_counter_data = 0
-        err_counter_data = 0
         while True:
             try:
                 data_start_time = time.perf_counter()
@@ -178,12 +176,9 @@ class DataHandle(Initialize):
                     API_binance = self.initiate_binance()
                     save_counter_data = 0
 
-                err_counter_data = 0
-
             except Exception as err:
                 print("Error on data below")
-                err_counter_data += 1
-                err_counter_data = exception_handler(err, err_counter_data)
+                exception_handler(err)
             finally:
                 save_counter_data += 1
 
@@ -370,9 +365,6 @@ class LogicHandle(Initialize):
         return balances_dict
 
     async def run_constant_parallel_logic(self):
-        loop_counter_logic = 0
-        err_counter_logic = 1
-
         print("Running logic side...")
         API_drift = await self.initiate_drift_private()
         API_binance = self.initiate_binance()
@@ -382,6 +374,7 @@ class LogicHandle(Initialize):
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
         print(fresh_data)
 
+        loop_counter_logic = 0
         while True:
             try:
                 logic_start_time = time.perf_counter()
@@ -404,16 +397,15 @@ class LogicHandle(Initialize):
                     fresh_data = self.fresh_data_aggregator()
                     coin_row = fresh_data.loc[coin]
                     coin_symbol = coin
-                    coin_pair = coin_row["binance_pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
                         if coin_row["open_l_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
-                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -440,15 +432,15 @@ class LogicHandle(Initialize):
                                             return
                                     except Exception as err:
                                         print("Error on data below")
-                                        err_counter_orders = exception_handler(err, err_counter_orders)
+                                        exception_handler(err)
                                     finally:
                                         err_counter_orders += 1
 
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
-                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_pair, "amount_precision"])
+                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -475,7 +467,7 @@ class LogicHandle(Initialize):
                                             return
                                     except Exception as err:
                                         print("Error on data below")
-                                        err_counter_orders = exception_handler(err, err_counter_orders)
+                                        exception_handler(err)
                                     finally:
                                         err_counter_orders += 1
 
@@ -509,11 +501,11 @@ class LogicHandle(Initialize):
                                             return
                                     except Exception as err:
                                         print("Error on data below")
-                                        err_counter_orders = exception_handler(err, err_counter_orders)
+                                        exception_handler(err)
                                     finally:
                                         err_counter_orders += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
-                            if bina_close_amount > (precisions_dataframe.loc[coin_pair, "min_order_amount"] * 1.05):
+                            if bina_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -540,7 +532,7 @@ class LogicHandle(Initialize):
                                             return
                                     except Exception as err:
                                         print("Error on data below")
-                                        err_counter_orders = exception_handler(err, err_counter_orders)
+                                        exception_handler(err)
                                     finally:
                                         err_counter_orders += 1
 
@@ -558,12 +550,10 @@ class LogicHandle(Initialize):
                     loop_counter_logic = 0
 
                 loop_counter_logic += 1
-                err_counter_logic = 0
 
             except Exception as err:
                 print("Error on logic below")
-                err_counter_logic += 1
-                err_counter_logic = exception_handler(err, err_counter_logic)
+                exception_handler(err)
 
     def main(self):
         asyncio.run(self.run_constant_parallel_logic())
