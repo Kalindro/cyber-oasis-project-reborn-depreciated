@@ -398,7 +398,6 @@ class LogicHandle(Initialize):
                     fresh_data = self.fresh_data_aggregator()
                     coin_row = fresh_data.loc[coin]
                     coin_symbol = coin
-                    coin_pair = coin_row["pair"]
                     coin_bina_price = coin_row["bina_price"]
                     coin_drift_price = coin_row["drift_price"]
 
