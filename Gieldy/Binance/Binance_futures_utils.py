@@ -39,6 +39,7 @@ def binance_futures_positions(API):
 
     positions_df = df(general_client.futures_account()["positions"])
     positions_df = positions_df[positions_df.symbol.str.contains("USDT")]
+    positions_df = positions_df.apply(pd.to_numeric, errors="ignore")
     positions_df["pair"] = positions_df["symbol"]
     positions_df["symbol"] = positions_df["symbol"].str[:-4]
     positions_df.set_index("symbol", inplace=True)

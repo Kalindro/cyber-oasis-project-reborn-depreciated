@@ -53,6 +53,7 @@ def kucoin_futures_get_pairs_precisions_status(API):
                                     "multiplier": "coins_lot_size"}, inplace=True)
 
     precisions_dataframe = precisions_dataframe[precisions_dataframe.quote.str.contains("USDT")]
+    precisions_dataframe = precisions_dataframe.apply(pd.to_numeric, errors="ignore")
     precisions_dataframe["min_order_amount"] = precisions_dataframe["coins_lot_size"]
     precisions_dataframe["min_order_value"] = precisions_dataframe.apply(lambda row: row["mark_price"] * row["min_order_amount"], axis=1)
     precisions_dataframe["amount_precision"] = precisions_dataframe.apply(lambda row: int(abs(Decimal(str(row["min_order_amount"])).normalize().as_tuple().exponent)), axis=1)
