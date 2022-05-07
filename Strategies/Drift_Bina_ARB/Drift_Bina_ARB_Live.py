@@ -369,7 +369,6 @@ class LogicHandle(Initialize):
         API_drift = await self.initiate_drift_private()
         API_binance = self.initiate_binance()
         precisions_dataframe = binance_futures_get_pairs_precisions_status(API_binance)
-        print(precisions_dataframe)
         fresh_data = self.fresh_data_aggregator()
         balances_dict = await self.get_balances_summary(API_drift, API_binance)
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
