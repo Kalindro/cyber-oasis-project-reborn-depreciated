@@ -405,7 +405,7 @@ class LogicHandle(Initialize):
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                            if bina_open_amount > (float(precisions_dataframe.loc[coin_symbol, "min_order_amount"]) * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -440,7 +440,7 @@ class LogicHandle(Initialize):
                             coin_target_value = balances_dict["coin_target_value"]
                             bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
                             drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                            if bina_open_amount > (float(precisions_dataframe.loc[coin_symbol, "min_order_amount"]) * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -474,7 +474,7 @@ class LogicHandle(Initialize):
                     else:
                         bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_symbol, "amount_precision"])
                         if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
-                            if bina_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                            if bina_close_amount > (float(precisions_dataframe.loc[coin_symbol, "min_order_amount"]) * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
@@ -505,7 +505,7 @@ class LogicHandle(Initialize):
                                     finally:
                                         err_counter_orders += 1
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
-                            if bina_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                            if bina_close_amount > (float(precisions_dataframe.loc[coin_symbol, "min_order_amount"]) * 1.05):
                                 print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
