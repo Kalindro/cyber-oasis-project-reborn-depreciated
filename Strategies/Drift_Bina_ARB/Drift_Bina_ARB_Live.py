@@ -11,6 +11,7 @@ import sys
 import shutil
 import time
 import schedule
+import multiprocessing
 
 from multiprocessing import Process
 from colorama import Fore, Style
@@ -568,6 +569,9 @@ if __name__ == "__main__":
         time.sleep(10)
         p2 = Process(target=LogicHandle().main)
         p2.start()
+
+        for p in multiprocessing.active_children():
+            print(p)
 
     except Exception as err:
         print("Error on main below")
