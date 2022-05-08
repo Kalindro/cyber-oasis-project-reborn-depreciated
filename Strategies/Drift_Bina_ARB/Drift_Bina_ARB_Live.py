@@ -36,7 +36,7 @@ project_path = Path(current_path).parent.parent
 
 timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
                   requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
-                    httpx.RemoteProtocolError)
+                  httpx.RemoteProtocolError, httpx.HTTPStatusError)
 
 
 def exception_handler(error_input_handle, counter=1):
