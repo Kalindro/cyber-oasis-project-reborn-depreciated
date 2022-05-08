@@ -545,7 +545,7 @@ class LogicHandle(Initialize):
                 elif elapsed > 10:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
-                if loop_counter_logic > 50:
+                if loop_counter_logic > 25:
                     balances_dict = await self.get_balances_summary(API_drift, API_binance)
                     API_drift = await self.initiate_drift_private()
                     API_binance = self.initiate_binance()
@@ -588,7 +588,7 @@ if __name__ == "__main__":
 
     try:
         process1, process2 = start()
-        process1, process2 = schedule.every(12).hour.do(restart, process1, process2)
+        process1, process2 = schedule.every(5).minute.do(restart, process1, process2)
 
         while True:
             schedule.run_pending()
