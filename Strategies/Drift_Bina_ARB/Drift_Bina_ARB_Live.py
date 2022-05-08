@@ -588,7 +588,7 @@ if __name__ == "__main__":
 
     try:
         process1, process2 = start()
-        process1, process2 = schedule.every(5).minute.do(restart, process1, process2)
+        process1, process2 = schedule.every(5).minutes.do(restart, process1, process2)
 
         while True:
             schedule.run_pending()
