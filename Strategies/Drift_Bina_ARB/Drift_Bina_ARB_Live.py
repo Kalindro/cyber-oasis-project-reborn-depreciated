@@ -563,15 +563,32 @@ class LogicHandle(Initialize):
 
 
 if __name__ == "__main__":
-    try:
+
+    def start_processes():
         p1 = Process(target=DataHandle().main)
         p1.start()
         time.sleep(10)
         p2 = Process(target=LogicHandle().main)
         p2.start()
 
+    def restart_processes():
+        print("Restarting processes commencing!")
+
+        print("Terminating processes")
         for p in multiprocessing.active_children():
-            print(p)
+            p.terminate()
+            time.sleep(3)
+
+        print("Starting new processes")
+        start_processes()
+
+    try:
+        start_processes()
+        schedule.every(5).minutes.do(restart_processes)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(5)
 
     except Exception as err:
         print("Error on main below")
