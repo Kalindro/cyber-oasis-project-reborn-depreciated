@@ -562,37 +562,12 @@ class LogicHandle(Initialize):
 
 
 if __name__ == "__main__":
-    main_error_counter = 0
-
-    def start():
+    try:
         p1 = Process(target=DataHandle().main)
         p1.start()
         time.sleep(10)
         p2 = Process(target=LogicHandle().main)
         p2.start()
-
-        return p1, p2
-
-    def restart(process1, process2):
-        print("Restart incoming")
-        print("Terminating processes!")
-        time.sleep(5)
-        process1.terminate()
-        time.sleep(5)
-        process2.terminate()
-        time.sleep(5)
-        print("Starting processes!")
-        process1, process2 = start()
-
-        return process1, process2
-
-    try:
-        process1, process2 = start()
-        process1, process2 = schedule.every(5).minutes.do(restart, process1, process2)
-
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
 
     except Exception as err:
         print("Error on main below")
