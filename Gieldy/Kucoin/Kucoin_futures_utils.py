@@ -14,6 +14,7 @@ def kucoin_futures_get_pair_prices(API):
     prices_dataframe = prices_dataframe.apply(pd.to_numeric, errors="ignore")
     prices_dataframe.rename(columns={"symbol": "pair", "markPrice": "mark_price", "baseCurrency": "symbol", "quoteCurrency": "quote"}, inplace=True)
     prices_dataframe = prices_dataframe[prices_dataframe.quote.str.contains("USDT")]
+    prices_dataframe = prices_dataframe.apply(pd.to_numeric, errors="ignore")
     prices_dataframe.set_index("symbol", inplace=True)
 
     return prices_dataframe
@@ -24,6 +25,7 @@ def kucoin_futures_get_balance(API):
 
     balances_df = df(user_client.get_account_overview("USDT"), index=[0])
     balances_df.drop(["accountAlias", "updateTime"], axis=1, inplace=True)
+    balances_df = balances_df.apply(pd.to_numeric, errors="ignore")
     balances_df.rename(columns={"accountEquity": "total", "availableBalance": "available"}, inplace=True)
 
     return balances_df
@@ -38,8 +40,9 @@ def kucoin_futures_positions(API):
     positions_df.rename(columns={"settleCurrency": "quote", "symbol": "pair"}, inplace=True)
     positions_df = positions_df[positions_df.quote.str.contains("USDT")]
     positions_df["symbol"] = positions_df["pair"].str[:-5]
-    positions_df["coins_lot_size"] = positions_df.apply(lambda row: precisions_dataframe.loc[positions_df["symbol"], "coins_lot_size"], axis=1)
-    positions_df["amount"] = positions_df.apply(lambda row: positions_df["coins_lot_size"] * row["currentQty"], axis=1)
+    positions_df["coins_lot_size"] = positions_df.apply(lambda row: precisions_dataframe.loc[positions_df["symbol"], "coins_lot_size"], axis=1).astype(float)
+    positions_df["amount"] = positions_df.apply(lambda row: positions_df["coins_lot_size"] * row["currentQty"], axis=1).astype(float)
+    positions_df = positions_df.apply(pd.to_numeric, errors="ignore")
     positions_df.set_index("symbol", inplace=True)
 
     return positions_df
@@ -58,6 +61,7 @@ def kucoin_futures_get_pairs_precisions_status(API):
     precisions_dataframe["min_order_value"] = precisions_dataframe.apply(lambda row: row["mark_price"] * row["min_order_amount"], axis=1)
     precisions_dataframe["amount_precision"] = precisions_dataframe.apply(lambda row: int(abs(Decimal(str(row["min_order_amount"])).normalize().as_tuple().exponent)), axis=1)
     precisions_dataframe["price_precision"] = precisions_dataframe.apply(lambda row: int(abs(Decimal(str(row["tickSize"])).normalize().as_tuple().exponent)), axis=1)
+    precisions_dataframe = precisions_dataframe.apply(pd.to_numeric, errors="ignore")
     precisions_dataframe.set_index("symbol", inplace=True)
 
     return precisions_dataframe

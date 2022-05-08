@@ -17,6 +17,7 @@ def binance_futures_get_pair_prices(API):
     prices_dataframe.insert(1, "symbol", col)
     prices_dataframe["quote"] = prices_dataframe["pair"].str[-4:]
     prices_dataframe = prices_dataframe[prices_dataframe.quote.str.contains("USDT")]
+    prices_dataframe = prices_dataframe.apply(pd.to_numeric, errors="ignore")
     prices_dataframe.pop("quote")
     prices_dataframe.set_index("symbol", inplace=True)
 
@@ -29,6 +30,7 @@ def binance_futures_get_balance(API):
     balances_df = df(general_client.futures_account_balance())
     balances_df.drop(["accountAlias", "updateTime"], axis=1, inplace=True)
     balances_df.rename(columns={"asset": "symbol", "balance": "total", "withdrawAvailable": "available"}, inplace=True)
+    balances_df = balances_df.apply(pd.to_numeric, errors="ignore")
     balances_df.set_index("symbol", inplace=True)
 
     return balances_df
@@ -42,6 +44,7 @@ def binance_futures_positions(API):
     positions_df = positions_df.apply(pd.to_numeric, errors="ignore")
     positions_df["pair"] = positions_df["symbol"]
     positions_df["symbol"] = positions_df["symbol"].str[:-4]
+    positions_df = positions_df.apply(pd.to_numeric, errors="ignore")
     positions_df.set_index("symbol", inplace=True)
     positions_df.drop(["updateTime", "positionSide", "bidNotional", "askNotional", "openOrderInitialMargin", "maxNotional"], axis=1, inplace=True)
 
@@ -58,8 +61,9 @@ def binance_futures_get_pairs_precisions_status(API):
     pairs_dataframe["symbol"] = pairs_dataframe["symbol"].str[:-4]
 
     pairs_dataframe = pairs_dataframe[pairs_dataframe.quote.str.contains("USDT")]
-    pairs_dataframe["min_order_amount"] = pairs_dataframe.apply(lambda row: row["filters"][2]["minQty"], axis=1)
-    pairs_dataframe["min_order_value"] = pairs_dataframe.apply(lambda row: row["filters"][5]["notional"], axis=1)
+    pairs_dataframe["min_order_amount"] = pairs_dataframe.apply(lambda row: row["filters"][2]["minQty"], axis=1).astype(float)
+    pairs_dataframe["min_order_value"] = pairs_dataframe.apply(lambda row: row["filters"][5]["notional"], axis=1).astype(float)
+    pairs_dataframe = pairs_dataframe.apply(pd.to_numeric, errors="ignore")
     pairs_dataframe.set_index("symbol", inplace=True)
 
     return pairs_dataframe
