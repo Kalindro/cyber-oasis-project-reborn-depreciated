@@ -584,7 +584,7 @@ if __name__ == "__main__":
 
     try:
         start_processes()
-        schedule.every(5).minutes.do(restart_processes)
+        schedule.every(12).hours.do(restart_processes)
 
         while True:
             schedule.run_pending()
