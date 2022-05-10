@@ -137,7 +137,8 @@ class DataHandle(Initialize):
         arb_df.reset_index(inplace=True)
         arb_df.set_index("timestamp", inplace=True)
 
-        historical_arb_df = historical_arb_df.append(arb_df)
+        historical_arb_df = pd.concat([historical_arb_df, arb_df])
+
         historical_arb_df.reset_index(inplace=True)
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
