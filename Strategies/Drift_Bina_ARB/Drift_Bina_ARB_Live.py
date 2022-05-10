@@ -1,4 +1,5 @@
 import functools
+import warnings
 import traceback
 import os
 import datetime as dt
@@ -23,6 +24,7 @@ from Gieldy.Refractor_general.General_utils import round_time
 from Gieldy.Binance.API_initiation_Binance_futures import API_initiation as API_binance
 from Gieldy.Drift.API_initiation_Drift_ARB_Layer_1 import API_initiation as API_drift
 
+warnings.simplefilter("ignore")
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
     asyncio.set_event_loop_policy(

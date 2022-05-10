@@ -8,9 +8,6 @@ import warnings
 import sys
 
 
-# if not sys.warnoptions:
-#     warnings.simplefilter("ignore")
-
 name = "Drift USDC ARB Layer 2"
 
 current_path = os.path.dirname(os.path.abspath(__file__))
