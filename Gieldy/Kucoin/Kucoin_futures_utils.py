@@ -15,6 +15,7 @@ def kucoin_futures_get_pair_prices(API):
     prices_dataframe.rename(columns={"symbol": "pair", "markPrice": "mark_price", "baseCurrency": "symbol", "quoteCurrency": "quote"}, inplace=True)
     prices_dataframe = prices_dataframe[prices_dataframe.quote.str.contains("USDT")]
     prices_dataframe = prices_dataframe.apply(pd.to_numeric, errors="ignore")
+    prices_dataframe.loc[prices_dataframe["symbol"] == "XBT", "symbol"] = "BTC"
     prices_dataframe.set_index("symbol", inplace=True)
 
     return prices_dataframe
@@ -42,6 +43,7 @@ def kucoin_futures_positions(API):
     positions_df["coins_lot_size"] = positions_df.apply(lambda row: precisions_dataframe.loc[positions_df["symbol"], "coins_lot_size"], axis=1).astype(float)
     positions_df["amount"] = positions_df.apply(lambda row: positions_df["coins_lot_size"] * row["currentQty"], axis=1).astype(float)
     positions_df = positions_df.apply(pd.to_numeric, errors="ignore")
+    positions_df.loc[positions_df["symbol"] == "XBT", "symbol"] = "BTC"
     positions_df.set_index("symbol", inplace=True)
 
     return positions_df
@@ -61,6 +63,7 @@ def kucoin_futures_get_pairs_precisions_status(API):
     precisions_dataframe["amount_precision"] = precisions_dataframe.apply(lambda row: int(abs(Decimal(str(row["min_order_amount"])).normalize().as_tuple().exponent)), axis=1)
     precisions_dataframe["price_precision"] = precisions_dataframe.apply(lambda row: int(abs(Decimal(str(row["tickSize"])).normalize().as_tuple().exponent)), axis=1)
     precisions_dataframe = precisions_dataframe.apply(pd.to_numeric, errors="ignore")
+    precisions_dataframe.loc[precisions_dataframe["symbol"] == "XBT", "symbol"] = "BTC"
     precisions_dataframe.set_index("symbol", inplace=True)
 
     return precisions_dataframe

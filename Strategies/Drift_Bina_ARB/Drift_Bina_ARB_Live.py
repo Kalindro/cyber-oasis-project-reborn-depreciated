@@ -71,6 +71,7 @@ class Initialize:
 
     def __init__(self):
         self.LIMIT_DATA = True
+        self.BLACKLIST = ["LUNA", "LUNA"]
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
         self.FAST_AVG = 28
         self.QUARTILE = 0.20
@@ -302,12 +303,12 @@ class LogicHandle(Initialize):
 
         for frame in coin_dataframes_dict.values():
             fresh_row = frame.tail(1).copy()
+            if fresh_row["symbol"].iloc[-1] in self.BLACKLIST: continue
             fresh_row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
             fresh_row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median() if\
                 len(frame) > self.ZSCORE_PERIOD else np.nan
             fresh_row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median() if\
                 len(frame) > self.ZSCORE_PERIOD else np.nan
-
             fresh_row["open_l_drift"] = LogicConds().conds_open_long_drift(fresh_row.iloc[-1])
             fresh_row["open_s_drift"] = LogicConds().conds_open_short_drift(fresh_row.iloc[-1])
             fresh_row["close_l_drift"] = LogicConds().conds_close_long_drift(fresh_row.iloc[-1])
