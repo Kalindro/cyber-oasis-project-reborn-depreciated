@@ -73,7 +73,7 @@ class Initialize:
         self.LIMIT_DATA = True
         self.BLACKLIST = ["LUNA", "LUNA"]
         self.ZSCORE_PERIOD = int(1 * 3600 / 5)  # Edit first number, hours of period (hours * minute in seconds / 5s data frequency)
-        self.FAST_AVG = 28
+        self.FAST_AVG = 32
         self.QUARTILE = 0.20
         self.QUARTILE_PERIOD = int(0.20 * self.ZSCORE_PERIOD)
         self.MIN_REGULAR_GAP = 0.45
