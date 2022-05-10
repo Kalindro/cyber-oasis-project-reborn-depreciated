@@ -309,16 +309,17 @@ class LogicHandle(Initialize):
             coin_dataframes_dict[key] = historical_arb_df[:][historical_arb_df.symbol == key]
 
         for frame in coin_dataframes_dict.values():
-            fresh_row = frame.iloc[-1]
+            fresh_row = frame.tail(1).copy()
             fresh_row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
             fresh_row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median() if\
                 len(frame) > self.ZSCORE_PERIOD else np.nan
-            fresh_row.loc["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median() if\
+            fresh_row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median() if\
                 len(frame) > self.ZSCORE_PERIOD else np.nan
-            fresh_row["open_l_drift"] = LogicConds().conds_open_long_drift(fresh_row)
-            fresh_row["open_s_drift"] = LogicConds().conds_open_short_drift(fresh_row)
-            fresh_row["close_l_drift"] = LogicConds().conds_close_long_drift(fresh_row)
-            fresh_row["close_s_drift"] = LogicConds().conds_close_short_drift(fresh_row)
+
+            fresh_row["open_l_drift"] = LogicConds().conds_open_long_drift(fresh_row.iloc[-1])
+            fresh_row["open_s_drift"] = LogicConds().conds_open_short_drift(fresh_row.iloc[-1])
+            fresh_row["close_l_drift"] = LogicConds().conds_close_long_drift(fresh_row.iloc[-1])
+            fresh_row["close_s_drift"] = LogicConds().conds_close_short_drift(fresh_row.iloc[-1])
 
             fresh_data = pd.concat([fresh_data, fresh_row])
 
