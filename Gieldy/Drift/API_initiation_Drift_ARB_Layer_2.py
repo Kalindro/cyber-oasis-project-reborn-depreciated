@@ -8,19 +8,19 @@ import warnings
 import sys
 
 
-if not sys.warnoptions:
-    warnings.simplefilter("ignore")
+# if not sys.warnoptions:
+#     warnings.simplefilter("ignore")
 
-name = "Drift USDC"
+name = "Drift USDC ARB Layer 2"
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
-os.environ["ANCHOR_WALLET"] = f"{project_path}/Gieldy/APIs/Solana_Drift_Bina_ARB.json"
+os.environ["ANCHOR_WALLET"] = f"{project_path}/Gieldy/APIs/Solana_Drift_ARB_Layer_2.json"
 
 
-async def API_initiation():
+async def API_initiation(private: bool):
     user_account = dict()
-    user_account["drift_acct"] = await ClearingHouse.create(program=my_load_program(private=False))
+    user_account["drift_acct"] = await ClearingHouse.create(program=my_load_program(private=private))
     user_account["drift_user"] = ClearingHouseUser(user_account["drift_acct"], user_account["drift_acct"].program.provider.wallet.public_key)
     user_account["drift_user_acct"] = await user_account["drift_user"].get_user_account()
 

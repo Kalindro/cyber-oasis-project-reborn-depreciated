@@ -21,8 +21,7 @@ from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
 from Gieldy.Binance.API_initiation_Binance_futures import API_initiation as API_binance
-from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_private
-from Gieldy.Drift.API_initiation_Drift_Public import API_initiation as API_drift_public
+from Gieldy.Drift.API_initiation_Drift_ARB_Layer_1 import API_initiation as API_drift
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
@@ -113,11 +112,11 @@ class Initialize:
 
     @staticmethod
     async def initiate_drift_private():
-        return await API_drift_private()
+        return await API_drift(private=True)
 
     @staticmethod
     async def initiate_drift_public():
-        return await API_drift_public()
+        return await API_drift(private=False)
 
 
 class DataHandle(Initialize):
@@ -432,7 +431,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -467,7 +466,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -501,7 +500,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -532,7 +531,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)

@@ -24,7 +24,6 @@ def kucoin_futures_get_balance(API):
     user_client = API["user_client"]
 
     balances_df = df(user_client.get_account_overview("USDT"), index=[0])
-    balances_df.drop(["accountAlias", "updateTime"], axis=1, inplace=True)
     balances_df = balances_df.apply(pd.to_numeric, errors="ignore")
     balances_df.rename(columns={"accountEquity": "total", "availableBalance": "available"}, inplace=True)
 
@@ -73,28 +72,22 @@ def kucoin_futures_open_market_long(API, pair, amount, leverage):
     trade_client.create_market_order(symbol=pair, side="buy", size=amount, lever=leverage)
 
 
-def binance_futures_open_market_short(API, pair, amount, leverage):
+def kucoin_futures_open_market_short(API, pair, amount, leverage):
     trade_client = API["trade_client"]
 
     trade_client.create_market_order(symbol=pair, side="sell", size=amount, lever=leverage)
 
 
-def binance_futures_close_market_long(API, pair, leverage):
+def kucoin_futures_close_market_long(API, pair, leverage):
     trade_client = API["trade_client"]
 
     trade_client.create_market_order(symbol=pair, side="sell", lever=leverage, closeOrder=True)
 
 
-def binance_futures_close_market_short(API, pair, leverage):
+def kucoin_futures_close_market_short(API, pair, leverage):
     trade_client = API["trade_client"]
 
     trade_client.create_market_order(symbol=pair, side="buy", lever=leverage, closeOrder=True)
-
-
-def binance_futures_open_limit_long(API, pair, amount, price):
-    general_client = API["general_client"]
-
-    general_client.futures_create_order(symbol=pair, side="BUY", type="LIMIT", quantity=amount, price=price)
 
 
 def kucoin_futures_change_margin_type(API, pair, cross=True):

@@ -2,6 +2,7 @@ import traceback
 import os
 import datetime as dt
 import asyncio
+import multiprocessing
 import httpcore
 import httpx
 import requests.exceptions
@@ -9,6 +10,7 @@ import solana
 import sys
 import shutil
 import time
+import schedule
 
 from multiprocessing import Process
 from colorama import Fore, Style
@@ -17,9 +19,8 @@ from Gieldy.Kucoin.Kucoin_futures_utils import *
 from Gieldy.Drift.Drift_utils import *
 from Gieldy.Refractor_general.General_utils import round_time
 
-from Gieldy.Kucoin.API_initiation_Kucoin_futures_Drift_ARB_first_layer import API_initiation as API_kucoin
-from Gieldy.Drift.API_initiation_Drift_Private import API_initiation as API_drift_private
-from Gieldy.Drift.API_initiation_Drift_Public import API_initiation as API_drift_public
+from Gieldy.Kucoin.API_initiation_Kucoin_futures_Drift_ARB_Layer_1 import API_initiation as API_kucoin
+from Gieldy.Drift.API_initiation_Drift_ARB_Layer_1 import API_initiation as API_drift
 
 
 if sys.platform == "win32" and sys.version_info.minor >= 8:
@@ -36,7 +37,7 @@ project_path = Path(current_path).parent.parent
 
 timeout_errors = (httpcore.ReadTimeout, httpcore.ConnectError, httpcore.RemoteProtocolError, httpx.ReadTimeout,
                   requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout, httpx.ConnectError, httpcore.RemoteProtocolError,
-                    httpx.RemoteProtocolError)
+                  httpx.RemoteProtocolError, httpx.HTTPStatusError)
 
 
 def exception_handler(error_input_handle, counter=1):
@@ -88,7 +89,7 @@ class Initialize:
                 shutil.copyfile(source, destination)
                 time.sleep(0.3)
                 historical_arb_df = pd.read_pickle(f"{project_path}/History_data/Drift/5S/Price_gaps_5S_COPY_READ.pickle")
-                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["kuc_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
+                if (len(historical_arb_df) < 2) or np.isnan(historical_arb_df.iloc[-1]["kucoin_price"]) or np.isnan(historical_arb_df.iloc[-1]["drift_price"]) or np.isnan(historical_arb_df.iloc[-1]["gap_perc"]):
                     _ = 5/0  # Exception force
                 else:
                     return historical_arb_df
@@ -110,11 +111,11 @@ class Initialize:
 
     @staticmethod
     async def initiate_drift_private():
-        return await API_drift_private()
+        return await API_drift(private=True)
 
     @staticmethod
     async def initiate_drift_public():
-        return await API_drift_public()
+        return await API_drift(private=False)
 
 
 class DataHandle(Initialize):
@@ -123,13 +124,13 @@ class DataHandle(Initialize):
         arb_df = df()
 
         drift_prices = await drift_get_pair_prices_rates(API_drift)
-        kuc_prices = kucoin_futures_get_pair_prices(API_kucoin)
+        kucoin_prices = kucoin_futures_get_pair_prices(API_kucoin)
         arb_df["drift_pair"] = drift_prices["market_index"]
-        arb_df["kuc_pair"] = kuc_prices["pair"]
-        arb_df = arb_df[["kuc_pair", "drift_pair"]]
-        arb_df["kuc_price"] = kuc_prices["mark_price"]
+        arb_df["kucoin_pair"] = kucoin_prices["pair"]
+        arb_df = arb_df[["kucoin_pair", "drift_pair"]]
+        arb_df["kucoin_price"] = kucoin_prices["mark_price"]
         arb_df["drift_price"] = drift_prices["mark_price"]
-        arb_df["gap_perc"] = (arb_df["kuc_price"] - arb_df["drift_price"]) / arb_df["kuc_price"] * 100
+        arb_df["gap_perc"] = (arb_df["kucoin_price"] - arb_df["drift_price"]) / arb_df["kucoin_price"] * 100
         arb_df["gap_abs"] = abs(arb_df["gap_perc"])
         arb_df["timestamp"] = round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))
         arb_df.reset_index(inplace=True)
@@ -139,7 +140,7 @@ class DataHandle(Initialize):
         historical_arb_df.reset_index(inplace=True)
         historical_arb_df.drop_duplicates(subset=["timestamp", "symbol"], keep="last", inplace=True)
         historical_arb_df.set_index("timestamp", inplace=True)
-        historical_arb_df = historical_arb_df[historical_arb_df["kuc_price"].notna()]
+        historical_arb_df = historical_arb_df[historical_arb_df["kucoin_price"].notna()]
 
         if self.LIMIT_DATA:
             historical_arb_df = historical_arb_df[historical_arb_df.index > (dt.datetime.now() - timedelta(seconds=(self.ZSCORE_PERIOD * 1.25) * 5))]
@@ -330,12 +331,12 @@ class LogicHandle(Initialize):
         kucoin_positions = kucoin_futures_positions(API_kucoin)
         kucoin_positions = kucoin_positions[kucoin_positions.index.isin(playable_coins_list)]
         drift_positions = await drift_load_positions(API_drift)
-        kucoin_futures_margin_check(kucoin_positions, self.LEVERAGE)
+        kucoin_futures_margin_check(API_kucoin, self.LEVERAGE)
 
         positions_dataframe = df()
         positions_dataframe.index = kucoin_positions.index
-        positions_dataframe["kucoin_pos"] = kucoin_positions["positionAmt"].astype(float)
-        positions_dataframe["drift_pos"] = drift_positions["base_asset_amount"].astype(float)
+        positions_dataframe["kucoin_pos"] = kucoin_positions["amount"]
+        positions_dataframe["drift_pos"] = drift_positions["base_asset_amount"]
         positions_dataframe.fillna(0, inplace=True)
         positions_dataframe["kucoin_pair"] = kucoin_positions["pair"]
         positions_dataframe["drift_pair"] = fresh_data.loc[positions_dataframe.index, "drift_pair"].astype(int)
@@ -349,7 +350,7 @@ class LogicHandle(Initialize):
         return positions_dataframe
 
     async def get_balances_summary(self, API_drift, API_kucoin, printing=True):
-        kucoin_balances = kucoin_futures_get_balance(API_kucoin).loc["USDT"]
+        kucoin_balances = kucoin_futures_get_balance(API_kucoin)
         drift_balances = await drift_get_margin_account_info(API_drift)
         balances_dict = {"kucoin": float(kucoin_balances['total']),
                          "drift": float(drift_balances['collateral']),
@@ -397,16 +398,16 @@ class LogicHandle(Initialize):
                     fresh_data = self.fresh_data_aggregator()
                     coin_row = fresh_data.loc[coin]
                     coin_symbol = coin
-                    coin_kucoin_price = coin_row["kuc_price"]
+                    coin_kucoin_price = coin_row["kucoin_price"]
                     coin_drift_price = coin_row["drift_price"]
 
                     if (not positions_dataframe.loc[coin_symbol, "inplay"]) and (positions_dataframe["inplay"].sum() < self.COINS_AT_ONCE) and (not self.CLOSE_ONLY_MODE):
                         if coin_row["open_l_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
-                            bina_open_amount = round(coin_target_value / coin_kucoin_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
+                            kucoin_open_amount = round(coin_target_value / coin_kucoin_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
                             drift_open_value = round(kucoin_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Binance: {bina_open_amount}" + Style.RESET_ALL)
+                            if kucoin_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Longing Drift: {drift_open_value}, shorting Kucoin: {kucoin_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
                                 while True:
@@ -416,20 +417,20 @@ class LogicHandle(Initialize):
                                             drift_orders = time.perf_counter()
                                             long_drift = await drift_open_market_long(API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
                                             print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                                        if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.perf_counter()
-                                            short_binance = binance_futures_open_market_short(API_binance, pair=coin_row["binance_pair"], amount=bina_open_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        if not positions_dataframe.loc[coin_symbol, "kucoin_inplay"]:
+                                            kucoin_orders = time.perf_counter()
+                                            short_kucoin = kucoin_futures_open_market_short(API_kucoin, pair=coin_row["kucoin_pair"], amount=kucoin_open_amount, leverage=self.LEVERAGE)
+                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - kucoin_orders, 2)))
                                         time.sleep(4)
-                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance)
+                                        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_kucoin)
                                         break
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on opening positions: {err}")
-                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_kucoin)
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -438,10 +439,10 @@ class LogicHandle(Initialize):
 
                         elif coin_row["open_s_drift"]:
                             coin_target_value = balances_dict["coin_target_value"]
-                            bina_open_amount = round(coin_target_value / coin_bina_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
-                            drift_open_value = round(bina_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
-                            if bina_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Binance: {bina_open_amount}" + Style.RESET_ALL)
+                            kucoin_open_amount = round(coin_target_value / coin_kucoin_price, precisions_dataframe.loc[coin_symbol, "amount_precision"])
+                            drift_open_value = round(kucoin_open_amount * coin_drift_price, self.DRIFT_USDC_PRECISION)
+                            if kucoin_open_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Shorting Drift: {drift_open_value}, longing Kucoin: {kucoin_open_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
                                 while True:
@@ -451,10 +452,10 @@ class LogicHandle(Initialize):
                                             drift_orders = time.perf_counter()
                                             short_drift = await drift_open_market_short(API_drift, amount=drift_open_value*self.DRIFT_BIG_N, drift_index=coin_row["drift_pair"])
                                             print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                                        if not positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.perf_counter()
-                                            long_binance = kucoin_futures_open_market_long(API_kucoin, pair=coin_row["binance_pair"], amount=bina_open_amount)
-                                            print("--- Bina orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        if not positions_dataframe.loc[coin_symbol, "kucoin_inplay"]:
+                                            kucoin_orders = time.perf_counter()
+                                            long_kucoin = kucoin_futures_open_market_long(API_kucoin, pair=coin_row["kucoin_pair"], amount=kucoin_open_amount, leverage=self.LEVERAGE)
+                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - kucoin_orders, 2)))
                                         time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_kucoin)
                                         break
@@ -464,7 +465,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -472,10 +473,10 @@ class LogicHandle(Initialize):
                                         err_counter_orders += 1
 
                     else:
-                        bina_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "binance_pos"] * 1.1), precisions_dataframe.loc[coin_symbol, "amount_precision"])
+                        kucoin_close_amount = round(abs(positions_dataframe.loc[coin_symbol, "kucoin_pos"] * 1.1), precisions_dataframe.loc[coin_symbol, "amount_precision"])
                         if coin_row["close_l_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] > 0):
-                            if bina_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Binance short: {bina_close_amount}" + Style.RESET_ALL)
+                            if kucoin_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift long: All, closing Kucoin short: {kucoin_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
                                 while True:
@@ -485,10 +486,10 @@ class LogicHandle(Initialize):
                                             drift_orders = time.perf_counter()
                                             close_drift_long = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
                                             print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                                        if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.perf_counter()
-                                            close_binance_short = kucoin_futures_close_market_short(API_kucoin, pair=coin_row["binance_pair"], amount=bina_close_amount)
-                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        if positions_dataframe.loc[coin_symbol, "kucoin_inplay"]:
+                                            kucoin_orders = time.perf_counter()
+                                            close_kucoin_short = kucoin_futures_close_market_short(API_kucoin, pair=coin_row["kucoin_pair"], leverage=self.LEVERAGE)
+                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - kucoin_orders, 2)))
                                         time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_kucoin)
                                         break
@@ -498,15 +499,16 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
                                     finally:
                                         err_counter_orders += 1
+
                         elif coin_row["close_s_drift"] and (positions_dataframe.loc[coin_symbol, "drift_pos"] < 0):
-                            if bina_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
-                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Binance long: {bina_close_amount}" + Style.RESET_ALL)
+                            if kucoin_close_amount > (precisions_dataframe.loc[coin_symbol, "min_order_amount"] * 1.05):
+                                print(Fore.YELLOW + f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} {coin_symbol} Closing Drift short: All, closing Kucoin long: {kucoin_close_amount}" + Style.RESET_ALL)
                                 print(fresh_data)
                                 err_counter_orders = 1
                                 while True:
@@ -516,10 +518,10 @@ class LogicHandle(Initialize):
                                             drift_orders = time.perf_counter()
                                             close_drift_short = await drift_close_order(API_drift, drift_index=coin_row["drift_pair"])
                                             print("--- Drift orders %s seconds ---" % (round(time.perf_counter() - drift_orders, 2)))
-                                        if positions_dataframe.loc[coin_symbol, "binance_inplay"]:
-                                            bina_orders = time.perf_counter()
-                                            close_binance_long = binance_futures_close_market_long(API_kucoin, pair=coin_row["binance_pair"], amount=bina_close_amount)
-                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - bina_orders, 2)))
+                                        if positions_dataframe.loc[coin_symbol, "kucoin_inplay"]:
+                                            kucoin_orders = time.perf_counter()
+                                            close_kucoin_long = kucoin_futures_close_market_long(API_kucoin, pair=coin_row["kucoin_pair"], leverage=self.LEVERAGE)
+                                            print("--- Kucoin orders %s seconds ---" % (round(time.perf_counter() - kucoin_orders, 2)))
                                         time.sleep(4)
                                         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_kucoin)
                                         break
@@ -529,7 +531,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
-                                            return
+                                            break
                                     except Exception as err:
                                         print("Error on data below")
                                         exception_handler(err)
@@ -543,7 +545,7 @@ class LogicHandle(Initialize):
                 elif elapsed > 10:
                     print(f"{round_time(dt=dt.datetime.now(), date_delta=dt.timedelta(seconds=5))} --- Logic loop %s seconds ---" % (round(time.perf_counter() - logic_start_time, 2)))
 
-                if loop_counter_logic > 25:
+                if loop_counter_logic > 35:
                     balances_dict = await self.get_balances_summary(API_drift, API_kucoin)
                     API_drift = await self.initiate_drift_private()
                     API_kucoin = self.initiate_kucoin()
@@ -560,14 +562,32 @@ class LogicHandle(Initialize):
 
 
 if __name__ == "__main__":
-    main_error_counter = 0
-    try:
+
+    def start_processes():
         p1 = Process(target=DataHandle().main)
         p1.start()
         time.sleep(10)
         p2 = Process(target=LogicHandle().main)
         p2.start()
-        main_error_counter = 0
+
+    def restart_processes():
+        print("Restarting processes commencing!")
+
+        print("Terminating processes")
+        for p in multiprocessing.active_children():
+            p.terminate()
+            time.sleep(3)
+
+        print("Starting new processes")
+        start_processes()
+
+    try:
+        start_processes()
+        schedule.every(12).hours.do(restart_processes)
+
+        while True:
+            schedule.run_pending()
+            time.sleep(5)
 
     except Exception as err:
         print("Error on main below")
