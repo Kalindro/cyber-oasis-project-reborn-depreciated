@@ -431,6 +431,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
+                                            print(f"Coś tu się jebie, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -466,6 +467,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
+                                            print(f"Coś tu się jebie, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -500,6 +502,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
+                                            print(f"Coś tu się jebie, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -531,6 +534,7 @@ class LogicHandle(Initialize):
                                         if imbalance_status:
                                             continue
                                         else:
+                                            print(f"Coś tu się jebie, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
