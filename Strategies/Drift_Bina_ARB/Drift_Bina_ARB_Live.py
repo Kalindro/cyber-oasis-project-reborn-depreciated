@@ -53,6 +53,7 @@ def exception_handler(error_input_handle, counter=1):
     else:
         trace = traceback.format_exc()
         print(f"Err: {error_input_handle}")
+        print(f"Err string: {str(error_input_handle)}")
         print(f"Err type: {type(error_input_handle)}")
         print(f"Err cause: {error_input_handle.__cause__}")
         print(f"Err cause type: {type(error_input_handle.__cause__)}")
@@ -276,31 +277,20 @@ class LogicConds(Initialize):
 class LogicHandle(Initialize):
 
     async def imbalance_checker(self, fresh_data, coin_symbol, API_drift, API_binance):
+        imbalance_start_time = time.perf_counter()
         positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
-        if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            print("Imbalance on initial check")
-            return True, positions_dataframe
 
-        time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
-        if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            print("Imbalance on first check")
-            return True, positions_dataframe
-
-        time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
-        if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            print("Imbalance on second check")
-            return True, positions_dataframe
-
-        time.sleep(15)
-        positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
-        if positions_dataframe.loc[coin_symbol, "imbalance"]:
-            print("Imbalance on third check")
-            return True, positions_dataframe
+        while not positions_dataframe.loc[coin_symbol, "imbalance"]:
+            time.sleep(5)
+            positions_dataframe = await self.get_positions_summary(fresh_data, API_drift, API_binance, printing=False)
+            elapsed = time.perf_counter() - imbalance_start_time
+            if int(elapsed) > 45:
+                print("No imbalance after 45 seconds check")
+                return False, positions_dataframe
         else:
-            print("No imbalance after third check")
-            return False, positions_dataframe
+            elapsed = time.perf_counter() - imbalance_start_time
+            print(f"Imbalance after {int(elapsed)} seconds")
+            return True, positions_dataframe
 
     def fresh_data_aggregator(self):
         fresh_data = df()
