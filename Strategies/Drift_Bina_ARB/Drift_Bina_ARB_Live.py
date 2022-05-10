@@ -319,7 +319,8 @@ class LogicHandle(Initialize):
             fresh_row["open_s_drift"] = LogicConds().conds_open_short_drift(fresh_row)
             fresh_row["close_l_drift"] = LogicConds().conds_close_long_drift(fresh_row)
             fresh_row["close_s_drift"] = LogicConds().conds_close_short_drift(fresh_row)
-            fresh_data = fresh_data.append(fresh_row)
+
+            fresh_data = pd.concat([fresh_data, fresh_row])
 
         fresh_data.sort_values(by=["gap_abs"], inplace=True)
         fresh_data.reset_index(inplace=True)
