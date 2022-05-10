@@ -428,10 +428,11 @@ class LogicHandle(Initialize):
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on opening positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        print(f"Coś tu się jebie, {imbalance_status}")
                                         if imbalance_status:
                                             continue
                                         else:
-                                            print(f"Coś tu się jebie, {imbalance_status}")
+                                            print(f"Coś tu się jebie w else, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -464,10 +465,11 @@ class LogicHandle(Initialize):
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on opening positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        print(f"Coś tu się jebie, {imbalance_status}")
                                         if imbalance_status:
                                             continue
                                         else:
-                                            print(f"Coś tu się jebie, {imbalance_status}")
+                                            print(f"Coś tu się jebie w else, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -499,10 +501,11 @@ class LogicHandle(Initialize):
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        print(f"Coś tu się jebie, {imbalance_status}")
                                         if imbalance_status:
                                             continue
                                         else:
-                                            print(f"Coś tu się jebie, {imbalance_status}")
+                                            print(f"Coś tu się jebie w else, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
@@ -531,10 +534,11 @@ class LogicHandle(Initialize):
                                     except solana.rpc.core.UnconfirmedTxError as err:
                                         print(f"Unconfirmed TX Error on closing positions: {err}")
                                         imbalance_status, positions_dataframe = await self.imbalance_checker(fresh_data, coin_symbol, API_drift, API_binance)
+                                        print(f"Coś tu się jebie, {imbalance_status}")
                                         if imbalance_status:
                                             continue
                                         else:
-                                            print(f"Coś tu się jebie, {imbalance_status}")
+                                            print(f"Coś tu się jebie w else, {imbalance_status}")
                                             break
                                     except Exception as err:
                                         print("Error on data below")
