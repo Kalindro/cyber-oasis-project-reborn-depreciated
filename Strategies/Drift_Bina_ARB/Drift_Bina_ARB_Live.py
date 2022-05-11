@@ -304,7 +304,7 @@ class LogicHandle(Initialize):
         for frame in coin_dataframes_dict.values():
             fresh_row = frame.tail(1).copy()
             if fresh_row["symbol"].iloc[-1] in self.BLACKLIST: continue
-            fresh_row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median() * 0.95
+            fresh_row["fast_avg_gap"] = frame["gap_perc"].tail(self.FAST_AVG).median()
             fresh_row["top_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nlargest(self.QUARTILE_PERIOD).median() if\
                 len(frame) > self.ZSCORE_PERIOD else np.nan
             fresh_row["bottom_avg_gaps"] = frame["gap_perc"].tail(self.ZSCORE_PERIOD).nsmallest(self.QUARTILE_PERIOD).median() if\
