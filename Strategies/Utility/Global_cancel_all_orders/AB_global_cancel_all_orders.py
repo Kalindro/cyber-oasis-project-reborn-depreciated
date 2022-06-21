@@ -10,7 +10,7 @@ from Gieldy.Refractor_general.Main_refracting import *
 
 
 def AB_global_cancel_all_orders():
-    print("Emergency cancellation of all orders on all AB exchanges")
+    print("Emergency cancellation of all orders on all ZOBSOLETE_AB exchanges")
 
     print("Cancelling API_Binance_AB_USDT")
     cancel_all_orders(API_Binance_AB_USDT())

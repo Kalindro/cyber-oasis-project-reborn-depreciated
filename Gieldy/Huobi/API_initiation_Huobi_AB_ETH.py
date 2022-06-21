@@ -9,7 +9,7 @@ from configparser import ConfigParser
 
 
 def API_initiation():
-    name = "Huobi AB ETH"
+    name = "Huobi ZOBSOLETE_AB ETH"
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent

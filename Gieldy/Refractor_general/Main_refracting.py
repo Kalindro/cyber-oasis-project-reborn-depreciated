@@ -57,8 +57,6 @@ def cancel_all_orders(API):
     else:
         raise Exception(f"{name.lower()} not added for this function")
 
-    print("Canceled all orders")
-
 
 def fetch_order(pair, order_ID, API):
     name = API["name"]
@@ -244,7 +242,7 @@ def get_history_fragment_for_func(pair, timeframe, since, to, days_of_history, A
         if days_of_history < 32:
             return huobi_REST_history_fragment(pair=pair, timeframe=timeframe, API=API)
         else:
-            return huobi_websocket_history_fragment(pair=pair, timeframe=timeframe, Since=since, To=to)
+            return huobi_websocket_history_fragment(pair=pair, timeframe=timeframe, since=since, to=to)
 
     if "kucoin" in name.lower():
         return kucoin_REST_history_fragment(pair=pair, timeframe=timeframe, since=since, to=to, API=API)

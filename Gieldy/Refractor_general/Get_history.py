@@ -17,7 +17,10 @@ pd.set_option('display.width', None)
 
 
 # Getting history function
-def get_history_full(pair, timeframe, start, fresh_live_history_no_save_read, API, end=None):
+def get_history_full(pair, timeframe, fresh_live_history_no_save_read, API, last_n_candles=None, start=None, end=None):
+    if (last_n_candles is None) and (start is None):
+        raise AssertionError("Error, either last_n_candles or start has to be provided")
+
     print(f"Getting {pair} history")
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_path = Path(current_path).parent.parent
