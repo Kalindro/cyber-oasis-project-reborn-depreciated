@@ -9,7 +9,7 @@ def API_initiation():
     name = "Binance BTC AB spot"
 
     current_path = os.path.dirname(os.path.abspath(__file__))
-    project_path = Path(current_path).parent.parent.parent
+    project_path = Path(current_path).parent.parent
 
     parser = ConfigParser()
     parser.read(f"{project_path}/Gieldy/APIs/Binance_BTC_AB_spot.ini")
