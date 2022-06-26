@@ -3,7 +3,7 @@ import datetime as dt
 from pandas import DataFrame as df
 
 
-def get_history_fragment_CCXT_REST(pair, timeframe, since, API):
+def get_history_fragment_CCXT_REST_for_func(pair, timeframe, since, API):
     general_client = API["general_client"]
     candle_limit = 800
 
