@@ -15,6 +15,7 @@ project_path = Path(current_path).parent.parent
 
 class GetFullHistory:
     def __init__(self, pair, timeframe, since, API, end=None):
+        self.save_load = True
         self.pair = pair
         self.timeframe = timeframe.lower()
         self.since_datetime = self.date_string_to_datetime(since)
@@ -85,9 +86,18 @@ class GetFullHistory:
     def get_full_history(self):
         print(f"Getting {self.pair} history")
 
-        local_since_timestamp = self.since_timestamp
+        if self.save_load:
+            hist_df_full = self.load_data()
+            if (hist_df_full.iloc[-1].index > self.end_datetime) and (hist_df_full.iloc[0].index < self.since_datetime):
+                print("Saved data is sufficient, returning")
+                return hist_df_full.loc[
+                       self.since_datetime:min(hist_df_full.iloc[-1].name, self.end_datetime)]
+            else:
+                print("Saved data found, not sufficient data range, getting fresh")
+        else:
+            hist_df_full = df()
 
-        hist_df_full = df()
+        local_since_timestamp = self.since_timestamp
         stable_loop_timestamp_delta = 0
         while True:
             try:
@@ -109,7 +119,9 @@ class GetFullHistory:
                 print(f"{e}, error on history fragments loop")
 
         hist_df_final = self.history_clean(hist_df_full, pair=self.pair)
-        hist_df_final = hist_df_final.loc[
-                        self.since_datetime:min(hist_df_final.iloc[-1].name, self.end_datetime)]
 
-        return hist_df_final
+        if self.save_load:
+            self.save_data(hist_df_final)
+
+        return hist_df_final.loc[
+                        self.since_datetime:min(hist_df_final.iloc[-1].name, self.end_datetime)]
