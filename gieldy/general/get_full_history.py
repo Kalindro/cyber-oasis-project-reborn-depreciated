@@ -1,9 +1,8 @@
-import datetime as dt
-import traceback
 import time
 import os
-from random import randint
+import datetime as dt
 import pandas as pd
+from random import randint
 from pathlib import Path
 from pandas import DataFrame as df
 
@@ -17,7 +16,12 @@ class GetFullHistory:
     def __init__(self, pair, timeframe, since, API, end=None):
         self.save_load = True
         self.pair = pair
+        self.pair_for_data = self.pair.replace("/", "-")
         self.timeframe = timeframe.lower()
+        self.API = API
+        self.name = self.API["name"]
+        self.exchange = self.exchange_check()
+        self.data_location = f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
         self.since_datetime = self.date_string_to_datetime(since)
         self.since_timestamp = self.datetime_to_timestamp_ms(self.since_datetime)
         if end is None:
@@ -25,9 +29,6 @@ class GetFullHistory:
         else:
             self.end_datetime = self.date_string_to_datetime(end)
         self.end_timestamp = self.datetime_to_timestamp_ms(self.end_datetime)
-        self.API = API
-        self.name = self.API["name"]
-        self.exchange = self.exchange_check()
 
     def exchange_check(self):
         if "kucoin" in self.name.lower():
@@ -67,20 +68,21 @@ class GetFullHistory:
 
     def load_data(self):
         try:
+            if not os.path.exists(self.data_location):
+                os.makedirs(self.data_location)
             history_df_saved = pd.read_csv(
-                f"{project_path}/history_data/{self.exchange}/{self.timeframe}/{self.pair}_{self.timeframe}.csv",
-                index_col=0, parse_dates=True)
+                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.csv", index_col=0,
+                parse_dates=True)
             print("Saved history found")
 
             return history_df_saved
 
         except Exception as err:
-            print(f"{err}, no saved history for {self.pair}")
+            print(f"No saved history for {self.pair}, {err}")
             pass
 
     def save_data(self, df_to_save):
-        df_to_save.to_csv(
-            f"{project_path}/History_data/{self.exchange}/15MIN/{self.pair}_15MIN.csv")
+        df_to_save.to_csv(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.csv")
         print("Saved history CSV")
 
     def get_full_history(self):
@@ -88,12 +90,14 @@ class GetFullHistory:
 
         if self.save_load:
             hist_df_full = self.load_data()
-            if (hist_df_full.iloc[-1].index > self.end_datetime) and (hist_df_full.iloc[0].index < self.since_datetime):
-                print("Saved data is sufficient, returning")
-                return hist_df_full.loc[
-                       self.since_datetime:min(hist_df_full.iloc[-1].name, self.end_datetime)]
-            else:
-                print("Saved data found, not sufficient data range, getting fresh")
+            if hist_df_full is not None and len(hist_df_full) > 1:
+                if (hist_df_full.iloc[-1].index > self.end_datetime) and (
+                        hist_df_full.iloc[0].index < self.since_datetime):
+                    print("Saved data is sufficient, returning")
+                    return hist_df_full.loc[
+                           self.since_datetime:min(hist_df_full.iloc[-1].name, self.end_datetime)]
+                else:
+                    print("Saved data found, not sufficient data range, getting fresh")
         else:
             hist_df_full = df()
 
@@ -116,7 +120,7 @@ class GetFullHistory:
                     if local_since_timestamp >= self.end_timestamp: break
 
             except Exception as e:
-                print(f"{e}, error on history fragments loop")
+                print(f"Error on history fragments loop, {e}")
 
         hist_df_final = self.history_clean(hist_df_full, pair=self.pair)
 
@@ -124,4 +128,4 @@ class GetFullHistory:
             self.save_data(hist_df_final)
 
         return hist_df_final.loc[
-                        self.since_datetime:min(hist_df_final.iloc[-1].name, self.end_datetime)]
+               self.since_datetime:min(hist_df_final.iloc[-1].name, self.end_datetime)]
