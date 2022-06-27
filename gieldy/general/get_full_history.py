@@ -13,6 +13,7 @@ project_path = Path(current_path).parent.parent
 
 
 class GetFullHistory:
+    """ Get full history of pair between desired periods, default from since to now. """
     def __init__(self, pair, timeframe, since, API, end=None):
         self.save_load = True
         self.pair = pair
@@ -29,6 +30,7 @@ class GetFullHistory:
         else:
             self.end_datetime = self.date_string_to_datetime(end)
         self.end_timestamp = self.datetime_to_timestamp_ms(self.end_datetime)
+        self.day_in_timestamp_ms = 86_400_000
 
     def exchange_check(self):
         if "kucoin" in self.name.lower():
@@ -49,9 +51,26 @@ class GetFullHistory:
 
         return date_timestamp
 
+    def load_data(self):
+        try:
+            if not os.path.exists(self.data_location):
+                os.makedirs(self.data_location)
+            history_df_saved = pd.read_pickle(
+                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+            print("Saved history pickle found")
+
+            return history_df_saved
+
+        except Exception as err:
+            print(f"No saved history for {self.pair}, {err}")
+            pass
+
+    def save_data(self, df_to_save):
+        df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+        print("Saved history dataframe as pickle")
+
     @staticmethod
     def history_clean(hist_dataframe, pair):
-
         if len(hist_dataframe) > 1:
             hist_dataframe.set_index("date", inplace=True)
             hist_dataframe.sort_index(inplace=True)
@@ -66,24 +85,9 @@ class GetFullHistory:
 
         return hist_dataframe
 
-    def load_data(self):
-        try:
-            if not os.path.exists(self.data_location):
-                os.makedirs(self.data_location)
-            history_df_saved = pd.read_csv(
-                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.csv", index_col=0,
-                parse_dates=True)
-            print("Saved history found")
-
-            return history_df_saved
-
-        except Exception as err:
-            print(f"No saved history for {self.pair}, {err}")
-            pass
-
-    def save_data(self, df_to_save):
-        df_to_save.to_csv(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.csv")
-        print("Saved history CSV")
+    def return_dataframe(self, final_dataframe):
+        return final_dataframe.loc[
+               self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
 
     def get_full_history(self):
         print(f"Getting {self.pair} history")
@@ -91,17 +95,17 @@ class GetFullHistory:
         if self.save_load:
             hist_df_full = self.load_data()
             if hist_df_full is not None and len(hist_df_full) > 1:
-                if (hist_df_full.iloc[-1].index > self.end_datetime) and (
-                        hist_df_full.iloc[0].index < self.since_datetime):
+                if (hist_df_full.iloc[-1].name > self.end_datetime) and (
+                        hist_df_full.iloc[0].name < self.since_datetime):
                     print("Saved data is sufficient, returning")
-                    return hist_df_full.loc[
-                           self.since_datetime:min(hist_df_full.iloc[-1].name, self.end_datetime)]
+                    self.return_dataframe(hist_df_full)
                 else:
+                    hist_df_full = df()
                     print("Saved data found, not sufficient data range, getting fresh")
         else:
             hist_df_full = df()
 
-        local_since_timestamp = self.since_timestamp
+        local_since_timestamp = self.since_timestamp - self.day_in_timestamp_ms
         stable_loop_timestamp_delta = 0
         while True:
             try:
@@ -127,5 +131,4 @@ class GetFullHistory:
         if self.save_load:
             self.save_data(hist_df_final)
 
-        return hist_df_final.loc[
-               self.since_datetime:min(hist_df_final.iloc[-1].name, self.end_datetime)]
+        self.return_dataframe(hist_df_final)
