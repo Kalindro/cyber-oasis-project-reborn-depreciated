@@ -85,9 +85,11 @@ class GetFullHistory:
 
         return hist_dataframe
 
-    def return_dataframe(self, final_dataframe):
-        return final_dataframe.loc[
+    def cut_exact_df_dates_for_return(self, final_dataframe):
+        final_dataframe = final_dataframe.loc[
                self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
+
+        return final_dataframe
 
     def get_full_history(self):
         print(f"Getting {self.pair} history")
@@ -98,7 +100,8 @@ class GetFullHistory:
                 if (hist_df_full.iloc[-1].name > self.end_datetime) and (
                         hist_df_full.iloc[0].name < self.since_datetime):
                     print("Saved data is sufficient, returning")
-                    self.return_dataframe(hist_df_full)
+                    hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_full)
+                    return hist_df_final_cut
                 else:
                     hist_df_full = df()
                     print("Saved data found, not sufficient data range, getting fresh")
@@ -131,4 +134,6 @@ class GetFullHistory:
         if self.save_load:
             self.save_data(hist_df_final)
 
-        self.return_dataframe(hist_df_final)
+        hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
+
+        return hist_df_final_cut

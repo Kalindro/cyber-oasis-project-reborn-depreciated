@@ -1,6 +1,7 @@
 import ccxt
 import os
 from pathlib import Path
+
 from configparser import ConfigParser
 
 
@@ -16,8 +17,6 @@ def API_initiation():
     secret_key = parser.get("Trade_keys", "Secret_key")
 
     exchange = ccxt.binance({
-        'enableRateLimit': True,
-        'timeDifference': 2,
         'apiKey': public_key,
         'secret': secret_key,
     })
