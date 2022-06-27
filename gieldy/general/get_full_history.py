@@ -121,7 +121,7 @@ class GetFullHistory:
                 local_since_timestamp += int(stable_loop_timestamp_delta * 0.95)
 
                 if len(hist_df_full) > 1:
-                    if local_since_timestamp >= self.end_timestamp: break
+                    if local_since_timestamp >= (self.end_timestamp + self.day_in_timestamp_ms): break
 
             except Exception as e:
                 print(f"Error on history fragments loop, {e}")
