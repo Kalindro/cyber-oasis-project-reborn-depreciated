@@ -26,4 +26,3 @@ def API_initiation():
            }
 
     return API
-

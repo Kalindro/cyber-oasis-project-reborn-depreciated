@@ -7,6 +7,7 @@ from pathlib import Path
 from pandas import DataFrame as df
 
 from gieldy.CCXT.CCXT_utils import get_history_fragment_CCXT_REST_for_func
+from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
@@ -21,37 +22,25 @@ class GetFullHistory:
         self.timeframe = timeframe.lower()
         self.API = API
         self.name = self.API["name"]
-        self.exchange = self.exchange_check()
+        self.exchange = self.exchange_name_check()
         self.data_location = f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
-        self.since_datetime = self.date_string_to_datetime(since)
-        self.since_timestamp = self.datetime_to_timestamp_ms(self.since_datetime)
+        self.since_datetime = date_string_to_datetime(since)
+        self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
         if end is None:
             self.end_datetime = dt.datetime.now()
         else:
-            self.end_datetime = self.date_string_to_datetime(end)
-        self.end_timestamp = self.datetime_to_timestamp_ms(self.end_datetime)
+            self.end_datetime = date_string_to_datetime(end)
+        self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
         self.day_in_timestamp_ms = 86_400_000
 
-    def exchange_check(self):
+    def exchange_name_check(self):
         if "kucoin" in self.name.lower():
             return "kucoin"
 
         if "binance" in self.name.lower():
             return "binance"
 
-    @staticmethod
-    def date_string_to_datetime(date_string):
-        date_datetime = dt.datetime.strptime(date_string, "%d/%m/%Y")
-
-        return date_datetime
-
-    @staticmethod
-    def datetime_to_timestamp_ms(date_datetime):
-        date_timestamp = int(time.mktime(date_datetime.timetuple()) * 1000)
-
-        return date_timestamp
-
-    def load_data(self):
+    def load_dataframe_from_pickle(self):
         try:
             if not os.path.exists(self.data_location):
                 os.makedirs(self.data_location)
@@ -65,12 +54,18 @@ class GetFullHistory:
             print(f"No saved history for {self.pair}, {err}")
             pass
 
-    def save_data(self, df_to_save):
+    def save_dataframe_to_pickle(self, df_to_save):
         df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
+    def cut_exact_df_dates_for_return(self, final_dataframe):
+        final_dataframe = final_dataframe.loc[
+               self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
+
+        return final_dataframe
+
     @staticmethod
-    def history_clean(hist_dataframe, pair):
+    def history_df_cleaning(hist_dataframe, pair):
         if len(hist_dataframe) > 1:
             hist_dataframe.set_index("date", inplace=True)
             hist_dataframe.sort_index(inplace=True)
@@ -85,17 +80,11 @@ class GetFullHistory:
 
         return hist_dataframe
 
-    def cut_exact_df_dates_for_return(self, final_dataframe):
-        final_dataframe = final_dataframe.loc[
-               self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
-
-        return final_dataframe
-
-    def get_full_history(self):
+    def main_get_full_history(self):
         print(f"Getting {self.pair} history")
 
         if self.save_load:
-            hist_df_full = self.load_data()
+            hist_df_full = self.load_dataframe_from_pickle()
             if hist_df_full is not None and len(hist_df_full) > 1:
                 if (hist_df_full.iloc[-1].name > self.end_datetime) and (
                         hist_df_full.iloc[0].name < self.since_datetime):
@@ -129,10 +118,10 @@ class GetFullHistory:
             except Exception as e:
                 print(f"Error on history fragments loop, {e}")
 
-        hist_df_final = self.history_clean(hist_df_full, pair=self.pair)
+        hist_df_final = self.history_df_cleaning(hist_df_full, pair=self.pair)
 
         if self.save_load:
-            self.save_data(hist_df_final)
+            self.save_dataframe_to_pickle(hist_df_final)
 
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
 
