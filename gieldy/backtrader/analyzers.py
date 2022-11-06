@@ -6,7 +6,7 @@ class CommInfoFractional(bt.CommissionInfo):
         return self.p.leverage * (cash / price)
 
 
-class PortfolioAnalyzer(bt.Analyzer):
+class PortfolioValueAnalyzer(bt.Analyzer):
     def next(self):
         self.portfolio_ending = self.strategy.broker.get_value()
 
@@ -41,15 +41,15 @@ class AddAnalyzers:
         # Add observers
         self.cerebro.addobserver(bt.observers.Value)
         self.cerebro.addobserver(bt.observers.DrawDown)
-        self.cerebro.addobservermulti(MyBuySell, barplot=False, bardist=0)
+        self.cerebro.addobserver(MyBuySell, barplot=False, bardist=0)
         self.cerebro.addobserver(ExposureObserver, _name="exposure_observer")
 
         # Add analyzers
         self.cerebro.addanalyzer(bt.analyzers.DrawDown)
         self.cerebro.addanalyzer(bt.analyzers.SQN)
-        self.cerebro.addanalyzer(PortfolioAnalyzer, _name="portfolio_analyzer")
+        self.cerebro.addanalyzer(PortfolioValueAnalyzer, _name="portfolio_value_analyzer")
 
-        # Set our desired cash start
+        # Set cash start and commision
         starting_cash = 10_000
         self.cerebro.broker.setcash(starting_cash)
         self.cerebro.broker.setcommission(commission=0.00100)

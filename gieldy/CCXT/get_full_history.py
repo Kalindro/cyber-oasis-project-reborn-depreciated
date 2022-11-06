@@ -6,7 +6,6 @@ from random import randint
 from pathlib import Path
 from pandas import DataFrame as df
 
-from gieldy.CCXT.CCXT_utils import get_history_fragment_CCXT_REST_for_func
 from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms
 
 current_path = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +13,7 @@ project_path = Path(current_path).parent.parent
 
 
 class GetFullHistory:
-    """ Get full history of pair between desired periods, default from since to now. """
+    """Get full history of pair between desired periods, default from since to now"""
     def __init__(self, pair, timeframe, since, API, end=None):
         self.save_load = True
         self.pair = pair
@@ -34,13 +33,18 @@ class GetFullHistory:
         self.day_in_timestamp_ms = 86_400_000
 
     def exchange_name_check(self):
+        """Check name of exchange to save data to correct folder"""
         if "kucoin" in self.name.lower():
             return "kucoin"
 
-        if "binance" in self.name.lower():
+        elif "binance futures" in self.name.lower():
+            return "binance futures"
+
+        elif "binance" in self.name.lower():
             return "binance"
 
     def load_dataframe_from_pickle(self):
+        """Check for pickled data and load, if no folder for data - create"""
         try:
             if not os.path.exists(self.data_location):
                 os.makedirs(self.data_location)
@@ -55,10 +59,12 @@ class GetFullHistory:
             pass
 
     def save_dataframe_to_pickle(self, df_to_save):
+        """Pickle the data"""
         df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
     def cut_exact_df_dates_for_return(self, final_dataframe):
+        """Cut the dataframe to exactly match the desired since/to"""
         final_dataframe = final_dataframe.loc[
                self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
 
@@ -66,6 +72,7 @@ class GetFullHistory:
 
     @staticmethod
     def history_df_cleaning(hist_dataframe, pair):
+        """Setting index, dropping duplicates, cleaning dataframe"""
         if len(hist_dataframe) > 1:
             hist_dataframe.set_index("date", inplace=True)
             hist_dataframe.sort_index(inplace=True)
@@ -80,7 +87,21 @@ class GetFullHistory:
 
         return hist_dataframe
 
-    def main_get_full_history(self):
+    @staticmethod
+    def get_history_fragment_for_func(pair, timeframe, since, API):
+        """Get fragment of history"""
+        general_client = API["general_client"]
+        candle_limit = 800
+
+        candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe,
+                                                 since=since, limit=candle_limit)
+
+        columns_ordered = ["date", "open", "high", "low", "close", "volume"]
+        history_dataframe_new = df(candles_list, columns=columns_ordered)
+
+        return history_dataframe_new
+
+    def run(self):
         print(f"Getting {self.pair} history")
 
         if self.save_load:
@@ -102,10 +123,10 @@ class GetFullHistory:
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = get_history_fragment_CCXT_REST_for_func(pair=self.pair,
-                                                                        timeframe=self.timeframe,
-                                                                        since=local_since_timestamp,
-                                                                        API=self.API)
+                hist_df_fresh = get_history_fragment_for_func(pair=self.pair,
+                                                              timeframe=self.timeframe,
+                                                              since=local_since_timestamp,
+                                                              API=self.API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
 
                 loop_timestamp_delta = int(hist_df_fresh.iloc[-1].date - hist_df_fresh.iloc[0].date)
