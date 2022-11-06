@@ -34,6 +34,7 @@ class MyBuySell(bt.observers.BuySell):
 
 
 class AddAnalyzers:
+    """Class to add all analyzers and observers"""
     def __init__(self, cerebro):
         self.cerebro = cerebro
 

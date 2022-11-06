@@ -14,8 +14,8 @@ project_path = Path(current_path).parent.parent
 
 class GetFullHistory:
     """Get full history of pair between desired periods, default from since to now"""
+
     def __init__(self, pair, timeframe, since, API, end=None):
-        self.save_load = True
         self.pair = pair
         self.pair_for_data = self.pair.replace("/", "-")
         self.timeframe = timeframe.lower()
@@ -66,7 +66,7 @@ class GetFullHistory:
     def cut_exact_df_dates_for_return(self, final_dataframe):
         """Cut the dataframe to exactly match the desired since/to"""
         final_dataframe = final_dataframe.loc[
-               self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
+                          self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
 
         return final_dataframe
 
@@ -101,10 +101,11 @@ class GetFullHistory:
 
         return history_dataframe_new
 
-    def run(self):
+    def run(self, save_load):
+        """Main function to get/load/save the history"""
         print(f"Getting {self.pair} history")
 
-        if self.save_load:
+        if save_load:
             hist_df_full = self.load_dataframe_from_pickle()
             if hist_df_full is not None and len(hist_df_full) > 1:
                 if (hist_df_full.iloc[-1].name > self.end_datetime) and (
@@ -123,10 +124,10 @@ class GetFullHistory:
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = get_history_fragment_for_func(pair=self.pair,
-                                                              timeframe=self.timeframe,
-                                                              since=local_since_timestamp,
-                                                              API=self.API)
+                hist_df_fresh = self.get_history_fragment_for_func(pair=self.pair,
+                                                                   timeframe=self.timeframe,
+                                                                   since=local_since_timestamp,
+                                                                   API=self.API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
 
                 loop_timestamp_delta = int(hist_df_fresh.iloc[-1].date - hist_df_fresh.iloc[0].date)
@@ -134,14 +135,15 @@ class GetFullHistory:
                 local_since_timestamp += int(stable_loop_timestamp_delta * 0.95)
 
                 if len(hist_df_full) > 1:
-                    if local_since_timestamp >= (self.end_timestamp + self.day_in_timestamp_ms): break
+                    if local_since_timestamp >= (self.end_timestamp + self.day_in_timestamp_ms):
+                        break
 
             except Exception as e:
                 print(f"Error on history fragments loop, {e}")
 
         hist_df_final = self.history_df_cleaning(hist_df_full, pair=self.pair)
 
-        if self.save_load:
+        if save_load:
             self.save_dataframe_to_pickle(hist_df_final)
 
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
