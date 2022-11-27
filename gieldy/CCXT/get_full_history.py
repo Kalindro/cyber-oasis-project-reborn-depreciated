@@ -6,7 +6,8 @@ from random import randint
 from pathlib import Path
 from pandas import DataFrame as df
 
-from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms
+from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms, \
+    timestamp_ms_to_datetime, timeframes_to_timestamp_ms
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
@@ -15,22 +16,35 @@ project_path = Path(current_path).parent.parent
 class GetFullHistory:
     """Get full history of pair between desired periods, default from since to now"""
 
-    def __init__(self, pair, timeframe, since, API, end=None):
+    def __init__(self, pair, timeframe, API, save_load, last_n_candles=None, since=None, end=None):
+        self.day_in_timestamp_ms = 86_400_000
+        self.API = API
+        self.save_load = save_load
         self.pair = pair
         self.pair_for_data = self.pair.replace("/", "-")
         self.timeframe = timeframe.lower()
-        self.API = API
+        self.timeframe_in_timestamp = timeframes_to_timestamp_ms(self.timeframe)
         self.name = self.API["name"]
         self.exchange = self.exchange_name_check()
         self.data_location = f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
-        self.since_datetime = date_string_to_datetime(since)
-        self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
-        if end is None:
-            self.end_datetime = dt.datetime.now()
-        else:
+
+        if bool(last_n_candles) == bool(since):
+            raise ValueError("Please provide either starting date or number of last n candles to provide")
+        if last_n_candles is True and end is True:
+            raise ValueError("You cannot provide end date together with last n candles parameter")
+        if last_n_candles:
+            self.save_load = False
+            self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
+                    last_n_candles * self.timeframe_in_timestamp)
+            self.since_datetime = timestamp_ms_to_datetime(self.since_timestamp)
+        if since:
+            self.since_datetime = date_string_to_datetime(since)
+            self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
+        if end:
             self.end_datetime = date_string_to_datetime(end)
-        self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
-        self.day_in_timestamp_ms = 86_400_000
+        else:
+            self.end_datetime = dt.datetime.now()
+            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
 
     def exchange_name_check(self):
         """Check name of exchange to save data to correct folder"""
@@ -78,9 +92,10 @@ class GetFullHistory:
             hist_dataframe.sort_index(inplace=True)
             hist_dataframe.index = pd.to_datetime(hist_dataframe.index, unit="ms")
             hist_dataframe.dropna(inplace=True)
-            hist_dataframe.drop_duplicates(keep="last", inplace=True)
-            hist_dataframe["pair"] = pair
-            hist_dataframe["symbol"] = pair[:-5] if pair.endswith("/USDT") else pair[:-4]
+            hist_dataframe = hist_dataframe[~hist_dataframe.index.duplicated(keep="last")]
+            hist_dataframe.insert(len(hist_dataframe.columns), "pair", pair)
+            hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
+                                  pair[:-5] if pair.endswith("/USDT") else pair[:-4])
         else:
             print(f"{pair} is broken or too short, returning 0 len DF")
             return df()
@@ -101,11 +116,11 @@ class GetFullHistory:
 
         return history_dataframe_new
 
-    def run(self, save_load):
+    def main(self):
         """Main function to get/load/save the history"""
         print(f"Getting {self.pair} history")
 
-        if save_load:
+        if self.save_load:
             hist_df_full = self.load_dataframe_from_pickle()
             if hist_df_full is not None and len(hist_df_full) > 1:
                 if (hist_df_full.iloc[-1].name > self.end_datetime) and (
@@ -119,7 +134,7 @@ class GetFullHistory:
         else:
             hist_df_full = df()
 
-        local_since_timestamp = self.since_timestamp - self.day_in_timestamp_ms
+        local_since_timestamp = self.since_timestamp - (self.timeframe_in_timestamp * 12)
         stable_loop_timestamp_delta = 0
         while True:
             try:
@@ -135,7 +150,7 @@ class GetFullHistory:
                 local_since_timestamp += int(stable_loop_timestamp_delta * 0.95)
 
                 if len(hist_df_full) > 1:
-                    if local_since_timestamp >= (self.end_timestamp + self.day_in_timestamp_ms):
+                    if local_since_timestamp >= (self.end_timestamp + (self.timeframe_in_timestamp * 12)):
                         break
 
             except Exception as e:
@@ -143,7 +158,7 @@ class GetFullHistory:
 
         hist_df_final = self.history_df_cleaning(hist_df_full, pair=self.pair)
 
-        if save_load:
+        if self.save_load:
             self.save_dataframe_to_pickle(hist_df_final)
 
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)

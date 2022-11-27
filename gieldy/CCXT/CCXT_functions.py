@@ -15,12 +15,13 @@ def get_pairs_precisions_status(API):
     """Get exchange pairs with trading precisions and active status"""
     general_client = API["general_client"]
 
-    pairs_precisions = general_client.fetch_markets()
-    pairs_precisions_df = df(pairs_precisions,
+    pairs_precisions_status = general_client.fetch_markets()
+    pairs_precisions_status = df(pairs_precisions_status,
                              columns=["symbol", "base", "quote", "active", "precision", "limits"])
-    pairs_precisions_df.set_index("symbol", inplace=True)
+    pairs_precisions_status = pairs_precisions_status.astype({"active": str})
+    pairs_precisions_status.set_index("symbol", inplace=True)
 
-    return pairs_precisions_df
+    return pairs_precisions_status
 
 
 def get_pairs_prices(API):

@@ -155,7 +155,7 @@ class RunBacktest:
         cerebro.addstrategy(WholeStrategySetup.MainMomentumStrategy, **scene)
 
         print("Running backtest")
-        results = cerebro.run()
+        results = cerebro.main()
 
         # Plot
         if not self.backtest_settings["OPTIMIZE"]:
