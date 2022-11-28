@@ -1,4 +1,5 @@
 import time
+import math
 import datetime as dt
 import dateutil.parser
 from pandas import ExcelWriter as ExcelWriter
@@ -71,3 +72,11 @@ def timeframes_to_timestamp_ms(timeframe):
         raise ValueError("Unsupported timeframe to convert to timestamp")
 
     return int(timestamp_ms)
+
+
+def round_down(x):
+    return math.trunc(x * 4) / 4
+
+
+def round_up(x):
+    return math.ceil(x * 4) / 4

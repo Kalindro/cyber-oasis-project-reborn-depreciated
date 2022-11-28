@@ -13,7 +13,8 @@ class StandardStrategy(bt.Strategy):
         """Loging for new orders"""
 
         # Base logging for all the cases
-        base_logging = (f"Type: {('BUY' if order.isbuy() else 'SELL')}\t"
+        base_logging = (f"Order ref: {order.ref}\t"
+                        f"Type: {('BUY' if order.isbuy() else 'SELL')}\t"
                         f"Status: {order.getstatusname()}\t"
                         f"Order size: {order.created.size:,.4f}\t"
                         f"Create price: {order.executed.price:,.4f}\t"
@@ -30,15 +31,15 @@ class StandardStrategy(bt.Strategy):
         #     return
 
         if order.status in [order.Margin, order.Rejected]:
-            self.log(f"Order {order.ref} Margin/Rejected\t" + base_logging)
+            self.log(f"Order Margin/Rejected " + base_logging)
 
-        if self.p.print_orders_trades:
+        if self.p.pritning_detailed_orders:
             self.log(base_logging)
 
     def notify_trade(self, trade):
         """Provides notification of closed trades"""
         if trade.isclosed:
-            if self.p.print_orders_trades:
+            if self.p.printing_trades:
                 self.log(
                     f"PNL: ${trade.pnlcomm:.2f}\t"
                     f"Coin: {trade.data._name}\t"
