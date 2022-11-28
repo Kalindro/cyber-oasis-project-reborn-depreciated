@@ -17,16 +17,17 @@ pd.set_option('display.width', 0)
 
 
 class MarketPerformers:
-
+    """Script for performance of all coins in a table"""
     def __init__(self):
-        self.PAIRS_MODE = 1  # 1 - Fut USDT 2 - Spot BTC 3 - Fut USDT BTC based 4 - Test
-        self.API_fut = ExchangeAPI().binance_futures_USD_read()
-        self.API_spot = ExchangeAPI().binance_spot_USD_read()
+        self.PAIRS_MODE = "test"
+        self.API_fut = ExchangeAPI().binance_futures_read()
+        self.API_spot = ExchangeAPI().binance_spot_read()
         self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.MIN_VOL_USD = 150_000
         self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_PRICE
 
-    def pairs_list_USDT_fut(self):
+    def futures_USDT_pairs_list(self):
+        """Only pairs on Binance futures USDT"""
         pairs_precisions_status = get_pairs_precisions_status(self.API_fut)
         pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
         pairs_list_original = list(pairs_precisions_status.index)
@@ -34,7 +35,8 @@ class MarketPerformers:
 
         return pairs_list
 
-    def pairs_list_BTC_spot(self):
+    def spot_BTC_pairs_list(self):
+        """Only pairs on Binance spot BTC"""
         pairs_precisions_status = get_pairs_precisions_status(self.API_spot)
         pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
         pairs_list_original = list(pairs_precisions_status.index)
@@ -42,7 +44,8 @@ class MarketPerformers:
 
         return pairs_list
 
-    def pairs_list_USDT_spot(self):
+    def spot_USDT_pairs_list(self):
+        """Only pairs on Binance spot USDT"""
         pairs_precisions_status = get_pairs_precisions_status(self.API_spot)
         pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
         pairs_list_original = list(pairs_precisions_status.index)
@@ -51,6 +54,7 @@ class MarketPerformers:
         return pairs_list
 
     def get_history(self, API, pair, timeframe, last_n_candles):
+        """Function for last n candles of history"""
         pair_history = GetFullHistory(API=API, pair=pair, save_load=False, timeframe=timeframe,
                                       last_n_candles=last_n_candles).main()
 
@@ -58,6 +62,7 @@ class MarketPerformers:
 
     @staticmethod
     def calculate_performance(cut_history_dataframe):
+        """Function counting performance in %"""
         performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
                       cut_history_dataframe.iloc[0]["close"]
 
@@ -65,6 +70,7 @@ class MarketPerformers:
 
     @staticmethod
     def calculate_momentum(history):
+        """Momentum function"""
         closes = history["close"]
         returns = np.log(closes)
         x = np.arange(len(returns))
@@ -74,18 +80,21 @@ class MarketPerformers:
         return momentum * (rvalue ** 2)
 
     def main(self):
-        if self.PAIRS_MODE == 1:
-            pairs_list = self.pairs_list_USDT_fut()
-            API = self.API_fut
-        elif self.PAIRS_MODE == 2:
-            pairs_list = self.pairs_list_BTC_spot()
-            API = self.API_spot
-        elif self.PAIRS_MODE == 3:
-            pairs_list = self.pairs_list_BTC_spot_with_fut_pair()
-            API = self.API_spot
-        else:
+        """Main function to run"""
+        if self.PAIRS_MODE == "test" or self.PAIRS_MODE == 1:
             pairs_list = ["BTC/USDT"]
             API = self.API_fut
+        elif self.PAIRS_MODE == "futures_USDT" or self.PAIRS_MODE == 2:
+            pairs_list = self.futures_USDT_pairs_list()
+            API = self.API_fut
+        elif self.PAIRS_MODE == "spot_BTC" or self.PAIRS_MODE == 3:
+            pairs_list = self.spot_BTC_pairs_list()
+            API = self.API_fut
+        elif self.PAIRS_MODE == "spot_USDT" or self.PAIRS_MODE == 4:
+            pairs_list = self.spot_USDT_pairs_list()
+            API = self.API_spot
+        else:
+            raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
 
         global_performance_dataframe = df()
 
@@ -114,7 +123,7 @@ class MarketPerformers:
             last_14d_performance = self.calculate_performance(last_14d_hourly_history)
             coin_NATR = NATR(last_7d_hourly_history["high"], last_7d_hourly_history["low"], last_7d_hourly_history["close"],
                              timeperiod=len(last_7d_hourly_history) - 4)
-            avg_momentum = (last_24h_momentum + last_3d_momentum + last_7d_momentum) / 3
+            avg_momentum = (last_24h_momentum + last_3d_momentum + last_7d_momentum + last_14d_performance) / 4
             performance_dict = {
                 "pair": [pair],
                 "avg_24h_vol_usd": [avg_24h_vol_usd],
