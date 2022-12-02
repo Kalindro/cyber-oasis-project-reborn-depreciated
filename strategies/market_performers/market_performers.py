@@ -29,6 +29,7 @@ class MarketPerformers:
     """
     def __init__(self):
         self.PAIRS_MODE = 2
+        self.CORES_USED = 1
         self.API_fut = ExchangeAPI().binance_futures_read()
         self.API_spot = ExchangeAPI().binance_spot_read()
         self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
@@ -70,7 +71,7 @@ class MarketPerformers:
         return pair_history
 
     @staticmethod
-    def calculate_performance(cut_history_dataframe):
+    def calculate_price_change(cut_history_dataframe):
         """Function counting performance in %"""
         performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
                       cut_history_dataframe.iloc[0]["close"]
@@ -88,10 +89,58 @@ class MarketPerformers:
 
         return momentum * (rvalue ** 2)
 
+    def performance_calculations(self, pair, API):
+        """Calculation all the needed performance metrics for the pair"""
+        long_history = self.get_history(pair=pair, timeframe="1h", last_n_candles=775, API=API)
+        last_24h_hourly_history = long_history.tail(24)
+        last_2d_hourly_history = long_history.tail(48)
+        last_3d_hourly_history = long_history.tail(72)
+        last_7d_hourly_history = long_history.tail(168)
+        last_14d_hourly_history = long_history.tail(336)
+        avg_daily_volume_base = last_7d_hourly_history["volume"].sum() / 7
+        avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
+        if str(long_history.iloc[-1].pair).endswith("/BTC"):
+            MIN_VOL = self.MIN_VOL_BTC
+        elif str(long_history.iloc[-1].pair).endswith("/USDT"):
+            MIN_VOL = self.MIN_VOL_USD
+        if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
+            return
+        last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
+        last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)
+        last_2d_performance = self.calculate_price_change(last_2d_hourly_history)
+        last_2d_momentum = self.calculate_momentum(last_2d_hourly_history)
+        last_3d_performance = self.calculate_price_change(last_3d_hourly_history)
+        last_3d_momentum = self.calculate_momentum(last_3d_hourly_history)
+        last_7d_performance = self.calculate_price_change(last_7d_hourly_history)
+        last_7d_momentum = self.calculate_momentum(last_7d_hourly_history)
+        last_14d_performance = self.calculate_price_change(last_14d_hourly_history)
+        last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
+        coin_NATR = NATR(last_7d_hourly_history["high"], last_7d_hourly_history["low"], last_7d_hourly_history["close"],
+                         timeperiod=len(last_7d_hourly_history) - 4)
+        avg_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
+        performance_dict = {
+            "pair": [pair],
+            "avg_24h_vol_usd": [avg_24h_vol_usd],
+            "NATR": [coin_NATR[-1]],
+            "24h performance": [last_24h_performance],
+            "24h momentum": [last_24h_momentum],
+            "2d performance": [last_2d_performance],
+            "2d momentum": [last_2d_momentum],
+            "3d performance": [last_3d_performance],
+            "3d momentum": [last_3d_momentum],
+            "7d performance": [last_7d_performance],
+            "7d momentum": [last_7d_momentum],
+            "14d performance": [last_14d_performance],
+            "14d momentum": [last_14d_momentum],
+            "avg momentum": [avg_momentum],
+        }
+
+        return performance_dict
+
     def main(self):
         """Main function to run"""
         if self.PAIRS_MODE == "test" or self.PAIRS_MODE == 1:
-            pairs_list = ["BTC/USDT"]
+            pairs_list = ["BTC/USDT", "ETH/USDT"]
             API = self.API_fut
         elif self.PAIRS_MODE == "futures_USDT" or self.PAIRS_MODE == 2:
             pairs_list = self.futures_USDT_pairs_list()
@@ -105,63 +154,13 @@ class MarketPerformers:
         else:
             raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
 
+        partial_performance_calculation = functools.partial(self.performance_calculations, API=API)
+        performance_calculation_map_results = [partial_performance_calculation(pair) for pair in pairs_list]
+
         global_performance_dataframe = df()
 
-        partial_history = functools.partial(get_history_full, start=start, end=end, fresh_live_history=False,
-                                            timeframe=TIMEFRAME, API=API)
-
-        shark_pool = multiprocessing.Pool(processes=6)
-        all_coins_history = shark_pool.map(partial_history, tickers)
-        shark_pool.close()
-        shark_pool.join()
-
-
-        for pair in pairs_list:
-            long_history = self.get_history(API=API, pair=pair, timeframe="1h", last_n_candles=775)
-            last_24h_hourly_history = long_history.tail(24)
-            last_2d_hourly_history = long_history.tail(48)
-            last_3d_hourly_history = long_history.tail(72)
-            last_7d_hourly_history = long_history.tail(168)
-            last_14d_hourly_history = long_history.tail(336)
-            avg_daily_volume_base = last_7d_hourly_history["volume"].sum() / 7
-            avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
-            if str(long_history.iloc[-1].pair).endswith("/BTC"):
-                MIN_VOL = self.MIN_VOL_BTC
-            elif str(long_history.iloc[-1].pair).endswith("/USDT"):
-                MIN_VOL = self.MIN_VOL_USD
-            if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
-                continue
-            last_24h_performance = self.calculate_performance(last_24h_hourly_history)
-            last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)
-            last_2d_performance = self.calculate_performance(last_2d_hourly_history)
-            last_2d_momentum = self.calculate_momentum(last_2d_hourly_history)
-            last_3d_performance = self.calculate_performance(last_3d_hourly_history)
-            last_3d_momentum = self.calculate_momentum(last_3d_hourly_history)
-            last_7d_performance = self.calculate_performance(last_7d_hourly_history)
-            last_7d_momentum = self.calculate_momentum(last_7d_hourly_history)
-            last_14d_performance = self.calculate_performance(last_14d_hourly_history)
-            last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
-            coin_NATR = NATR(last_7d_hourly_history["high"], last_7d_hourly_history["low"], last_7d_hourly_history["close"],
-                             timeperiod=len(last_7d_hourly_history) - 4)
-            avg_momentum = np.median(last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance)
-            performance_dict = {
-                "pair": [pair],
-                "avg_24h_vol_usd": [avg_24h_vol_usd],
-                "NATR": [coin_NATR[-1]],
-                "24h performance": [last_24h_performance],
-                "24h momentum": [last_24h_momentum],
-                "2d performance": [last_2d_performance],
-                "2d momentum": [last_2d_momentum],
-                "3d performance": [last_3d_performance],
-                "3d momentum": [last_3d_momentum],
-                "7d performance": [last_7d_performance],
-                "7d momentum": [last_7d_momentum],
-                "14d performance": [last_14d_performance],
-                "14d momentum": [last_14d_momentum],
-                "avg momentum": [avg_momentum],
-            }
-
-            global_performance_dataframe = pd.concat([df(performance_dict), global_performance_dataframe],
+        for pair_results in performance_calculation_map_results:
+            global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                      ignore_index=True)
 
         excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="C:C", rounded_cols="D:D",
