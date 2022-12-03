@@ -107,7 +107,6 @@ class GetFullHistory:
         """Get fragment of history"""
         general_client = API["general_client"]
         candle_limit = 800
-
         candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe,
                                                  since=since, limit=candle_limit)
 

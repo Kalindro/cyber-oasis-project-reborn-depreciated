@@ -2,7 +2,7 @@ from pandas import DataFrame as df
 from talib import NATR
 from scipy.stats import linregress
 
-import multiprocessing
+import multiprocessing as mp
 import functools
 import pandas as pd
 import numpy as np
@@ -27,8 +27,9 @@ class MarketPerformers:
     - spot_BTC (3)
     - spot_USDT (4)
     """
+
     def __init__(self):
-        self.PAIRS_MODE = 2
+        self.PAIRS_MODE = 1
         self.CORES_USED = 1
         self.API_fut = ExchangeAPI().binance_futures_read()
         self.API_spot = ExchangeAPI().binance_spot_read()
@@ -89,7 +90,7 @@ class MarketPerformers:
 
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, pair, API):
+    def performance_calculations(self, API, pair):
         """Calculation all the needed performance metrics for the pair"""
         long_history = self.get_history(pair=pair, timeframe="1h", last_n_candles=775, API=API)
         last_24h_hourly_history = long_history.tail(24)
@@ -154,8 +155,10 @@ class MarketPerformers:
         else:
             raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
 
-        partial_performance_calculation = functools.partial(self.performance_calculations, API=API)
-        performance_calculation_map_results = [partial_performance_calculation(pair) for pair in pairs_list]
+        partial_performance_calculations = functools.partial(self.performance_calculations, API)
+
+        with mp.Pool(self.CORES_USED) as pool:
+            performance_calculation_map_results = pool.map(partial_performance_calculations, pairs_list)
 
         global_performance_dataframe = df()
 
