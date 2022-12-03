@@ -3,11 +3,8 @@ from talib import NATR
 from scipy.stats import linregress
 
 import multiprocessing as mp
-import functools
 import pandas as pd
 import numpy as np
-import math
-import time
 
 from gieldy.APIs.API_exchange_initiator import ExchangeAPI
 from gieldy.CCXT.CCXT_functions import get_pairs_prices, get_pairs_precisions_status
@@ -81,7 +78,7 @@ class MarketPerformers:
             pairs_list = self.spot_USDT_pairs_list()
             API = spot_API
         else:
-            raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
+            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
 
         return pairs_list, API
 
@@ -122,10 +119,13 @@ class MarketPerformers:
         last_14d_hourly_history = long_history.tail(336)
         avg_daily_volume_base = last_7d_hourly_history["volume"].sum() / 7
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
-        if str(long_history.iloc[-1].pair).endswith("/BTC"):
+        last_pair = str(long_history.iloc[-1].pair)
+        if last_pair.endswith("/BTC"):
             MIN_VOL = self.MIN_VOL_BTC
-        elif str(long_history.iloc[-1].pair).endswith("/USDT"):
+        elif last_pair.endswith("/USDT"):
             MIN_VOL = self.MIN_VOL_USD
+        else:
+            raise ValueError("Invalid pair quote currenct: " + last_pair)
         if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
             return
         last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
