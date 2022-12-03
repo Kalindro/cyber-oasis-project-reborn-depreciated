@@ -62,6 +62,7 @@ class MarketPerformers:
         return pairs_list
 
     def select_pairs_list_and_API(self):
+        """Depending on the PAIRS_MODE, return correct paris list and API"""
         fut_API = ExchangeAPI().binance_futures_read()
         spot_API = ExchangeAPI().binance_spot_read()
 
@@ -91,7 +92,7 @@ class MarketPerformers:
 
     @staticmethod
     def calculate_price_change(cut_history_dataframe):
-        """Function counting performance in %"""
+        """Function counting price change in %"""
         performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
                       cut_history_dataframe.iloc[0]["close"]
 
@@ -99,7 +100,7 @@ class MarketPerformers:
 
     @staticmethod
     def calculate_momentum(history):
-        """Momentum function"""
+        """Momentum calculation"""
         closes = history["close"]
         returns = np.log(closes)
         x = np.arange(len(returns))
@@ -140,7 +141,7 @@ class MarketPerformers:
         last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
         coin_NATR = NATR(last_7d_hourly_history["high"], last_7d_hourly_history["low"], last_7d_hourly_history["close"],
                          timeperiod=len(last_7d_hourly_history) - 4)
-        avg_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
+        median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         performance_dict = {
             "pair": [pair],
             "avg_24h_vol_usd": [avg_24h_vol_usd],
@@ -155,7 +156,7 @@ class MarketPerformers:
             "7d momentum": [last_7d_momentum],
             "14d performance": [last_14d_performance],
             "14d momentum": [last_14d_momentum],
-            "avg momentum": [avg_momentum],
+            "median momentum": [median_momentum],
         }
 
         return performance_dict
