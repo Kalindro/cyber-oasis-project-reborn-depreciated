@@ -29,8 +29,8 @@ class MarketPerformers:
     """
 
     def __init__(self):
-        self.PAIRS_MODE = 1
-        self.CORES_USED = 1
+        self.PAIRS_MODE = 2
+        self.CORES_USED = 6
         self.API_fut = ExchangeAPI().binance_futures_read()
         self.API_spot = ExchangeAPI().binance_spot_read()
         self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
@@ -64,6 +64,27 @@ class MarketPerformers:
 
         return pairs_list
 
+    def select_pairs_list_and_API(self):
+        fut_API = ExchangeAPI().binance_futures_read()
+        spot_API = ExchangeAPI().binance_spot_read()
+
+        if self.PAIRS_MODE == "test" or self.PAIRS_MODE == 1:
+            pairs_list = ["BTC/USDT", "ETH/USDT"]
+            API = fut_API
+        elif self.PAIRS_MODE == "futures_USDT" or self.PAIRS_MODE == 2:
+            pairs_list = self.futures_USDT_pairs_list()
+            API = fut_API
+        elif self.PAIRS_MODE == "spot_BTC" or self.PAIRS_MODE == 3:
+            pairs_list = self.spot_BTC_pairs_list()
+            API = spot_API
+        elif self.PAIRS_MODE == "spot_USDT" or self.PAIRS_MODE == 4:
+            pairs_list = self.spot_USDT_pairs_list()
+            API = spot_API
+        else:
+            raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
+
+        return pairs_list, API
+
     def get_history(self, API, pair, timeframe, last_n_candles):
         """Function for last n candles of history"""
         pair_history = GetFullHistory(API=API, pair=pair, save_load=False, timeframe=timeframe,
@@ -90,8 +111,9 @@ class MarketPerformers:
 
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, API, pair):
+    def performance_calculations(self, pair):
         """Calculation all the needed performance metrics for the pair"""
+        _, API = self.select_pairs_list_and_API()
         long_history = self.get_history(pair=pair, timeframe="1h", last_n_candles=775, API=API)
         last_24h_hourly_history = long_history.tail(24)
         last_2d_hourly_history = long_history.tail(48)
@@ -140,28 +162,13 @@ class MarketPerformers:
 
     def main(self):
         """Main function to run"""
-        if self.PAIRS_MODE == "test" or self.PAIRS_MODE == 1:
-            pairs_list = ["BTC/USDT", "ETH/USDT"]
-            API = self.API_fut
-        elif self.PAIRS_MODE == "futures_USDT" or self.PAIRS_MODE == 2:
-            pairs_list = self.futures_USDT_pairs_list()
-            API = self.API_fut
-        elif self.PAIRS_MODE == "spot_BTC" or self.PAIRS_MODE == 3:
-            pairs_list = self.spot_BTC_pairs_list()
-            API = self.API_fut
-        elif self.PAIRS_MODE == "spot_USDT" or self.PAIRS_MODE == 4:
-            pairs_list = self.spot_USDT_pairs_list()
-            API = self.API_spot
-        else:
-            raise ValueError("Invalid Mode: " + self.PAIRS_MODE)
 
-        partial_performance_calculations = functools.partial(self.performance_calculations, API)
+        pairs_list, _ = self.select_pairs_list_and_API()
 
         with mp.Pool(self.CORES_USED) as pool:
-            performance_calculation_map_results = pool.map(partial_performance_calculations, pairs_list)
+            performance_calculation_map_results = pool.map(self.performance_calculations, pairs_list)
 
         global_performance_dataframe = df()
-
         for pair_results in performance_calculation_map_results:
             global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                      ignore_index=True)
