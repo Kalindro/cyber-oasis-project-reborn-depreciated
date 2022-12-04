@@ -8,7 +8,7 @@ import numpy as np
 
 from gieldy.APIs.API_exchange_initiator import ExchangeAPI
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices, get_pairs_precisions_status
-from gieldy.CCXT.CCXT_functions_mine import pairs_list_USDT, pairs_list_BTC
+from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC
 from gieldy.general.utils import excel_save_formatted
 from gieldy.CCXT.get_full_history import GetFullHistory
 
@@ -31,28 +31,29 @@ class MarketPerformers:
         self.CORES_USED = 8
         self.API_fut = ExchangeAPI().binance_futures_read()
         self.API_spot = ExchangeAPI().binance_spot_read()
-        self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
+
         self.MIN_VOL_USD = 150_000
+        self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_PRICE
-        self.pairs_list_futures_USDT = pairs_list_USDT(self.API_fut)
-        self.pairs_list_spot_USDT = pairs_list_USDT(self.API_spot)
-        self.pairs_list_spot_BTC = pairs_list_BTC(self.API_spot)
+        self.pairs_list_futures_USDT = get_pairs_list_USDT(self.API_fut)
+        self.pairs_list_spot_USDT = get_pairs_list_USDT(self.API_spot)
+        self.pairs_list_spot_BTC = get_pairs_list_BTC(self.API_spot)
 
     def pairs_list_futures_USDT(self):
         """Only pairs on Binance futures USDT"""
-        pairs_list = pairs_list_USDT(self.API_fut)
+        pairs_list = get_pairs_list_USDT(self.API_fut)
 
         return pairs_list
 
     def pairs_list_spot_USDT(self):
         """Only pairs on Binance spot BTC"""
-        pairs_list = pairs_list_USDT(self.API_spot)
+        pairs_list = get_pairs_list_USDT(self.API_spot)
 
         return pairs_list
 
     def pairs_list_spot_BTC(self):
         """Only pairs on Binance spot BTC"""
-        pairs_list = pairs_list_BTC(self.API_spot)
+        pairs_list = get_pairs_list_BTC(self.API_spot)
 
         return pairs_list
 
