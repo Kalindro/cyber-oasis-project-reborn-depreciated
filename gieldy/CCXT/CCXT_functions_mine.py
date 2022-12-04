@@ -1,4 +1,4 @@
-from CCXT_functions_builtin import get_pairs_precisions_status
+from gieldy.CCXT.CCXT_functions_builtin import get_pairs_precisions_status
 from gieldy.CCXT.get_full_history import GetFullHistory
 from functools import partial
 
@@ -23,9 +23,10 @@ def get_pairs_list_BTC(API):
     return pairs_list
 
 
-def get_history_of_all_pairs_on_list(pairs_list, timeframe, save_load, API, since, end):
-    partial_get_full_history = partial(GetFullHistory, timeframe=timeframe, save_load=save_load, API=API, since=since,
-                                       end=end)
-    all_coins_history = map(partial_get_full_history, pairs_list)
-    print(all_coins_history)
+def get_history_of_all_pairs_on_list(pairs_list, timeframe, save_load, API, last_n_candles):
+    partial_get_full_history = partial(GetFullHistory, timeframe=timeframe, save_load=save_load, API=API,
+                                       last_n_candles=last_n_candles)
 
+    all_coins_history = list(map(partial_get_full_history, pairs_list))
+    print(all_coins_history[-1].main())
+    print(all_coins_history)

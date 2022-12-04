@@ -16,7 +16,7 @@ project_path = Path(current_path).parent.parent
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
 
-    def __init__(self, pair, timeframe, API, save_load, last_n_candles=None, since=None, end=None):
+    def __init__(self, pair, timeframe, save_load, API, last_n_candles=None, since=None, end=None):
         self.day_in_timestamp_ms = 86_400_000
         self.API = API
         self.save_load = save_load

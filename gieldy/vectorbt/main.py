@@ -10,7 +10,7 @@ from gieldy.CCXT.get_full_history import GetFullHistory
 class Backtest:
 
     def __init__(self):
-        self.PAIRS_MODE = 2
+        self.PAIRS_MODE = 1
         self.CORES_USED = 8
         self.API_spot = ExchangeAPI().binance_spot_read()
 
@@ -27,10 +27,34 @@ class Backtest:
 
         return pairs_list
 
+    def select_pairs_list_and_API(self):
+        """Depending on the PAIRS_MODE, return correct paris list and API"""
+        fut_API = ExchangeAPI().binance_futures_read()
+        spot_API = ExchangeAPI().binance_spot_read()
+
+        if self.PAIRS_MODE == 1:
+            pairs_list = ["BTC/USDT", "ETH/USDT"]
+            API = spot_API
+        elif self.PAIRS_MODE == 2:
+            pairs_list = self.pairs_list_futures_USDT()
+            API = fut_API
+        elif self.PAIRS_MODE == 3:
+            pairs_list = self.pairs_list_spot_USDT()
+            API = spot_API
+        elif self.PAIRS_MODE == 4:
+            pairs_list = self.pairs_list_spot_BTC()
+            API = spot_API
+        else:
+            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
+
     def all_pairs_history(self):
         pairs_list = self.pairs_list_spot_BTC()
-        all_pairs_history = get_history_of_all_pairs_on_list(timeframe=self.TIMEFRAME, since=self.START_DATE,
-                                                             end=self.END_DATE)
+        all_pairs_history = get_history_of_all_pairs_on_list(
+            pairs_list=["BTC/USDT", "ETH/USDT"],
+            timeframe=self.TIMEFRAME,
+            last_n_candles=50, save_load=False, API=self.API_spot)
+        print(all_pairs_history)
 
 
 if __name__ == "__main__":
+    Backtest().all_pairs_history()
