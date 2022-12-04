@@ -57,6 +57,9 @@ class GetFullHistory:
         elif "binance" in self.name.lower():
             return "binance"
 
+        else:
+            raise ValueError("Unrecognized exchange name: " + str(self.name.lower()))
+
     def load_dataframe_from_pickle(self):
         """Check for pickled data and load, if no folder for data - create"""
         try:

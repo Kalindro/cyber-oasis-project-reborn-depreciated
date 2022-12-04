@@ -7,7 +7,8 @@ import pandas as pd
 import numpy as np
 
 from gieldy.APIs.API_exchange_initiator import ExchangeAPI
-from gieldy.CCXT.CCXT_functions import get_pairs_prices, get_pairs_precisions_status
+from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices, get_pairs_precisions_status
+from gieldy.CCXT.CCXT_functions_mine import pairs_list_USDT, pairs_list_BTC
 from gieldy.general.utils import excel_save_formatted
 from gieldy.CCXT.get_full_history import GetFullHistory
 
@@ -27,37 +28,31 @@ class MarketPerformers:
 
     def __init__(self):
         self.PAIRS_MODE = 2
-        self.CORES_USED = 6
+        self.CORES_USED = 8
         self.API_fut = ExchangeAPI().binance_futures_read()
         self.API_spot = ExchangeAPI().binance_spot_read()
         self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.MIN_VOL_USD = 150_000
         self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_PRICE
+        self.pairs_list_futures_USDT = pairs_list_USDT(self.API_fut)
+        self.pairs_list_spot_USDT = pairs_list_USDT(self.API_spot)
+        self.pairs_list_spot_BTC = pairs_list_BTC(self.API_spot)
 
-    def futures_USDT_pairs_list(self):
+    def pairs_list_futures_USDT(self):
         """Only pairs on Binance futures USDT"""
-        pairs_precisions_status = get_pairs_precisions_status(self.API_fut)
-        pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
-        pairs_list_original = list(pairs_precisions_status.index)
-        pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
+        pairs_list = pairs_list_USDT(self.API_fut)
 
         return pairs_list
 
-    def spot_BTC_pairs_list(self):
+    def pairs_list_spot_USDT(self):
         """Only pairs on Binance spot BTC"""
-        pairs_precisions_status = get_pairs_precisions_status(self.API_spot)
-        pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
-        pairs_list_original = list(pairs_precisions_status.index)
-        pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/BTC")]
+        pairs_list = pairs_list_USDT(self.API_spot)
 
         return pairs_list
 
-    def spot_USDT_pairs_list(self):
-        """Only pairs on Binance spot USDT"""
-        pairs_precisions_status = get_pairs_precisions_status(self.API_spot)
-        pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
-        pairs_list_original = list(pairs_precisions_status.index)
-        pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
+    def pairs_list_spot_BTC(self):
+        """Only pairs on Binance spot BTC"""
+        pairs_list = pairs_list_BTC(self.API_spot)
 
         return pairs_list
 
@@ -66,17 +61,17 @@ class MarketPerformers:
         fut_API = ExchangeAPI().binance_futures_read()
         spot_API = ExchangeAPI().binance_spot_read()
 
-        if self.PAIRS_MODE == "test" or self.PAIRS_MODE == 1:
+        if self.PAIRS_MODE == 1:
             pairs_list = ["BTC/USDT", "ETH/USDT"]
             API = fut_API
-        elif self.PAIRS_MODE == "futures_USDT" or self.PAIRS_MODE == 2:
-            pairs_list = self.futures_USDT_pairs_list()
+        elif self.PAIRS_MODE == 2:
+            pairs_list = self.pairs_list_futures_USDT()
             API = fut_API
-        elif self.PAIRS_MODE == "spot_BTC" or self.PAIRS_MODE == 3:
-            pairs_list = self.spot_BTC_pairs_list()
+        elif self.PAIRS_MODE == 3:
+            pairs_list = self.pairs_list_spot_USDT()
             API = spot_API
-        elif self.PAIRS_MODE == "spot_USDT" or self.PAIRS_MODE == 4:
-            pairs_list = self.spot_USDT_pairs_list()
+        elif self.PAIRS_MODE == 4:
+            pairs_list = self.pairs_list_spot_BTC()
             API = spot_API
         else:
             raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
@@ -105,7 +100,7 @@ class MarketPerformers:
         returns = np.log(closes)
         x = np.arange(len(returns))
         slope, _, rvalue, _, _ = linregress(x, returns)
-        momentum = (np.power(np.exp(slope), 30) - 1) * 100
+        momentum = slope * 100
 
         return momentum * (rvalue ** 2)
 
@@ -144,6 +139,7 @@ class MarketPerformers:
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         performance_dict = {
             "pair": [pair],
+            "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
             "avg_24h_vol_usd": [avg_24h_vol_usd],
             "NATR": [coin_NATR[-1]],
             "24h performance": [last_24h_performance],
@@ -163,7 +159,7 @@ class MarketPerformers:
 
     def main(self):
         """Main function to run"""
-
+        print("Starting...")
         pairs_list, _ = self.select_pairs_list_and_API()
 
         with mp.Pool(self.CORES_USED) as pool:
@@ -174,8 +170,19 @@ class MarketPerformers:
             global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                      ignore_index=True)
 
-        excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="C:C", rounded_cols="D:D",
-                             perc_cols="E:O")
+        if self.PAIRS_MODE != 1:
+            market_median_momentum = global_performance_dataframe["median momentum"].median()
+            BTC_median_momentum = global_performance_dataframe.loc[global_performance_dataframe["symbol"]
+                                                                   == "BTC", "median momentum"].iloc[-1]
+            ETH_median_momentum = global_performance_dataframe.loc[global_performance_dataframe["symbol"]
+                                                                   == "ETH", "median momentum"].iloc[-1]
+
+            print(f"\033[92mMarket median momentum: {market_median_momentum:.2%}\033[0m")
+            print(f"\033[92mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
+            print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
+
+        excel_save_formatted(global_performance_dataframe, column_size=16, cash_cols="D:D", rounded_cols="E:E",
+                             perc_cols="F:P")
 
         print("Saved excel, done")
 

@@ -17,7 +17,7 @@ def get_pairs_precisions_status(API):
 
     pairs_precisions_status = general_client.fetch_markets()
     pairs_precisions_status = df(pairs_precisions_status,
-                             columns=["symbol", "base", "quote", "active", "precision", "limits"])
+                                 columns=["symbol", "base", "quote", "active", "precision", "limits"])
     pairs_precisions_status = pairs_precisions_status.astype({"active": str})
     pairs_precisions_status.set_index("symbol", inplace=True)
 
