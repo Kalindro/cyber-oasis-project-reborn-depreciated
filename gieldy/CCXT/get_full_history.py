@@ -48,6 +48,12 @@ class GetFullHistory:
 
     def exchange_name_check(self):
         """Check name of exchange to save data to correct folder"""
+
+        exchanges = {
+            "kucoin": 1,
+            "binance": 5,
+
+        }
         if "kucoin" in self.name.lower():
             return "kucoin"
 

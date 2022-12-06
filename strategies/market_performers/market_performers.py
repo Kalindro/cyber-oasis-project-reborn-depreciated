@@ -6,7 +6,7 @@ import multiprocessing as mp
 import pandas as pd
 import numpy as np
 
-from gieldy.APIs.API_exchange_initiator import ExchangeAPI
+from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
 from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC
 from gieldy.general.utils import excel_save_formatted
@@ -29,8 +29,8 @@ class MarketPerformers:
     def __init__(self):
         self.PAIRS_MODE = 2
         self.CORES_USED = 8
-        self.API_fut = ExchangeAPI().binance_futures_read()
-        self.API_spot = ExchangeAPI().binance_spot_read()
+        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
+        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
 
         self.MIN_VOL_USD = 150_000
         self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
@@ -57,8 +57,8 @@ class MarketPerformers:
 
     def select_pairs_list_and_API(self):
         """Depending on the PAIRS_MODE, return correct paris list and API"""
-        fut_API = ExchangeAPI().binance_futures_read()
-        spot_API = ExchangeAPI().binance_spot_read()
+        fut_API = ExchangeAPI().binance_futures_read_only()
+        spot_API = ExchangeAPI().binance_spot_read_only()
 
         if self.PAIRS_MODE == 1:
             pairs_list = ["BTC/USDT", "ETH/USDT"]
