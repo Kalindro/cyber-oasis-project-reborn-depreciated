@@ -15,7 +15,6 @@ project_path = Path(current_path).parent.parent
 
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
-
     def __init__(self, pair, timeframe, save_load, API, last_n_candles=None, since=None, end=None):
         self.day_in_timestamp_ms = 86_400_000
         self.API = API
@@ -32,19 +31,20 @@ class GetFullHistory:
             raise ValueError("Please provide either starting date or number of last n candles to provide")
         if last_n_candles is True and end is True:
             raise ValueError("You cannot provide end date together with last n candles parameter")
+
         if last_n_candles:
             self.save_load = False
             self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
                     last_n_candles * self.timeframe_in_timestamp)
             self.since_datetime = timestamp_ms_to_datetime(self.since_timestamp)
-        if since:
-            self.since_datetime = date_string_to_datetime(since)
-            self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
         if end:
             self.end_datetime = date_string_to_datetime(end)
         else:
             self.end_datetime = dt.datetime.now()
             self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
+        if since:
+            self.since_datetime = date_string_to_datetime(since)
+            self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
 
     def exchange_name_check(self):
         """Check name of exchange to save data to correct folder"""

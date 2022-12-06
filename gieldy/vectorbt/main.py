@@ -58,3 +58,4 @@ class Backtest:
 
 if __name__ == "__main__":
     Backtest().all_pairs_history()
+    vbt.data()
