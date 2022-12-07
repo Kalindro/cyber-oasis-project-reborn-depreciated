@@ -7,19 +7,16 @@ from pandas import ExcelWriter as ExcelWriter
 
 def date_string_to_datetime(date_string):
     date_datetime = dateutil.parser.parse(date_string)
-
     return date_datetime
 
 
 def datetime_to_timestamp_ms(date_datetime):
     date_timestamp = int(time.mktime(date_datetime.timetuple()) * 1000)
-
     return date_timestamp
 
 
 def timestamp_ms_to_datetime(timestamp_ms):
     date_datetime = dt.datetime.fromtimestamp(timestamp_ms / 1000.0)
-
     return date_datetime
 
 
@@ -28,21 +25,17 @@ def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_c
     with writer as writer:
         dataframe.to_excel(writer, sheet_name="main")
         workbook = writer.book
-
         for worksheet_name in writer.sheets.keys():
             worksheet = writer.sheets[worksheet_name]
             worksheet.set_column("B:AA", column_size)
-
             header_format = workbook.add_format({
                 "valign": "vcenter",
                 "align": "center",
                 "bold": True,
             })
-
             cash_format = workbook.add_format({"num_format": "$#,##0"})
             rounded_format = workbook.add_format({"num_format": "0.00"})
             perc_format = workbook.add_format({"num_format": "0.00%"})
-
             worksheet.set_row(0, cell_format=header_format)
             worksheet.set_column(cash_cols, None, cash_format)
             worksheet.set_column(rounded_cols, None, rounded_format)
@@ -70,7 +63,6 @@ def timeframes_to_timestamp_ms(timeframe):
         timestamp_ms = 604800000
     else:
         raise ValueError("Unsupported timeframe to convert to timestamp")
-
     return int(timestamp_ms)
 
 

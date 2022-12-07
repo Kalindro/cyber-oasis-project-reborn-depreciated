@@ -132,9 +132,10 @@ class MarketPerformers:
         last_7d_momentum = self.calculate_momentum(last_7d_hourly_history)
         last_14d_performance = self.calculate_price_change(last_14d_hourly_history)
         last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
-        coin_NATR = NATR(last_7d_hourly_history["high"], last_7d_hourly_history["low"], last_7d_hourly_history["close"],
-                         timeperiod=len(last_7d_hourly_history) - 4)
+        coin_NATR = NATR(last_14d_hourly_history["high"], last_14d_hourly_history["low"], last_14d_hourly_history["close"],
+                         timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
+        median_momentum_weighted = median_momentum / coin_NATR[-1]
         performance_dict = {
             "pair": [pair],
             "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
@@ -151,6 +152,7 @@ class MarketPerformers:
             "14d performance": [last_14d_performance],
             "14d momentum": [last_14d_momentum],
             "median momentum": [median_momentum],
+            "mom weighted": [median_momentum_weighted]
         }
 
         return performance_dict
@@ -179,8 +181,8 @@ class MarketPerformers:
             print(f"\033[92mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
             print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
 
-        excel_save_formatted(global_performance_dataframe, column_size=16, cash_cols="D:D", rounded_cols="E:E",
-                             perc_cols="F:P")
+        excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
+                             perc_cols="F:Q")
 
         print("Saved excel, done")
 

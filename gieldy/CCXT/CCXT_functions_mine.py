@@ -9,7 +9,6 @@ def get_pairs_list_USDT(API):
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
-
     return pairs_list
 
 
@@ -19,7 +18,6 @@ def get_pairs_list_BTC(API):
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/BTC")]
-
     return pairs_list
 
 
