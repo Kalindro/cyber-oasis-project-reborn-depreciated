@@ -54,7 +54,6 @@ class GetFullHistory:
             return "kucoin_spot"
         elif "binance_futures" in self.name.lower():
             return "binance_futures"
-
         else:
             raise ValueError("Unrecognized exchange name: " + str(self.name.lower()))
 
