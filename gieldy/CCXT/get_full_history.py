@@ -48,15 +48,12 @@ class GetFullHistory:
 
     def exchange_name_check(self):
         """Check name of exchange to save data to correct folder"""
-
-        if "kucoin" in self.name.lower():
-            return "kucoin"
-
-        elif "binance futures" in self.name.lower():
-            return "binance futures"
-
-        elif "binance" in self.name.lower():
-            return "binance"
+        if "binance_spot" in self.name.lower():
+            return "binance_spot"
+        if "kucoin spot" in self.name.lower():
+            return "kucoin_spot"
+        elif "binance_futures" in self.name.lower():
+            return "binance_futures"
 
         else:
             raise ValueError("Unrecognized exchange name: " + str(self.name.lower()))

@@ -27,7 +27,7 @@ class MarketPerformers:
     """
 
     def __init__(self):
-        self.PAIRS_MODE = 2
+        self.PAIRS_MODE = 1
         self.CORES_USED = 8
         self.API_fut = ExchangeAPISelect().binance_futures_read_only()
         self.API_spot = ExchangeAPISelect().binance_spot_read_only()
