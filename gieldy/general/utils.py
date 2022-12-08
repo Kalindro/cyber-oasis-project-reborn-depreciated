@@ -42,7 +42,7 @@ def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_c
             worksheet.set_column(perc_cols, None, perc_format)
 
 
-def timeframes_to_timestamp_ms(timeframe):
+def timeframe_to_timestamp_ms(timeframe):
     if timeframe.lower() == "1m":
         timestamp_ms = 60000
     elif timeframe.lower() == "5m":

@@ -7,7 +7,7 @@ from pathlib import Path
 from pandas import DataFrame as df
 
 from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms, \
-    timestamp_ms_to_datetime, timeframes_to_timestamp_ms
+    timestamp_ms_to_datetime, timeframe_to_timestamp_ms
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 project_path = Path(current_path).parent.parent
@@ -16,16 +16,12 @@ project_path = Path(current_path).parent.parent
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
     def __init__(self, pair, timeframe, save_load, API, last_n_candles=None, since=None, end=None):
-        self.day_in_timestamp_ms = 86_400_000
+        self.DAY_IN_TIMESTAMP_MS = 86_400_000
         self.API = API
         self.save_load = save_load
         self.pair = pair
-        self.pair_for_data = self.pair.replace("/", "-")
         self.timeframe = timeframe.lower()
-        self.timeframe_in_timestamp = timeframes_to_timestamp_ms(self.timeframe)
-        self.name = self.API["name"]
-        self.exchange = self.exchange_name_check()
-        self.data_location = f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
+        self.timeframe_in_timestamp = timeframe_to_timestamp_ms(self.timeframe)
 
         if bool(last_n_candles) == bool(since):
             raise ValueError("Please provide either starting date or number of last n candles to provide")
@@ -46,7 +42,20 @@ class GetFullHistory:
             self.since_datetime = date_string_to_datetime(since)
             self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
 
-    def exchange_name_check(self):
+    @property
+    def name(self):
+        return self.API["name"]
+
+    @property
+    def pair_for_data(self):
+        return self.pair.replace("/", "-")
+
+    @property
+    def data_location(self):
+        return f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
+
+    @property
+    def exchange(self):
         """Check name of exchange to save data to correct folder"""
         if "binance_spot" in self.name.lower():
             return "binance_spot"
