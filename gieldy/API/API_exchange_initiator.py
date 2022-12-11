@@ -38,9 +38,11 @@ class ExchangeAPISelect:
     @staticmethod
     def binance_spot_read_only() -> dict:
         name = "Binance Spot Read Only"
+        exchange = "binance_spot"
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         API = {"name": name,
+               "exchange": exchange,
                "general_client": CCXTExchangeSelect.binance_spot(public_key, secret_key)
                }
         return API
@@ -48,10 +50,12 @@ class ExchangeAPISelect:
     @staticmethod
     def kucoin_spot_read_only() -> dict:
         name = "Kucoin Spot Read Only"
+        exchange = "kucoin_spot"
         public_key = os.getenv("KUCOIN_SPOT_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("KUCOIN_SPOT_READ_ONLY_PRIVATE_KEY")
         passphrase = os.getenv("KUCOIN_SPOT_READ_ONLY_PASSPHRASE")
         API = {"name": name,
+               "exchange": exchange,
                "general_client": CCXTExchangeSelect.kucoin_spot(public_key, secret_key, passphrase)
                }
         return API
@@ -59,23 +63,11 @@ class ExchangeAPISelect:
     @staticmethod
     def binance_futures_read_only() -> dict:
         name = "Binance Futures Read Only"
+        exchange = "binance_futures"
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         API = {"name": name,
+               "exchange": exchange,
                "general_client": CCXTExchangeSelect.binance_futures(public_key, secret_key)
                }
         return API
-
-
-def exchange_history_folder_name(API: dict) -> str:
-    """Check name of exchange to save data to correct folder"""
-    name = API["name"].lower()
-    exchanges_names = {"binance spot": "binance_spot",
-                       "kucoin spot": "kucoin_spot",
-                       "binance futures": "binance_futures"
-                       }
-    for key in exchanges_names:
-        if key in name:
-            return exchanges_names[key]
-    else:
-        raise ValueError("Unrecognized exchange name: " + str(name))

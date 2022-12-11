@@ -1,12 +1,12 @@
 import os
+import time
+import inspect
 import pandas as pd
+import datetime as dt
+from random import randint
 from pathlib import Path
 from typing import Optional
 from pandas import DataFrame as df
-import datetime as dt
-from random import randint
-import time
-import inspect
 
 from gieldy.general.utils import (
     date_string_to_datetime,
@@ -53,20 +53,24 @@ class GetFullHistory:
             self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
 
     @property
+    def exchange(self) -> str:
+        return self.API["exchange"]
+
+    @property
     def pair_for_data(self) -> str:
         return self.pair.replace("/", "-")
 
     @property
-    def data_location(self) -> str:
+    def exchange_history_location(self) -> str:
+        """Return the path where the history for this timeframe exchange should be saved"""
         current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
         project_path = Path(current_path).parent.parent
-        return f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
+        return f"{project_path}/history_data/{self.exchange}"
 
     def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
         """Cut the dataframe to exactly match the desired since/end"""
         final_dataframe = final_dataframe.loc[
                           self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
-
         return final_dataframe
 
     @staticmethod
@@ -82,8 +86,8 @@ class GetFullHistory:
             hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
                                   pair[:-5] if pair.endswith("/USDT") else pair[:-4])
         else:
-            print(f"{pair} is broken or too short, returning 0 len DF")
-            return df()
+            print(f"{pair} is broken or too short")
+            return None
 
         return hist_dataframe
 
@@ -103,10 +107,10 @@ class GetFullHistory:
     def load_dataframe_from_pickle(self):
         """Check for pickled data and load, if no folder for data - create"""
         try:
-            if not os.path.exists(self.data_location):
-                os.makedirs(self.data_location)
+            if not os.path.exists(self.exchange_history_location):
+                os.makedirs(self.exchange_history_location)
             history_df_saved = pd.read_pickle(
-                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+                f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
             print("Saved history pickle found")
             return history_df_saved
 
@@ -116,7 +120,8 @@ class GetFullHistory:
 
     def save_dataframe_to_pickle(self, df_to_save):
         """Pickle the data"""
-        df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+        df_to_save.to_pickle(
+            f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
     def main(self):
@@ -141,16 +146,12 @@ class GetFullHistory:
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_fragment_for_func(pair=self.pair,
-                                                                   timeframe=self.timeframe,
-                                                                   since=local_since_timestamp,
-                                                                   API=self.API)
+                hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp,
+                                                                   self.API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
-
                 loop_timestamp_delta = int(hist_df_fresh.iloc[-1].date - hist_df_fresh.iloc[0].date)
                 stable_loop_timestamp_delta = max(stable_loop_timestamp_delta, loop_timestamp_delta)
                 local_since_timestamp += int(stable_loop_timestamp_delta * 0.95)
-
                 if len(hist_df_full) > 1:
                     if local_since_timestamp >= (self.end_timestamp + (self.timeframe_in_timestamp * 12)):
                         break
@@ -159,10 +160,7 @@ class GetFullHistory:
                 print(f"Error on history fragments loop, {e}")
 
         hist_df_final = self.history_df_cleaning(hist_df_full, pair=self.pair)
-
         if self.save_load_history:
             self.save_dataframe_to_pickle(hist_df_final)
-
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
-
         return hist_df_final_cut
