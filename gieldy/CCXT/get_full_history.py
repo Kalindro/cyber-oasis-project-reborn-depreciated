@@ -29,6 +29,7 @@ class GetFullHistory:
         self.pair = pair
         self.timeframe = timeframe.lower()
         self.timeframe_in_timestamp = timeframe_to_timestamp_ms(self.timeframe)
+        self.safety_buffer = self.timeframe_in_timestamp * 12
 
         # Validate input parameters
         if not (number_of_last_candles or since):
@@ -74,7 +75,7 @@ class GetFullHistory:
         return final_dataframe
 
     @staticmethod
-    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str):
+    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
         """Setting index, dropping duplicates, cleaning dataframe"""
         if len(hist_dataframe) > 1:
             hist_dataframe.set_index("date", inplace=True)
@@ -86,25 +87,23 @@ class GetFullHistory:
             hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
                                   pair[:-5] if pair.endswith("/USDT") else pair[:-4])
         else:
-            print(f"{pair} is broken or too short")
-            return None
+            print(f"{pair} is broken or too short, returning empty DF")
+            return df()
 
         return hist_dataframe
 
     @staticmethod
-    def get_history_fragment_for_func(pair: str, timeframe: str, since: str, API: dict):
+    def get_history_fragment_for_func(pair: str, timeframe: str, since: str, API: dict) -> pd.DataFrame:
         """Get fragment of history"""
         general_client = API["general_client"]
         candle_limit = 800
         candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe,
                                                  since=since, limit=candle_limit)
-
         columns_ordered = ["date", "open", "high", "low", "close", "volume"]
         history_dataframe_new = df(candles_list, columns=columns_ordered)
-
         return history_dataframe_new
 
-    def load_dataframe_from_pickle(self):
+    def parse_dataframe_from_pickle(self) -> pd.DataFrame:
         """Check for pickled data and load, if no folder for data - create"""
         try:
             if not os.path.exists(self.exchange_history_location):
@@ -116,46 +115,44 @@ class GetFullHistory:
 
         except FileNotFoundError as err:
             print(f"No saved history for {self.pair}, {err}")
-            return None
+            return df()
 
-    def save_dataframe_to_pickle(self, df_to_save):
+    def load_dataframe_and_pre_check(self) -> pd.DataFrame:
+        hist_df_full = self.parse_dataframe_from_pickle()
+        if hist_df_full is not None and len(hist_df_full) > 1:
+            if (hist_df_full.iloc[-1].name > self.end_datetime) and (
+                    hist_df_full.iloc[0].name < self.since_datetime):
+                print("Saved data is sufficient, returning")
+                hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_full)
+                return hist_df_final_cut
+            else:
+                print("Saved data found, not sufficient data range, getting whole fresh")
+                return df()
+
+    def save_dataframe_to_pickle(self, df_to_save) -> None:
         """Pickle the data"""
         df_to_save.to_pickle(
             f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
-    def main(self):
+    def main(self) -> pd.DataFrame:
         """Main function to get/load/save the history"""
         print(f"Getting {self.pair} history")
         if self.save_load_history:
-            hist_df_full = self.load_dataframe_from_pickle()
-            if hist_df_full is not None and len(hist_df_full) > 1:
-                if (hist_df_full.iloc[-1].name > self.end_datetime) and (
-                        hist_df_full.iloc[0].name < self.since_datetime):
-                    print("Saved data is sufficient, returning")
-                    hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_full)
-                    return hist_df_final_cut
-                else:
-                    hist_df_full = df()
-                    print("Saved data found, not sufficient data range, getting whole fresh")
+            hist_df_full = self.load_dataframe_and_pre_check()
         else:
             hist_df_full = df()
-
-        local_since_timestamp = self.since_timestamp - (self.timeframe_in_timestamp * 12)
-        stable_loop_timestamp_delta = 0
+        local_since_timestamp = self.since_timestamp - self.safety_buffer
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp,
-                                                                   self.API)
+                hist_df_fresh = self.get_history_fragment_for_func(
+                    self.pair, self.timeframe, local_since_timestamp, self.API
+                )
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
-                loop_timestamp_delta = int(hist_df_fresh.iloc[-1].date - hist_df_fresh.iloc[0].date)
-                stable_loop_timestamp_delta = max(stable_loop_timestamp_delta, loop_timestamp_delta)
-                local_since_timestamp += int(stable_loop_timestamp_delta * 0.95)
-                if len(hist_df_full) > 1:
-                    if local_since_timestamp >= (self.end_timestamp + (self.timeframe_in_timestamp * 12)):
-                        break
-
+                local_since_timestamp = hist_df_fresh.iloc[-1].date - self.safety_buffer
+                if local_since_timestamp >= (self.end_timestamp + self.safety_buffer):
+                    break
             except Exception as e:
                 print(f"Error on history fragments loop, {e}")
 
