@@ -1,50 +1,52 @@
-import time
 import os
-import datetime as dt
 import pandas as pd
-from random import randint
 from pathlib import Path
+from typing import Optional
 from pandas import DataFrame as df
+import datetime as dt
+from random import randint
+import time
+import inspect
 
-from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms, \
-    timestamp_ms_to_datetime, timeframe_to_timestamp_ms
-
-current_path = os.path.dirname(os.path.abspath(__file__))
-project_path = Path(current_path).parent.parent
+from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms, \
+    timestamp_ms_to_datetime
 
 
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
-    def __init__(self, pair, timeframe, save_load, API, last_n_candles=None, since=None, end=None):
-        self.DAY_IN_TIMESTAMP_MS = 86_400_000
+
+    DAY_IN_TIMESTAMP_MS = 86_400_000
+
+    def __init__(self, pair: str, timeframe: str, save_load_history: bool, API: dict,
+                 number_of_last_candles: Optional[int] = None,
+                 since: Optional[str] = None, end: Optional[str] = None):
         self.API = API
-        self.save_load = save_load
+        self.save_load_history = save_load_history
         self.pair = pair
         self.timeframe = timeframe.lower()
         self.timeframe_in_timestamp = timeframe_to_timestamp_ms(self.timeframe)
 
-        if bool(last_n_candles) == bool(since):
+        # Validate input parameters
+        if not (number_of_last_candles or since):
             raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if last_n_candles is True and end is True:
-            raise ValueError("You cannot provide end date together with last n candles parameter")
+        if number_of_last_candles and (since or end):
+            raise ValueError("You cannot provide since/end date together with last n candles parameter")
 
-        if last_n_candles:
+        # Parse and convert since and end dates to timestamps
+        if number_of_last_candles:
             self.save_load = False
             self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
-                    last_n_candles * self.timeframe_in_timestamp)
+                    number_of_last_candles * self.timeframe_in_timestamp)
             self.since_datetime = timestamp_ms_to_datetime(self.since_timestamp)
-        if end:
-            self.end_datetime = date_string_to_datetime(end)
-        else:
-            self.end_datetime = dt.datetime.now()
-            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
         if since:
             self.since_datetime = date_string_to_datetime(since)
             self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
-
-    @property
-    def name(self):
-        return self.API["name"]
+        if end:
+            self.end_datetime = date_string_to_datetime(end)
+            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
+        else:
+            self.end_datetime = dt.datetime.now()
+            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
 
     @property
     def pair_for_data(self):
@@ -52,19 +54,22 @@ class GetFullHistory:
 
     @property
     def data_location(self):
+        current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+        project_path = Path(current_path).parent.parent
         return f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
 
     @property
     def exchange(self):
         """Check name of exchange to save data to correct folder"""
-        if "binance_spot" in self.name.lower():
+        name = self.API["name"]
+        if "binance spot" in name:
             return "binance_spot"
-        if "kucoin spot" in self.name.lower():
+        if "kucoin spot" in name:
             return "kucoin_spot"
-        elif "binance_futures" in self.name.lower():
+        if "binance futures" in name:
             return "binance_futures"
         else:
-            raise ValueError("Unrecognized exchange name: " + str(self.name.lower()))
+            raise ValueError("Unrecognized exchange name: " + str(name))
 
     def load_dataframe_from_pickle(self):
         """Check for pickled data and load, if no folder for data - create"""
@@ -74,12 +79,10 @@ class GetFullHistory:
             history_df_saved = pd.read_pickle(
                 f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
             print("Saved history pickle found")
-
             return history_df_saved
 
-        except Exception as err:
+        except FileNotFoundError as err:
             print(f"No saved history for {self.pair}, {err}")
-            pass
 
     def save_dataframe_to_pickle(self, df_to_save):
         """Pickle the data"""
@@ -87,7 +90,7 @@ class GetFullHistory:
         print("Saved history dataframe as pickle")
 
     def cut_exact_df_dates_for_return(self, final_dataframe):
-        """Cut the dataframe to exactly match the desired since/to"""
+        """Cut the dataframe to exactly match the desired since/end"""
         final_dataframe = final_dataframe.loc[
                           self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
 
@@ -128,7 +131,7 @@ class GetFullHistory:
         """Main function to get/load/save the history"""
         print(f"Getting {self.pair} history")
 
-        if self.save_load:
+        if self.save_load_history:
             hist_df_full = self.load_dataframe_from_pickle()
             if hist_df_full is not None and len(hist_df_full) > 1:
                 if (hist_df_full.iloc[-1].name > self.end_datetime) and (
@@ -166,7 +169,7 @@ class GetFullHistory:
 
         hist_df_final = self.history_df_cleaning(hist_df_full, pair=self.pair)
 
-        if self.save_load:
+        if self.save_load_history:
             self.save_dataframe_to_pickle(hist_df_final)
 
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)

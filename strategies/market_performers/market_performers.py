@@ -76,10 +76,10 @@ class MarketPerformers:
 
         return pairs_list, API
 
-    def get_history(self, API, pair, timeframe, last_n_candles):
+    def get_history(self, pair, timeframe, number_of_last_candles, API):
         """Function for last n candles of history"""
-        pair_history = GetFullHistory(API=API, pair=pair, save_load=False, timeframe=timeframe,
-                                      last_n_candles=last_n_candles).main()
+        pair_history = GetFullHistory(pair=pair, save_load_history=False, timeframe=timeframe,
+                                      number_of_last_candles=number_of_last_candles, API=API).main()
 
         return pair_history
 
@@ -105,7 +105,7 @@ class MarketPerformers:
     def performance_calculations(self, pair):
         """Calculation all the needed performance metrics for the pair"""
         _, API = self.select_pairs_list_and_API()
-        long_history = self.get_history(pair=pair, timeframe="1h", last_n_candles=775, API=API)
+        long_history = self.get_history(pair=pair, timeframe="1h", number_of_last_candles=775, API=API)
         last_24h_hourly_history = long_history.tail(24)
         last_2d_hourly_history = long_history.tail(48)
         last_3d_hourly_history = long_history.tail(72)
@@ -132,7 +132,8 @@ class MarketPerformers:
         last_7d_momentum = self.calculate_momentum(last_7d_hourly_history)
         last_14d_performance = self.calculate_price_change(last_14d_hourly_history)
         last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
-        coin_NATR = NATR(last_14d_hourly_history["high"], last_14d_hourly_history["low"], last_14d_hourly_history["close"],
+        coin_NATR = NATR(last_14d_hourly_history["high"], last_14d_hourly_history["low"],
+                         last_14d_hourly_history["close"],
                          timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
