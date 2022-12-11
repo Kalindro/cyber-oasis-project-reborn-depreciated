@@ -8,8 +8,12 @@ from random import randint
 import time
 import inspect
 
-from gieldy.general.utils import date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms, \
-    timestamp_ms_to_datetime
+from gieldy.general.utils import (
+    date_string_to_datetime,
+    datetime_to_timestamp_ms,
+    timeframe_to_timestamp_ms,
+    timestamp_ms_to_datetime,
+)
 
 
 class GetFullHistory:
@@ -49,47 +53,16 @@ class GetFullHistory:
             self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
 
     @property
-    def pair_for_data(self):
+    def pair_for_data(self) -> str:
         return self.pair.replace("/", "-")
 
     @property
-    def data_location(self):
+    def data_location(self) -> str:
         current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
         project_path = Path(current_path).parent.parent
         return f"{project_path}/history_data/{self.exchange}/{self.timeframe}"
 
-    @property
-    def exchange(self):
-        """Check name of exchange to save data to correct folder"""
-        name = self.API["name"]
-        if "binance spot" in name:
-            return "binance_spot"
-        if "kucoin spot" in name:
-            return "kucoin_spot"
-        if "binance futures" in name:
-            return "binance_futures"
-        else:
-            raise ValueError("Unrecognized exchange name: " + str(name))
-
-    def load_dataframe_from_pickle(self):
-        """Check for pickled data and load, if no folder for data - create"""
-        try:
-            if not os.path.exists(self.data_location):
-                os.makedirs(self.data_location)
-            history_df_saved = pd.read_pickle(
-                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
-            print("Saved history pickle found")
-            return history_df_saved
-
-        except FileNotFoundError as err:
-            print(f"No saved history for {self.pair}, {err}")
-
-    def save_dataframe_to_pickle(self, df_to_save):
-        """Pickle the data"""
-        df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
-        print("Saved history dataframe as pickle")
-
-    def cut_exact_df_dates_for_return(self, final_dataframe):
+    def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
         """Cut the dataframe to exactly match the desired since/end"""
         final_dataframe = final_dataframe.loc[
                           self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
@@ -97,7 +70,7 @@ class GetFullHistory:
         return final_dataframe
 
     @staticmethod
-    def history_df_cleaning(hist_dataframe, pair):
+    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str):
         """Setting index, dropping duplicates, cleaning dataframe"""
         if len(hist_dataframe) > 1:
             hist_dataframe.set_index("date", inplace=True)
@@ -115,7 +88,7 @@ class GetFullHistory:
         return hist_dataframe
 
     @staticmethod
-    def get_history_fragment_for_func(pair, timeframe, since, API):
+    def get_history_fragment_for_func(pair: str, timeframe: str, since: str, API: dict):
         """Get fragment of history"""
         general_client = API["general_client"]
         candle_limit = 800
@@ -127,10 +100,28 @@ class GetFullHistory:
 
         return history_dataframe_new
 
+    def load_dataframe_from_pickle(self):
+        """Check for pickled data and load, if no folder for data - create"""
+        try:
+            if not os.path.exists(self.data_location):
+                os.makedirs(self.data_location)
+            history_df_saved = pd.read_pickle(
+                f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+            print("Saved history pickle found")
+            return history_df_saved
+
+        except FileNotFoundError as err:
+            print(f"No saved history for {self.pair}, {err}")
+            return None
+
+    def save_dataframe_to_pickle(self, df_to_save):
+        """Pickle the data"""
+        df_to_save.to_pickle(f"{self.data_location}/{self.pair_for_data}_{self.timeframe}.pickle")
+        print("Saved history dataframe as pickle")
+
     def main(self):
         """Main function to get/load/save the history"""
         print(f"Getting {self.pair} history")
-
         if self.save_load_history:
             hist_df_full = self.load_dataframe_from_pickle()
             if hist_df_full is not None and len(hist_df_full) > 1:
@@ -141,7 +132,7 @@ class GetFullHistory:
                     return hist_df_final_cut
                 else:
                     hist_df_full = df()
-                    print("Saved data found, not sufficient data range, getting fresh")
+                    print("Saved data found, not sufficient data range, getting whole fresh")
         else:
             hist_df_full = df()
 
