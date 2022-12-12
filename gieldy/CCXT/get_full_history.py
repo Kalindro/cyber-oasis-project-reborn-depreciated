@@ -5,7 +5,7 @@ import pandas as pd
 import datetime as dt
 from random import randint
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from pandas import DataFrame as df
 
 from gieldy.general.utils import (
@@ -67,14 +67,14 @@ class GetFullHistory:
         return f"{project_path}/history_data/{self.exchange}"
 
     def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be specific
-         to the second while the timeframe may be 1D thus it would never return correctly"""
+        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise
+         to the second while the timeframe may be 1D - it would never return correctly, mainly when end is now"""
         final_dataframe = final_dataframe.loc[
                           self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
         return final_dataframe
 
     @staticmethod
-    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> Union[pd.DataFrame, None]:
         """Setting index, dropping duplicates, cleaning dataframe"""
         if dataframe_is_not_none_and_has_elements(hist_dataframe):
             hist_dataframe.set_index("date", inplace=True)
@@ -86,8 +86,8 @@ class GetFullHistory:
             hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
                                   pair[:-5] if pair.endswith("/USDT") else pair[:-4])
         else:
-            print(f"{pair} is broken or too short, returning empty DF")
-            return df()
+            print(f"{pair} is broken or too short")
+            return None
 
         return hist_dataframe
 
@@ -102,7 +102,7 @@ class GetFullHistory:
         history_dataframe_new = df(candles_list, columns=columns_ordered)
         return history_dataframe_new
 
-    def parse_dataframe_from_pickle(self) -> pd.DataFrame:
+    def parse_dataframe_from_pickle(self) -> Union[pd.DataFrame, None]:
         """Check for pickled data and load, if no folder for data - create"""
         try:
             if not os.path.exists(self.exchange_history_location):
@@ -114,9 +114,10 @@ class GetFullHistory:
 
         except FileNotFoundError as err:
             print(f"No saved history for {self.pair}, {err}")
-            return df()
+            return None
 
-    def load_dataframe_and_pre_check(self) -> pd.DataFrame:
+    def load_dataframe_and_pre_check(self) -> Union[pd.DataFrame, None]:
+        """Check if loaded data range is sufficient for current request, if not - get new"""
         hist_df_full = self.parse_dataframe_from_pickle()
         if dataframe_is_not_none_and_has_elements(hist_df_full):
             if (hist_df_full.iloc[-1].name > self.end_datetime) and (
@@ -126,16 +127,16 @@ class GetFullHistory:
                 return hist_df_final_cut
             else:
                 print("Saved data found, not sufficient data range, getting whole fresh")
-                return df()
+                return None
 
-    def save_dataframe_to_pickle(self, df_to_save) -> None:
-        """Pickle the data"""
+    def save_dataframe_to_pickle(self, df_to_save: pd.DataFrame) -> None:
+        """Pickle the data and save"""
         df_to_save.to_pickle(
             f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
     def main(self) -> pd.DataFrame:
-        """Main function to get/load/save the history"""
+        """Main logic function to loop the history acquisition"""
         print(f"Getting {self.pair} history")
         if self.save_load_history:
             hist_df_full = self.load_dataframe_and_pre_check()
