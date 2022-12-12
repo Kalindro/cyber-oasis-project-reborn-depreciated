@@ -144,13 +144,16 @@ class GetFullHistory:
                 return hist_df_full
         else:
             hist_df_full = df()
-        local_since_timestamp = self.since_timestamp - self.safety_buffer
+        local_since_timestamp = self.since_timestamp
+        hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp, self.API)
+        delta = hist_df_fresh.iloc[-1].date - hist_df_fresh.iloc[0].date - self.safety_buffer
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp, self.API)
+                hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp,
+                                                                   self.API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
-                local_since_timestamp = hist_df_fresh.iloc[-1].date - self.safety_buffer
+                local_since_timestamp += delta
                 if local_since_timestamp >= (self.end_timestamp + self.safety_buffer):
                     break
             except Exception as e:
