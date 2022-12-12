@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from typing import Optional
 
 
-def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
+def create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
                               passphrase: Optional[str] = None) -> ccxt.Exchange:
     """Factory function for creating CCXT exchange instance"""
     exchange_params = {
@@ -16,23 +16,23 @@ def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_k
     return getattr(ccxt, CCXT_exchange_name)(exchange_params)
 
 
-class _CCXTExchangeSelect:
-    """Private create CCXT instance of selected exchange"""
+class CCXTExchangeSelect:
+    """Create CCXT instance of selected exchange"""
     @staticmethod
     def binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binance", public_key, secret_key)
+        return create_exchange_instance("binance", public_key, secret_key)
 
     @staticmethod
     def kucoin_spot(public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
-        return _create_exchange_instance("kucoin", public_key, secret_key, passphrase)
+        return create_exchange_instance("kucoin", public_key, secret_key, passphrase)
 
     @staticmethod
     def binance_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binanceusdm", public_key, secret_key)
+        return create_exchange_instance("binanceusdm", public_key, secret_key)
 
 
-class ExchangeAPISelect(_CCXTExchangeSelect):
-    """Class that allows to select API with exchange"""
+class ExchangeAPISelect(CCXTExchangeSelect):
+    """Select the exchange and initiate with API"""
     load_dotenv()
 
     def binance_spot_read_only(self) -> dict:

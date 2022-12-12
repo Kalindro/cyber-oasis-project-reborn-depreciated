@@ -61,19 +61,20 @@ class GetFullHistory:
 
     @property
     def exchange_history_location(self) -> str:
-        """Return the path where the history for this timeframe exchange should be saved"""
+        """Return the path where the history for this exchange should be saved"""
         current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
         project_path = Path(current_path).parent.parent
         return f"{project_path}/history_data/{self.exchange}"
 
     def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Cut the dataframe to exactly match the desired since/end"""
+        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be specific
+         to the second while the timeframe may be 1D thus it would never return correctly"""
         final_dataframe = final_dataframe.loc[
                           self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
         return final_dataframe
 
     @staticmethod
-    def _history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
         """Setting index, dropping duplicates, cleaning dataframe"""
         if dataframe_is_not_none_and_has_elements(hist_dataframe):
             hist_dataframe.set_index("date", inplace=True)
