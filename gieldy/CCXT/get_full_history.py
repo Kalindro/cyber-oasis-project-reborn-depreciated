@@ -19,8 +19,6 @@ from gieldy.general.utils import (
 
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
-    DAY_IN_TIMESTAMP_MS = 86_400_000
-
     def __init__(self, pair: str, timeframe: str, save_load_history: bool, API: dict,
                  number_of_last_candles: Optional[int] = None,
                  since: Optional[str] = None, end: Optional[str] = None):
@@ -75,7 +73,7 @@ class GetFullHistory:
         return final_dataframe
 
     @staticmethod
-    def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
+    def _history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
         """Setting index, dropping duplicates, cleaning dataframe"""
         if dataframe_is_not_none_and_has_elements(hist_dataframe):
             hist_dataframe.set_index("date", inplace=True)
@@ -164,3 +162,4 @@ class GetFullHistory:
             self.save_dataframe_to_pickle(hist_df_final)
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
         return hist_df_final_cut
+
