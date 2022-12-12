@@ -13,12 +13,12 @@ from gieldy.general.utils import (
     datetime_to_timestamp_ms,
     timeframe_to_timestamp_ms,
     timestamp_ms_to_datetime,
+    dataframe_is_not_none_and_has_elements
 )
 
 
 class GetFullHistory:
     """Get full history of pair between desired periods or last n candles"""
-
     DAY_IN_TIMESTAMP_MS = 86_400_000
 
     def __init__(self, pair: str, timeframe: str, save_load_history: bool, API: dict,
@@ -77,7 +77,7 @@ class GetFullHistory:
     @staticmethod
     def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> pd.DataFrame:
         """Setting index, dropping duplicates, cleaning dataframe"""
-        if len(hist_dataframe) > 1:
+        if dataframe_is_not_none_and_has_elements(hist_dataframe):
             hist_dataframe.set_index("date", inplace=True)
             hist_dataframe.sort_index(inplace=True)
             hist_dataframe.index = pd.to_datetime(hist_dataframe.index, unit="ms")
@@ -119,7 +119,7 @@ class GetFullHistory:
 
     def load_dataframe_and_pre_check(self) -> pd.DataFrame:
         hist_df_full = self.parse_dataframe_from_pickle()
-        if hist_df_full is not None and len(hist_df_full) > 1:
+        if dataframe_is_not_none_and_has_elements(hist_df_full):
             if (hist_df_full.iloc[-1].name > self.end_datetime) and (
                     hist_df_full.iloc[0].name < self.since_datetime):
                 print("Saved data is sufficient, returning")
@@ -140,15 +140,15 @@ class GetFullHistory:
         print(f"Getting {self.pair} history")
         if self.save_load_history:
             hist_df_full = self.load_dataframe_and_pre_check()
+            if dataframe_is_not_none_and_has_elements(hist_df_full):
+                return hist_df_full
         else:
             hist_df_full = df()
         local_since_timestamp = self.since_timestamp - self.safety_buffer
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_fragment_for_func(
-                    self.pair, self.timeframe, local_since_timestamp, self.API
-                )
+                hist_df_fresh = self.get_history_fragment_for_func(self.pair, self.timeframe, local_since_timestamp, self.API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
                 local_since_timestamp = hist_df_fresh.iloc[-1].date - self.safety_buffer
                 if local_since_timestamp >= (self.end_timestamp + self.safety_buffer):

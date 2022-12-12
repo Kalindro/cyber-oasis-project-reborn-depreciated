@@ -2,6 +2,7 @@ import time
 import math
 import datetime as dt
 import dateutil.parser
+import pandas as pd
 from pandas import ExcelWriter as ExcelWriter
 
 
@@ -18,6 +19,10 @@ def datetime_to_timestamp_ms(date_datetime):
 def timestamp_ms_to_datetime(timestamp_ms):
     date_datetime = dt.datetime.fromtimestamp(timestamp_ms / 1000.0)
     return date_datetime
+
+
+def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
+    return dataframe is not None and not dataframe.empty
 
 
 def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_cols):
