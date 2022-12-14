@@ -17,7 +17,7 @@ def create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_ke
 
 
 class CCXTExchangeSelect:
-    """Create CCXT instance of selected exchange"""
+    """Class to create CCXT instance of selected exchange"""
     @staticmethod
     def binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
         return create_exchange_instance("binance", public_key, secret_key)
@@ -32,7 +32,7 @@ class CCXTExchangeSelect:
 
 
 class ExchangeAPISelect(CCXTExchangeSelect):
-    """Select the exchange and initiate with API"""
+    """Class for selecting the exchange and initiate with API"""
     load_dotenv()
 
     def binance_spot_read_only(self) -> dict:

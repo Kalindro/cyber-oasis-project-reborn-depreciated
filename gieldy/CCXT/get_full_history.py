@@ -17,8 +17,9 @@ from gieldy.general.utils import (
 )
 
 
-class GetFullHistory:
-    """Get full history of pair between desired periods or last n candles"""
+class BaseInfoClassWithValidation:
+    """Class to handle all the parameters used by other classes"""
+
     def __init__(self, pair: str, timeframe: str, save_load_history: bool, API: dict,
                  number_of_last_candles: Optional[int] = None,
                  since: Optional[str] = None, end: Optional[str] = None):
@@ -27,51 +28,44 @@ class GetFullHistory:
         self.pair = pair
         self.timeframe = timeframe.lower()
         self.timeframe_in_timestamp = timeframe_to_timestamp_ms(self.timeframe)
+        self.number_of_last_candles = number_of_last_candles
+        self.since = since
+        self.since_datetime = None
+        self.since_timestamp = None
+        self.end = end
+        self.end_datetime = None
+        self.end_timestamp = None
         self.safety_buffer = self.timeframe_in_timestamp * 12
+        self.exchange = self.API["exchange"]
+        self.pair_for_data = self.pair.replace("/", "-")
+        self.validate_inputs()
 
+    def validate_inputs(self):
         # Validate input parameters
-        if not (number_of_last_candles or since):
+        if not (self.number_of_last_candles or self.since):
             raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if number_of_last_candles and (since or end):
+        if self.number_of_last_candles and (self.since or self.end):
             raise ValueError("You cannot provide since/end date together with last n candles parameter")
 
         # Parse and convert since and end dates to timestamps
-        if number_of_last_candles:
-            self.save_load = False
+        if self.number_of_last_candles:
+            self.save_load_history = False
             self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
-                    number_of_last_candles * self.timeframe_in_timestamp)
+                    self.number_of_last_candles * self.timeframe_in_timestamp)
             self.since_datetime = timestamp_ms_to_datetime(self.since_timestamp)
-        if since:
-            self.since_datetime = date_string_to_datetime(since)
+        if self.since:
+            self.since_datetime = date_string_to_datetime(self.since)
             self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
-        if end:
-            self.end_datetime = date_string_to_datetime(end)
+        if self.end:
+            self.end_datetime = date_string_to_datetime(self.end)
             self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
         else:
             self.end_datetime = dt.datetime.now()
             self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
 
-    @property
-    def exchange(self) -> str:
-        return self.API["exchange"]
 
-    @property
-    def pair_for_data(self) -> str:
-        return self.pair.replace("/", "-")
-
-    @property
-    def exchange_history_location(self) -> str:
-        """Return the path where the history for this exchange should be saved"""
-        current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-        project_path = Path(current_path).parent.parent
-        return f"{project_path}/history_data/{self.exchange}"
-
-    def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
-        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise
-         to the second while the timeframe may be 1D - it would never return correctly, mainly when end is now"""
-        final_dataframe = final_dataframe.loc[
-                          self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
-        return final_dataframe
+class DFCleanAndCut:
+    """Class for cleaning and cutting the dataframe to desired dates"""
 
     @staticmethod
     def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> Union[pd.DataFrame, None]:
@@ -91,16 +85,23 @@ class GetFullHistory:
 
         return hist_dataframe
 
-    @staticmethod
-    def get_history_fragment_for_func(pair: str, timeframe: str, since: str, API: dict) -> pd.DataFrame:
-        """Get fragment of history"""
-        general_client = API["general_client"]
-        candle_limit = 800
-        candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe,
-                                                 since=since, limit=candle_limit)
-        columns_ordered = ["date", "open", "high", "low", "close", "volume"]
-        history_dataframe_new = df(candles_list, columns=columns_ordered)
-        return history_dataframe_new
+    def cut_exact_df_dates_for_return(self, final_dataframe: pd.DataFrame) -> pd.DataFrame:
+        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise
+         to the second while the timeframe may be 1D - it would never return correctly, mainly when end is now"""
+        final_dataframe = final_dataframe.loc[
+                          self.since_datetime:min(final_dataframe.iloc[-1].name, self.end_datetime)]
+        return final_dataframe
+
+
+class DataStoring:
+    """Class for handling the history loading and saving to pickle"""
+
+    @property
+    def exchange_history_location(self) -> str:
+        """Return the path where the history for this exchange should be saved"""
+        current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
+        project_path = Path(current_path).parent.parent
+        return f"{project_path}/history_data/{self.exchange}"
 
     def parse_dataframe_from_pickle(self) -> Union[pd.DataFrame, None]:
         """Check for pickled data and load, if no folder for data - create"""
@@ -135,11 +136,31 @@ class GetFullHistory:
             f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
         print("Saved history dataframe as pickle")
 
+
+class GetFullHistory:
+    """Get full history of pair between desired periods or last n candles"""
+
+    @staticmethod
+    def get_history_fragment_for_func(pair: str, timeframe: str, since: str, API: dict) -> pd.DataFrame:
+        """Get fragment of history"""
+        general_client = API["general_client"]
+        candle_limit = 800
+        candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe,
+                                                 since=since, limit=candle_limit)
+        columns_ordered = ["date", "open", "high", "low", "close", "volume"]
+        history_dataframe_new = df(candles_list, columns=columns_ordered)
+        return history_dataframe_new
+
     def main(self) -> pd.DataFrame:
         """Main logic function to loop the history acquisition"""
         print(f"Getting {self.pair} history")
+        df_clean_cut = DFCleanAndCut(pair=self.pair, API=self.API, save_load_history=self.save_load_history,
+                                     timeframe=self.timeframe)
+        data_storing = DataStoring(pair=self.pair, API=self.API, save_load_history=self.save_load_history,
+                                   timeframe=self.timeframe)
+
         if self.save_load_history:
-            hist_df_full = self.load_dataframe_and_pre_check()
+            hist_df_full = load_dataframe_and_pre_check()
             if dataframe_is_not_none_and_has_elements(hist_df_full):
                 return hist_df_full
         else:
@@ -165,3 +186,5 @@ class GetFullHistory:
         hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_final)
         return hist_df_final_cut
 
+
+GetFullHistory().main()
