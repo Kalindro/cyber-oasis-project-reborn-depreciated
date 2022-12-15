@@ -10,7 +10,7 @@ from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
 from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC
 from gieldy.general.utils import excel_save_formatted
-from gieldy.CCXT.get_full_history import GetFullHistory
+from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
@@ -76,10 +76,11 @@ class MarketPerformers:
 
         return pairs_list, API
 
-    def get_history(self, pair, timeframe, number_of_last_candles, API):
+    @staticmethod
+    def get_history(pair, timeframe, number_of_last_candles, API):
         """Function for last n candles of history"""
-        pair_history = GetFullHistory(pair=pair, save_load_history=False, timeframe=timeframe,
-                                      number_of_last_candles=number_of_last_candles, API=API).main()
+        pair_history = GetFullCleanHistoryDataframe(pair=pair, save_load_history=False, timeframe=timeframe,
+                                                    number_of_last_candles=number_of_last_candles, API=API).main()
 
         return pair_history
 
@@ -133,28 +134,17 @@ class MarketPerformers:
         last_14d_performance = self.calculate_price_change(last_14d_hourly_history)
         last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
         coin_NATR = NATR(last_14d_hourly_history["high"], last_14d_hourly_history["low"],
-                         last_14d_hourly_history["close"],
-                         timeperiod=len(last_14d_hourly_history) - 4)
+                         last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {
-            "pair": [pair],
-            "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
-            "avg_24h_vol_usd": [avg_24h_vol_usd],
-            "NATR": [coin_NATR[-1]],
-            "24h performance": [last_24h_performance],
-            "24h momentum": [last_24h_momentum],
-            "2d performance": [last_2d_performance],
-            "2d momentum": [last_2d_momentum],
-            "3d performance": [last_3d_performance],
-            "3d momentum": [last_3d_momentum],
-            "7d performance": [last_7d_performance],
-            "7d momentum": [last_7d_momentum],
-            "14d performance": [last_14d_performance],
-            "14d momentum": [last_14d_momentum],
-            "median momentum": [median_momentum],
-            "mom weighted": [median_momentum_weighted]
-        }
+        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
+                            "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
+                            "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
+                            "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],
+                            "3d performance": [last_3d_performance], "3d momentum": [last_3d_momentum],
+                            "7d performance": [last_7d_performance], "7d momentum": [last_7d_momentum],
+                            "14d performance": [last_14d_performance], "14d momentum": [last_14d_momentum],
+                            "median momentum": [median_momentum], "mom weighted": [median_momentum_weighted]}
 
         return performance_dict
 
@@ -173,10 +163,10 @@ class MarketPerformers:
 
         if self.PAIRS_MODE != 1:
             market_median_momentum = global_performance_dataframe["median momentum"].median()
-            BTC_median_momentum = global_performance_dataframe.loc[global_performance_dataframe["symbol"]
-                                                                   == "BTC", "median momentum"].iloc[-1]
-            ETH_median_momentum = global_performance_dataframe.loc[global_performance_dataframe["symbol"]
-                                                                   == "ETH", "median momentum"].iloc[-1]
+            BTC_median_momentum = global_performance_dataframe.loc[
+                global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
+            ETH_median_momentum = global_performance_dataframe.loc[
+                global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
 
             print(f"\033[92mMarket median momentum: {market_median_momentum:.2%}\033[0m")
             print(f"\033[92mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")

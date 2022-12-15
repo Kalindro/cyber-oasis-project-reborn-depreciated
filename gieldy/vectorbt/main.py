@@ -4,7 +4,7 @@ from gieldy.API.API_exchange_initiator import ExchangeAPI
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices, get_pairs_precisions_status
 from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_BTC, get_history_of_all_pairs_on_list
 from gieldy.general.utils import excel_save_formatted
-from gieldy.CCXT.get_full_history import GetFullHistory
+from gieldy.CCXT.get_full_history import QueryHistory
 
 
 class Backtest:
