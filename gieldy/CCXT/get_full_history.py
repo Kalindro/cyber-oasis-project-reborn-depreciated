@@ -21,7 +21,7 @@ class _BaseInfoClassWithValidation:
         self.save_load_history = save_load_history
         self.pair = pair
         self.timeframe = timeframe.lower()
-        self.timeframe_in_timestamp = timeframe_to_timestamp_ms(self.timeframe)
+        self.timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe)
         self.number_of_last_candles = number_of_last_candles
         self.since = since
         self.since_datetime = None
@@ -29,7 +29,6 @@ class _BaseInfoClassWithValidation:
         self.end = end
         self.end_datetime = None
         self.end_timestamp = None
-        self.safety_buffer = int(self.timeframe_in_timestamp * 12)
         self.exchange = self.API["exchange"]
         self.validate_inputs()
 
@@ -142,14 +141,6 @@ class _DataStoring:
 class _QueryHistory:
     """Get range of pair history between desired periods or last n candles"""
 
-    def __init__(self, pair, timeframe, since_timestamp: int, end_timestamp: int, safety_buffer: int, API: dict):
-        self.pair = pair
-        self.timeframe = timeframe
-        self.since_timestamp = since_timestamp
-        self.end_timestamp = end_timestamp
-        self.safety_buffer = safety_buffer
-        self.API = API
-
     @classmethod
     def get_history_one_fragment(cls, pair: str, timeframe: str, since: int, API: dict) -> pd.DataFrame:
         """Private, get fragment of history"""
@@ -160,20 +151,21 @@ class _QueryHistory:
         history_dataframe_new = df(candles_list, columns=columns_ordered)
         return history_dataframe_new
 
-    def get_history_range(self) -> pd.DataFrame:
+    def get_history_range(self, pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
         """Get range of history"""
-        local_since_timestamp = self.since_timestamp
-        hist_df_test = self.get_history_one_fragment(self.pair, self.timeframe, local_since_timestamp, self.API)
-        delta = hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - self.safety_buffer
+        safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 12)
+        local_since_timestamp = since_timestamp
+        hist_df_test = self.get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+        delta = hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - safety_buffer
         hist_df_full = df()
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_one_fragment(self.pair, self.timeframe, local_since_timestamp,
-                                                              self.API)
+                hist_df_fresh = self.get_history_one_fragment(pair, timeframe, local_since_timestamp,
+                                                              API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
                 local_since_timestamp += delta
-                if local_since_timestamp >= (self.end_timestamp + self.safety_buffer):
+                if local_since_timestamp >= (end_timestamp + safety_buffer):
                     break
             except Exception as error:
                 print(f"Error on history fragments loop, {error}")
