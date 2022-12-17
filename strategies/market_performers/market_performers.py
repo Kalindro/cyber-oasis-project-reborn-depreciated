@@ -1,10 +1,10 @@
 from pandas import DataFrame as df
 from talib import NATR
 from scipy.stats import linregress
-
 import multiprocessing as mp
 import pandas as pd
 import numpy as np
+from functools import partial
 
 from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
@@ -16,19 +16,56 @@ pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
+API_fut = ExchangeAPISelect().binance_futures_read_only()
+API_spot = ExchangeAPISelect().binance_spot_read_only()
+
+
+class _MarketSettings:
+    """
+    Script for performance of all coins in a table. Pairs modes:
+    - test (1)
+    - futures_USDT (2)
+    - spot_BTC (3)
+    - spot_USDT (4)
+    """
+
+    def __init__(self):
+        self.PAIRS_MODE = 1
+        self.CORES_USED = 8
+        self.min_vol_USD = 150_000
+        self.timeframe = "1h"
+        self.number_of_last_candles = 775
+        self.BTC_price = get_pairs_prices(API_spot).loc["BTC/USDT"]["price"]
+        self.min_vol_BTC = self.min_vol_USD / self.BTC_price
+
+    def pairs_list_futures_USDT(self):
+        """Only pairs on Binance futures USDT"""
+        pairs_list = get_pairs_list_USDT(API_fut)
+        return pairs_list
+
+    def pairs_list_spot_USDT(self):
+        """Only pairs on Binance spot BTC"""
+        pairs_list = get_pairs_list_USDT(API_spot)
+        return pairs_list
+
+    def pairs_list_spot_BTC(self):
+        """Only pairs on Binance spot BTC"""
+        pairs_list = get_pairs_list_BTC(API_spot)
+        return pairs_list
+
+    def select_pairs_list_and_API(self):
+        """Depending on the PAIRS_MODE, return correct paris list and API"""
+        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], API_fut),
+                              2: (self.pairs_list_futures_USDT(), API_fut),
+                              3: (self.pairs_list_spot_USDT(), API_spot),
+                              4: (self.pairs_list_spot_BTC(), API_spot)}
+        pairs_list_and_api = pairs_list_and_api.get(self.PAIRS_MODE)
+        if pairs_list_and_api is None:
+            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
+        return pairs_list_and_api
+
 
 class _MomentumCalculations:
-    def __init__(self, timeframe, number_of_last_candles, API):
-        self.timeframe = timeframe
-        self.number_of_last_candles = number_of_last_candles
-        self.API = API
-
-    def get_history(self):
-        """Function for last n candles of history"""
-        pair_history = GetFullCleanHistoryDataframe(save_load_history=False, timeframe=self.timeframe,
-                                                    number_of_last_candles=self.number_of_last_candles,
-                                                    API=self.API).main()
-        return pair_history
 
     @classmethod
     def calculate_price_change(cls, cut_history_dataframe):
@@ -47,10 +84,10 @@ class _MomentumCalculations:
         momentum = slope * 100
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self):
+    def performance_calculations(self, pair, timeframe, number_of_last_candles, API):
         """Calculation all the needed performance metrics for the pair"""
-        market_settings = _MarketSettings()
-        long_history = self.get_history()
+        long_history = GetFullCleanHistoryDataframe(pair=pair, save_load_history=False, timeframe=timeframe,
+                                                    number_of_last_candles=number_of_last_candles, API=API).main()
         last_24h_hourly_history = long_history.tail(24)
         last_2d_hourly_history = long_history.tail(48)
         last_3d_hourly_history = long_history.tail(72)
@@ -60,9 +97,9 @@ class _MomentumCalculations:
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
         last_pair = str(long_history.iloc[-1].pair)
         if last_pair.endswith("/BTC"):
-            MIN_VOL = market_settings.Min_vol_BTC
+            MIN_VOL = _MarketSettings().min_vol_BTC
         elif last_pair.endswith("/USDT"):
-            MIN_VOL = market_settings.Min_vol_USD
+            MIN_VOL = _MarketSettings().min_vol_USD
         else:
             raise ValueError("Invalid pair quote currenct: " + last_pair)
         if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
@@ -81,7 +118,7 @@ class _MomentumCalculations:
                          last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {"pair": [self.pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
+        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
                             "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
                             "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
                             "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],
@@ -92,64 +129,16 @@ class _MomentumCalculations:
         return performance_dict
 
 
-class _MarketSettings:
-    """
-    Script for performance of all coins in a table. Pairs modes:
-    - test (1)
-    - futures_USDT (2)
-    - spot_BTC (3)
-    - spot_USDT (4)
-    """
-
-    def __init__(self):
-        self.PAIRS_MODE = 1
-        self.CORES_USED = 8
-        self.Min_vol_USD = 150_000
-        self.TIMEFRAME = "1h"
-        self.NUMBER_OF_LAST_CANDLES = 775
-        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
-        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
-        self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
-        self.Min_vol_BTC = self.Min_vol_USD / self.BTC_price
-
-    def pairs_list_futures_USDT(self):
-        """Only pairs on Binance futures USDT"""
-        pairs_list = get_pairs_list_USDT(self.API_fut)
-        return pairs_list
-
-    def pairs_list_spot_USDT(self):
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_USDT(self.API_spot)
-        return pairs_list
-
-    def pairs_list_spot_BTC(self):
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_BTC(self.API_spot)
-        return pairs_list
-
-    def select_pairs_list_and_API(self):
-        """Depending on the PAIRS_MODE, return correct paris list and API"""
-        fut_API = ExchangeAPISelect().binance_futures_read_only()
-        spot_API = ExchangeAPISelect().binance_spot_read_only()
-        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], fut_API),
-                              2: (self.pairs_list_futures_USDT(), fut_API),
-                              3: (self.pairs_list_spot_USDT(), spot_API),
-                              4: (self.pairs_list_spot_BTC(), spot_API)}
-        pairs_list_and_api = pairs_list_and_api.get(self.PAIRS_MODE)
-        if pairs_list_and_api is None:
-            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
-        return pairs_list_and_api
-
-
 class MomentumRank(_MarketSettings):
     def main(self):
         """Main function to run"""
         print("Starting...")
         pairs_list, API = self.select_pairs_list_and_API()
-        delegate_momentum = _MomentumCalculations(number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                  timeframe=self.TIMEFRAME, API=API)
+        delegate_momentum = _MomentumCalculations()
+        partial_momentum = partial(delegate_momentum.performance_calculations, timeframe=self.timeframe,
+                                   number_of_last_candles=self.number_of_last_candles, API=API)
         with mp.Pool(self.CORES_USED) as pool:
-            performance_calculation_map_results = pool.map(_MomentumCalculations.performance_calculations, pairs_list)
+            performance_calculation_map_results = pool.map(partial_momentum, pairs_list)
 
         global_performance_dataframe = df()
         for pair_results in performance_calculation_map_results:
