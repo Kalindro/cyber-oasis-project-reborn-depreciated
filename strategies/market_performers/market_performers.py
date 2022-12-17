@@ -17,96 +17,40 @@ pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
 
-class MarketPerformers:
-    """
-    Script for performance of all coins in a table. Pairs modes:
-    - test (1)
-    - futures_USDT (2)
-    - spot_BTC (3)
-    - spot_USDT (4)
-    """
+class _MomentumCalculations:
+    def __init__(self, timeframe, number_of_last_candles, API):
+        self.timeframe = timeframe
+        self.number_of_last_candles = number_of_last_candles
+        self.API = API
 
-    def __init__(self):
-        self.PAIRS_MODE = 1
-        self.CORES_USED = 8
-        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
-        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
-        self.MIN_VOL_USD = 150_000
-        self.BTC_PRICE = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
-        self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_PRICE
-        self.main()
-
-    def pairs_list_futures_USDT(self):
-        """Only pairs on Binance futures USDT"""
-        pairs_list = get_pairs_list_USDT(self.API_fut)
-
-        return pairs_list
-
-    def pairs_list_spot_USDT(self):
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_USDT(self.API_spot)
-
-        return pairs_list
-
-    def pairs_list_spot_BTC(self):
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_BTC(self.API_spot)
-
-        return pairs_list
-
-    def select_pairs_list_and_API(self):
-        """Depending on the PAIRS_MODE, return correct paris list and API"""
-        fut_API = ExchangeAPISelect().binance_futures_read_only()
-        spot_API = ExchangeAPISelect().binance_spot_read_only()
-
-        if self.PAIRS_MODE == 1:
-            pairs_list = ["BTC/USDT", "ETH/USDT"]
-            API = fut_API
-        elif self.PAIRS_MODE == 2:
-            pairs_list = self.pairs_list_futures_USDT()
-            API = fut_API
-        elif self.PAIRS_MODE == 3:
-            pairs_list = self.pairs_list_spot_USDT()
-            API = spot_API
-        elif self.PAIRS_MODE == 4:
-            pairs_list = self.pairs_list_spot_BTC()
-            API = spot_API
-        else:
-            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
-
-        return pairs_list, API
-
-    @staticmethod
-    def get_history(pair, timeframe, number_of_last_candles, API):
+    def get_history(self):
         """Function for last n candles of history"""
-        pair_history = GetFullCleanHistoryDataframe(pair=pair, save_load_history=False, timeframe=timeframe,
-                                                    number_of_last_candles=number_of_last_candles, API=API).main()
-
+        pair_history = GetFullCleanHistoryDataframe(save_load_history=False, timeframe=self.timeframe,
+                                                    number_of_last_candles=self.number_of_last_candles,
+                                                    API=self.API).main()
         return pair_history
 
-    @staticmethod
-    def calculate_price_change(cut_history_dataframe):
+    @classmethod
+    def calculate_price_change(cls, cut_history_dataframe):
         """Function counting price change in %"""
         performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
                       cut_history_dataframe.iloc[0]["close"]
-
         return performance
 
-    @staticmethod
-    def calculate_momentum(history):
+    @classmethod
+    def calculate_momentum(cls, pair_history_dataframe):
         """Momentum calculation"""
-        closes = history["close"]
+        closes = pair_history_dataframe["close"]
         returns = np.log(closes)
         x = np.arange(len(returns))
         slope, _, rvalue, _, _ = linregress(x, returns)
         momentum = slope * 100
-
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, pair):
+    def performance_calculations(self):
         """Calculation all the needed performance metrics for the pair"""
-        _, API = self.select_pairs_list_and_API()
-        long_history = self.get_history(pair=pair, timeframe="1h", number_of_last_candles=775, API=API)
+        market_settings = _MarketSettings()
+        long_history = self.get_history()
         last_24h_hourly_history = long_history.tail(24)
         last_2d_hourly_history = long_history.tail(48)
         last_3d_hourly_history = long_history.tail(72)
@@ -116,9 +60,9 @@ class MarketPerformers:
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
         last_pair = str(long_history.iloc[-1].pair)
         if last_pair.endswith("/BTC"):
-            MIN_VOL = self.MIN_VOL_BTC
+            MIN_VOL = market_settings.Min_vol_BTC
         elif last_pair.endswith("/USDT"):
-            MIN_VOL = self.MIN_VOL_USD
+            MIN_VOL = market_settings.Min_vol_USD
         else:
             raise ValueError("Invalid pair quote currenct: " + last_pair)
         if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
@@ -137,7 +81,7 @@ class MarketPerformers:
                          last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
+        performance_dict = {"pair": [self.pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
                             "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
                             "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
                             "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],
@@ -145,16 +89,67 @@ class MarketPerformers:
                             "7d performance": [last_7d_performance], "7d momentum": [last_7d_momentum],
                             "14d performance": [last_14d_performance], "14d momentum": [last_14d_momentum],
                             "median momentum": [median_momentum], "mom weighted": [median_momentum_weighted]}
-
         return performance_dict
 
+
+class _MarketSettings:
+    """
+    Script for performance of all coins in a table. Pairs modes:
+    - test (1)
+    - futures_USDT (2)
+    - spot_BTC (3)
+    - spot_USDT (4)
+    """
+
+    def __init__(self):
+        self.PAIRS_MODE = 1
+        self.CORES_USED = 8
+        self.Min_vol_USD = 150_000
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 775
+        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
+        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
+        self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
+        self.Min_vol_BTC = self.Min_vol_USD / self.BTC_price
+
+    def pairs_list_futures_USDT(self):
+        """Only pairs on Binance futures USDT"""
+        pairs_list = get_pairs_list_USDT(self.API_fut)
+        return pairs_list
+
+    def pairs_list_spot_USDT(self):
+        """Only pairs on Binance spot BTC"""
+        pairs_list = get_pairs_list_USDT(self.API_spot)
+        return pairs_list
+
+    def pairs_list_spot_BTC(self):
+        """Only pairs on Binance spot BTC"""
+        pairs_list = get_pairs_list_BTC(self.API_spot)
+        return pairs_list
+
+    def select_pairs_list_and_API(self):
+        """Depending on the PAIRS_MODE, return correct paris list and API"""
+        fut_API = ExchangeAPISelect().binance_futures_read_only()
+        spot_API = ExchangeAPISelect().binance_spot_read_only()
+        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], fut_API),
+                              2: (self.pairs_list_futures_USDT(), fut_API),
+                              3: (self.pairs_list_spot_USDT(), spot_API),
+                              4: (self.pairs_list_spot_BTC(), spot_API)}
+        pairs_list_and_api = pairs_list_and_api.get(self.PAIRS_MODE)
+        if pairs_list_and_api is None:
+            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
+        return pairs_list_and_api
+
+
+class MomentumRank(_MarketSettings):
     def main(self):
         """Main function to run"""
         print("Starting...")
-        pairs_list, _ = self.select_pairs_list_and_API()
-
+        pairs_list, API = self.select_pairs_list_and_API()
+        delegate_momentum = _MomentumCalculations(number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                  timeframe=self.TIMEFRAME, API=API)
         with mp.Pool(self.CORES_USED) as pool:
-            performance_calculation_map_results = pool.map(self.performance_calculations, pairs_list)
+            performance_calculation_map_results = pool.map(_MomentumCalculations.performance_calculations, pairs_list)
 
         global_performance_dataframe = df()
         for pair_results in performance_calculation_map_results:
@@ -167,16 +162,13 @@ class MarketPerformers:
                 global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
             ETH_median_momentum = global_performance_dataframe.loc[
                 global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
-
             print(f"\033[92mMarket median momentum: {market_median_momentum:.2%}\033[0m")
             print(f"\033[92mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
             print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
-
         excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
                              perc_cols="F:Q")
-
         print("Saved excel, done")
 
 
 if __name__ == "__main__":
-    MarketPerformers()
+    MomentumRank().main()
