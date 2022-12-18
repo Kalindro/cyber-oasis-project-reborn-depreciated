@@ -97,12 +97,12 @@ class _MomentumCalculations:
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
         last_pair = str(long_history.iloc[-1].pair)
         if last_pair.endswith("/BTC"):
-            MIN_VOL = _MarketSettings().min_vol_BTC
+            min_vol = _MarketSettings().min_vol_BTC
         elif last_pair.endswith("/USDT"):
-            MIN_VOL = _MarketSettings().min_vol_USD
+            min_vol = _MarketSettings().min_vol_USD
         else:
             raise ValueError("Invalid pair quote currenct: " + last_pair)
-        if avg_24h_vol_usd < MIN_VOL or len(long_history) < 770:
+        if avg_24h_vol_usd < min_vol or len(long_history) < 770:
             return
         last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
         last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)

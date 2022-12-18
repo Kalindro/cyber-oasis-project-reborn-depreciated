@@ -10,6 +10,7 @@ from pandas import DataFrame as df
 
 from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                                   timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
+from gieldy.CCXT.CCXT_functions_builtin import get_history_one_fragment
 
 
 class _BaseInfoClassWithValidation:
@@ -138,27 +139,18 @@ class _DataStoring:
 class _QueryHistory:
     """Get range of pair history between desired periods or last n candles"""
 
-    @classmethod
-    def get_history_one_fragment(cls, pair: str, timeframe: str, since: int, API: dict) -> pd.DataFrame:
-        """Private, get fragment of history"""
-        general_client = API["general_client"]
-        candle_limit = 800
-        candles_list = general_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since, limit=candle_limit)
-        columns_ordered = ["date", "open", "high", "low", "close", "volume"]
-        history_dataframe_new = df(candles_list, columns=columns_ordered)
-        return history_dataframe_new
-
-    def get_history_range(self, pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
+    @staticmethod
+    def get_history_range(pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
         """Get range of history"""
         safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 12)
         local_since_timestamp = since_timestamp
-        hist_df_test = self.get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+        hist_df_test = get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
         delta = hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - safety_buffer
         hist_df_full = df()
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = self.get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+                hist_df_fresh = get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
                 local_since_timestamp += delta
                 if local_since_timestamp >= (end_timestamp + safety_buffer):
@@ -171,31 +163,28 @@ class _QueryHistory:
 class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
     """Main logic function to receive desired range of clean, usable history dataframe"""
 
-    def __init__(self, pair: str, timeframe: str, save_load_history: bool, API: dict,
+    def __init__(self, timeframe: str, save_load_history: bool, API: dict,
                  number_of_last_candles: Optional[int] = None, since: Optional[str] = None, end: Optional[str] = None):
         super().__init__(timeframe, save_load_history, number_of_last_candles, since, end)
         self.API = API
-        self.pair = pair
-        self.exchange = self.API["exchange"]
-        self.delegate_data_storing = _DataStoring(self.exchange, self.timeframe, self.pair, self.end_datetime,
-                                                  self.since_datetime)
-        self.delegate_query_history = _QueryHistory()
-        self.delegate_df_clean_cut = _DFCleanAndCut()
 
-    def main(self) -> pd.DataFrame:
+    def main(self, pair) -> pd.DataFrame:
         """Main logic function to loop the history acquisition"""
-        print(f"Getting {self.pair} history")
+        print(f"Getting {pair} history")
+        exchange = self.API["exchange"]
+        delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
+        delegate_query_history = _QueryHistory()
+        delegate_df_clean_cut = _DFCleanAndCut()
         if self.save_load_history:
-            hist_df_full = self.delegate_data_storing.load_dataframe_and_pre_check()
+            hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
             if dataframe_is_not_none_and_has_elements(hist_df_full):
                 return hist_df_full
-        hist_df_full = self.delegate_query_history.get_history_range(self.pair, self.timeframe, self.since_timestamp,
-                                                                     self.end_timestamp, self.API)
-        hist_df_final = self.delegate_df_clean_cut.history_df_cleaning(hist_df_full, self.pair)
+        hist_df_full = delegate_query_history.get_history_range(pair, self.timeframe, self.since_timestamp,
+                                                                self.end_timestamp, self.API)
+        hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
 
         if self.save_load_history:
-            self.delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
-        hist_df_final_cut = self.delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final,
-                                                                                     self.since_datetime,
-                                                                                     self.end_datetime)
+            delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
+        hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, self.since_datetime,
+                                                                                self.end_datetime)
         return hist_df_final_cut
