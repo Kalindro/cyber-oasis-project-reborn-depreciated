@@ -1,10 +1,10 @@
-from pandas import DataFrame as df
-from talib import NATR
-from scipy.stats import linregress
 import multiprocessing as mp
 import pandas as pd
 import numpy as np
 from functools import partial
+from scipy.stats import linregress
+from pandas import DataFrame as df
+from talib import NATR
 
 from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
@@ -15,9 +15,6 @@ from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
-
-API_fut = ExchangeAPISelect().binance_futures_read_only()
-API_spot = ExchangeAPISelect().binance_spot_read_only()
 
 
 class _MarketSettings:
@@ -30,35 +27,37 @@ class _MarketSettings:
     """
 
     def __init__(self):
-        self.PAIRS_MODE = 1
-        self.CORES_USED = 8
+        self.PAIRS_MODE = 2
+        self.CORES_USED = 6
         self.min_vol_USD = 150_000
         self.timeframe = "1h"
         self.number_of_last_candles = 775
-        self.BTC_price = get_pairs_prices(API_spot).loc["BTC/USDT"]["price"]
+        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
+        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
+        self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.min_vol_USD / self.BTC_price
 
     def pairs_list_futures_USDT(self):
         """Only pairs on Binance futures USDT"""
-        pairs_list = get_pairs_list_USDT(API_fut)
+        pairs_list = get_pairs_list_USDT(self.API_fut)
         return pairs_list
 
     def pairs_list_spot_USDT(self):
         """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_USDT(API_spot)
+        pairs_list = get_pairs_list_USDT(self.API_spot)
         return pairs_list
 
     def pairs_list_spot_BTC(self):
         """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_BTC(API_spot)
+        pairs_list = get_pairs_list_BTC(self.API_spot)
         return pairs_list
 
     def select_pairs_list_and_API(self):
         """Depending on the PAIRS_MODE, return correct paris list and API"""
-        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], API_fut),
-                              2: (self.pairs_list_futures_USDT(), API_fut),
-                              3: (self.pairs_list_spot_USDT(), API_spot),
-                              4: (self.pairs_list_spot_BTC(), API_spot)}
+        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], self.API_fut),
+                              2: (self.pairs_list_futures_USDT(), self.API_fut),
+                              3: (self.pairs_list_spot_USDT(), self.API_spot),
+                              4: (self.pairs_list_spot_BTC(), self.API_spot)}
         pairs_list_and_api = pairs_list_and_api.get(self.PAIRS_MODE)
         if pairs_list_and_api is None:
             raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
@@ -86,8 +85,7 @@ class _MomentumCalculations:
 
     def performance_calculations(self, pair, timeframe, number_of_last_candles, API):
         """Calculation all the needed performance metrics for the pair"""
-        long_history = GetFullCleanHistoryDataframe(pair=pair, save_load_history=False, timeframe=timeframe,
-                                                    number_of_last_candles=number_of_last_candles, API=API).main()
+        long_history = GetFullCleanHistoryDataframe(timeframe, False, API, number_of_last_candles).main(pair)
         last_24h_hourly_history = long_history.tail(24)
         last_2d_hourly_history = long_history.tail(48)
         last_3d_hourly_history = long_history.tail(72)
@@ -101,7 +99,7 @@ class _MomentumCalculations:
         elif last_pair.endswith("/USDT"):
             min_vol = _MarketSettings().min_vol_USD
         else:
-            raise ValueError("Invalid pair quote currenct: " + last_pair)
+            raise ValueError("Invalid pair quote currency: " + last_pair)
         if avg_24h_vol_usd < min_vol or len(long_history) < 770:
             return
         last_24h_performance = self.calculate_price_change(last_24h_hourly_history)

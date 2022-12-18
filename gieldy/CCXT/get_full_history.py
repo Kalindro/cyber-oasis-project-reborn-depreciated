@@ -10,7 +10,9 @@ from pandas import DataFrame as df
 
 from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                                   timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
-from gieldy.CCXT.CCXT_functions_builtin import get_history_one_fragment
+
+CP = os.path.dirname(inspect.getfile(inspect.currentframe()))
+PP = Path(CP).parent.parent
 
 
 class _BaseInfoClassWithValidation:
@@ -139,18 +141,29 @@ class _DataStoring:
 class _QueryHistory:
     """Get range of pair history between desired periods or last n candles"""
 
-    @staticmethod
-    def get_history_range(pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
+    def __init__(self):
+        self.candle_limit = 1200
+
+    def _get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict) -> pd.DataFrame:
+        """Private, get fragment of history"""
+        exchange_client = API["client"]
+        candles_list = exchange_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since,
+                                                  limit=self.candle_limit)
+        columns_ordered = ["date", "open", "high", "low", "close", "volume"]
+        history_dataframe_new = df(candles_list, columns=columns_ordered)
+        return history_dataframe_new
+
+    def get_history_range(self, pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
         """Get range of history"""
-        safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 12)
+        safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 18)
         local_since_timestamp = since_timestamp
-        hist_df_test = get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
-        delta = hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - safety_buffer
+        hist_df_test = self._get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+        delta = int(hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - safety_buffer)
         hist_df_full = df()
         while True:
             try:
                 time.sleep(randint(2, 5) / 10)
-                hist_df_fresh = get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+                hist_df_fresh = self._get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
                 hist_df_full = pd.concat([hist_df_full, hist_df_fresh])
                 local_since_timestamp += delta
                 if local_since_timestamp >= (end_timestamp + safety_buffer):
@@ -175,6 +188,7 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
         delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
         delegate_query_history = _QueryHistory()
         delegate_df_clean_cut = _DFCleanAndCut()
+
         if self.save_load_history:
             hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
             if dataframe_is_not_none_and_has_elements(hist_df_full):

@@ -2,7 +2,6 @@ import ccxt
 import os
 from dotenv import load_dotenv
 from typing import Optional
-from functools import partial
 
 
 def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
@@ -40,7 +39,7 @@ class ExchangeAPISelect(CCXTExchangeSelect):
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         API = {"full_name": name, "exchange": exchange,
-               "client_uninvoked": partial(self._binance_spot, public_key, secret_key)}
+               "client": self._binance_spot(public_key, secret_key)}
         return API
 
     def kucoin_spot_read_only(self) -> dict:
@@ -50,7 +49,7 @@ class ExchangeAPISelect(CCXTExchangeSelect):
         secret_key = os.getenv("KUCOIN_SPOT_READ_ONLY_PRIVATE_KEY")
         passphrase = os.getenv("KUCOIN_SPOT_READ_ONLY_PASSPHRASE")
         API = {"name": name, "exchange": exchange,
-               "client_uninvoked": partial(self._kucoin_spot, public_key, secret_key, passphrase)}
+               "client": self._kucoin_spot(public_key, secret_key, passphrase)}
         return API
 
     def binance_futures_read_only(self) -> dict:
@@ -59,5 +58,5 @@ class ExchangeAPISelect(CCXTExchangeSelect):
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         API = {"name": name, "exchange": exchange,
-               "client_uninvoked": partial(self._binance_futures, public_key, secret_key)}
+               "client": self._binance_futures(public_key, secret_key)}
         return API
