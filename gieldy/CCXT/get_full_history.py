@@ -1,18 +1,16 @@
+import datetime as dt
+import inspect
 import os
 import time
-import inspect
-import datetime as dt
-from random import randint
 from pathlib import Path
+from random import randint
 from typing import Optional, Union
+
 import pandas as pd
 from pandas import DataFrame as df
 
 from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                                   timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
-
-CP = os.path.dirname(inspect.getfile(inspect.currentframe()))
-PP = Path(CP).parent.parent
 
 
 class _BaseInfoClassWithValidation:
@@ -153,7 +151,8 @@ class _QueryHistory:
         history_dataframe_new = df(candles_list, columns=columns_ordered)
         return history_dataframe_new
 
-    def get_history_range(self, pair, timeframe, since_timestamp: int, end_timestamp: int, API: dict) -> pd.DataFrame:
+    def get_history_range(self, pair: str, timeframe: str, since_timestamp: int, end_timestamp: int,
+                          API: dict) -> pd.DataFrame:
         """Get range of history"""
         safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 18)
         local_since_timestamp = since_timestamp
@@ -181,7 +180,7 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
         super().__init__(timeframe, save_load_history, number_of_last_candles, since, end)
         self.API = API
 
-    def main(self, pair) -> pd.DataFrame:
+    def main(self, pair: str) -> pd.DataFrame:
         """Main logic function to loop the history acquisition"""
         print(f"Getting {pair} history")
         exchange = self.API["exchange"]

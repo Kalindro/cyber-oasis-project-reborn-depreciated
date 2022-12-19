@@ -1,7 +1,8 @@
-import ccxt
 import os
-from dotenv import load_dotenv
 from typing import Optional
+
+import ccxt
+from dotenv import load_dotenv
 
 
 def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
@@ -13,7 +14,7 @@ def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_k
     return getattr(ccxt, CCXT_exchange_name)(exchange_params)
 
 
-class CCXTExchangeSelect:
+class _CCXTExchangeSelect:
     """Class to create CCXT instance of selected exchange"""
 
     @staticmethod
@@ -29,7 +30,7 @@ class CCXTExchangeSelect:
         return _create_exchange_instance("binanceusdm", public_key, secret_key)
 
 
-class ExchangeAPISelect(CCXTExchangeSelect):
+class ExchangeAPISelect(_CCXTExchangeSelect):
     """Class for selecting the exchange and initiate with API"""
     load_dotenv()
 

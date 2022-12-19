@@ -1,9 +1,13 @@
+import multiprocessing as mp
+from typing import Optional
+
+import pandas as pd
+
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_precisions_status
-from gieldy.CCXT.get_full_history import _QueryHistory
-from functools import partial
+from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 
 
-def get_pairs_list_USDT(API):
+def get_pairs_list_USDT(API: dict) -> list[str]:
     """Get all USDT active pairs list"""
     pairs_precisions_status = get_pairs_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
@@ -12,7 +16,7 @@ def get_pairs_list_USDT(API):
     return pairs_list
 
 
-def get_pairs_list_BTC(API):
+def get_pairs_list_BTC(API: dict) -> list[str]:
     """Get all BTC active pairs list"""
     pairs_precisions_status = get_pairs_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
@@ -21,9 +25,24 @@ def get_pairs_list_BTC(API):
     return pairs_list
 
 
-# def get_history_of_all_pairs_on_list(pairs_list, timeframe, save_load, API, last_n_candles):
-#     partial_get_full_history = partial(_QueryHistory, timeframe=timeframe, save_load=save_load, API=API,
-#                                        last_n_candles=last_n_candles)
-#
-#     all_coins_history = list(map(partial_get_full_history, pairs_list))
-#
+def get_history_of_all_pairs_on_list_mp(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
+                                        number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+                                        end: Optional[str] = None) -> list[pd.DataFrame]:
+    delegate_history = GetFullCleanHistoryDataframe(timeframe=timeframe, save_load_history=save_load_history,
+                                                    number_of_last_candles=number_of_last_candles, since=since,
+                                                    end=end, API=API)
+    with mp.Pool(3) as pool:
+        all_coins_history = list(pool.map(delegate_history.main, pairs_list))
+        pool.close()
+        pool.join()
+    return all_coins_history
+
+
+# def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
+#                                      number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+#                                      end: Optional[str] = None) -> list[pd.DataFrame]:
+#     history_delegate = GetFullCleanHistoryDataframe(timeframe=timeframe, save_load_history=save_load_history,
+#                                                     number_of_last_candles=number_of_last_candles, since=since,
+#                                                     end=end, API=API)
+#     all_coins_history = list(map(history_delegate.main, pairs_list))
+#     return all_coins_history
