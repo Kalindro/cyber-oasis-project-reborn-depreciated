@@ -1,4 +1,4 @@
-import multiprocessing as mp
+import concurrent.futures
 from typing import Optional
 
 import pandas as pd
@@ -25,16 +25,25 @@ def get_pairs_list_BTC(API: dict) -> list[str]:
     return pairs_list
 
 
-def get_history_of_all_pairs_on_list_mp(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
+def get_history_of_all_pairs_on_list_TP(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
                                         number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
                                         end: Optional[str] = None) -> list[pd.DataFrame]:
     delegate_history = GetFullCleanHistoryDataframe(timeframe=timeframe, save_load_history=save_load_history,
                                                     number_of_last_candles=number_of_last_candles, since=since,
                                                     end=end, API=API)
-    with mp.Pool(3) as pool:
-        all_coins_history = list(pool.map(delegate_history.main, pairs_list))
-        pool.close()
-        pool.join()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        all_coins_history = list(executor.map(delegate_history.main, pairs_list))
+    return all_coins_history
+
+
+def get_history_of_all_pairs_on_list_PP(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
+                                        number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+                                        end: Optional[str] = None) -> list[pd.DataFrame]:
+    delegate_history = GetFullCleanHistoryDataframe(timeframe=timeframe, save_load_history=save_load_history,
+                                                    number_of_last_candles=number_of_last_candles, since=since,
+                                                    end=end, API=API)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
+        all_coins_history = list(executor.map(delegate_history.main, pairs_list))
     return all_coins_history
 
 

@@ -1,16 +1,17 @@
 import multiprocessing as mp
-import pandas as pd
-import numpy as np
 from functools import partial
-from scipy.stats import linregress
+
+import numpy as np
+import pandas as pd
 from pandas import DataFrame as df
+from scipy.stats import linregress
 from talib import NATR
 
 from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
-from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC
+from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC, \
+    get_history_of_all_pairs_on_list_mp
 from gieldy.general.utils import excel_save_formatted
-from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
@@ -31,7 +32,7 @@ class _MarketSettings:
         self.CORES_USED = 6
         self.min_vol_USD = 150_000
         self.timeframe = "1h"
-        self.number_of_last_candles = 775
+        self.number_of_last_candles = 2000
         self.API_spot = ExchangeAPISelect().binance_spot_read_only()
         self.API_fut = ExchangeAPISelect().binance_futures_read_only()
         self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
@@ -83,24 +84,23 @@ class _MomentumCalculations:
         momentum = slope * 100
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, pair, timeframe, number_of_last_candles, API):
+    def performance_calculations(self, coin_history_df):
         """Calculation all the needed performance metrics for the pair"""
-        long_history = GetFullCleanHistoryDataframe(timeframe, False, API, number_of_last_candles).main(pair)
-        last_24h_hourly_history = long_history.tail(24)
-        last_2d_hourly_history = long_history.tail(48)
-        last_3d_hourly_history = long_history.tail(72)
-        last_7d_hourly_history = long_history.tail(168)
-        last_14d_hourly_history = long_history.tail(336)
+        last_24h_hourly_history = coin_history_df.tail(24)
+        last_2d_hourly_history = coin_history_df.tail(48)
+        last_3d_hourly_history = coin_history_df.tail(72)
+        last_7d_hourly_history = coin_history_df.tail(168)
+        last_14d_hourly_history = coin_history_df.tail(336)
         avg_daily_volume_base = last_7d_hourly_history["volume"].sum() / 7
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
-        last_pair = str(long_history.iloc[-1].pair)
-        if last_pair.endswith("/BTC"):
+        pair = str(coin_history_df.iloc[-1].pair)
+        if pair.endswith("/BTC"):
             min_vol = _MarketSettings().min_vol_BTC
-        elif last_pair.endswith("/USDT"):
+        elif pair.endswith("/USDT"):
             min_vol = _MarketSettings().min_vol_USD
         else:
-            raise ValueError("Invalid pair quote currency: " + last_pair)
-        if avg_24h_vol_usd < min_vol or len(long_history) < 770:
+            raise ValueError("Invalid pair quote currency: " + pair)
+        if avg_24h_vol_usd < min_vol or len(coin_history_df) < 770:
             return
         last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
         last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)
@@ -116,7 +116,8 @@ class _MomentumCalculations:
                          last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
+        performance_dict = {"pair": [pair],
+                            "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
                             "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
                             "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
                             "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],
@@ -128,6 +129,20 @@ class _MomentumCalculations:
 
 
 class MomentumRank(_MarketSettings):
+    def srejn(self):
+        pairs_list, API = self.select_pairs_list_and_API()
+        all_pairs_history = get_history_of_all_pairs_on_list_mp(pairs_list=pairs_list, timeframe=self.timeframe,
+                                                                save_load_history=False,
+                                                                number_of_last_candles=self.number_of_last_candles,
+                                                                API=API)
+        # delegate_momentum = _MomentumCalculations()
+        # performance_calculation_map_results = map(delegate_momentum.performance_calculations, all_pairs_history)
+        # global_performance_dataframe = df()
+        # for pair_results in performance_calculation_map_results:
+        #     global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
+        #                                              ignore_index=True)
+        # print(global_performance_dataframe)
+
     def main(self):
         """Main function to run"""
         print("Starting...")
@@ -158,4 +173,4 @@ class MomentumRank(_MarketSettings):
 
 
 if __name__ == "__main__":
-    MomentumRank().main()
+    MomentumRank().srejn()
