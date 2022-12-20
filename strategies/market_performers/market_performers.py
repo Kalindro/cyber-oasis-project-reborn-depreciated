@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 
 import numpy as np
@@ -17,7 +18,7 @@ pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
-configure_logging()
+logger1 = configure_logging(logging.INFO)
 
 
 class _MarketSettings:
@@ -140,7 +141,7 @@ class MomentumRank(_MarketSettings):
         delegate_momentum = _MomentumCalculations()
         partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                    min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
-        print("Calculating performance for all the coins...")
+        logger1.info("Calculating performance for all the coins...")
         performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
         global_performance_dataframe = df()
         for pair_results in performance_calculation_map_results:
@@ -157,7 +158,7 @@ class MomentumRank(_MarketSettings):
             print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
         excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
                              perc_cols="F:Q")
-        print("Saved excel, done")
+        logger1.success("Saved excel, done")
 
 
 if __name__ == "__main__":
