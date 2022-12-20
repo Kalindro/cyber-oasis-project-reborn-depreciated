@@ -1,4 +1,3 @@
-import multiprocessing as mp
 from functools import partial
 
 import numpy as np
@@ -10,7 +9,7 @@ from talib import NATR
 from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
 from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC, \
-    get_history_of_all_pairs_on_list_mp
+    get_history_of_all_pairs_on_list
 from gieldy.general.utils import excel_save_formatted
 
 pd.set_option('display.max_rows', 0)
@@ -84,7 +83,7 @@ class _MomentumCalculations:
         momentum = slope * 100
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, coin_history_df):
+    def performance_calculations(self, coin_history_df, min_vol_USD, min_vol_BTC):
         """Calculation all the needed performance metrics for the pair"""
         last_24h_hourly_history = coin_history_df.tail(24)
         last_2d_hourly_history = coin_history_df.tail(48)
@@ -95,9 +94,9 @@ class _MomentumCalculations:
         avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
         pair = str(coin_history_df.iloc[-1].pair)
         if pair.endswith("/BTC"):
-            min_vol = _MarketSettings().min_vol_BTC
+            min_vol = min_vol_BTC
         elif pair.endswith("/USDT"):
-            min_vol = _MarketSettings().min_vol_USD
+            min_vol = min_vol_USD
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
         if avg_24h_vol_usd < min_vol or len(coin_history_df) < 770:
@@ -129,35 +128,21 @@ class _MomentumCalculations:
 
 
 class MomentumRank(_MarketSettings):
-    def srejn(self):
-        pairs_list, API = self.select_pairs_list_and_API()
-        all_pairs_history = get_history_of_all_pairs_on_list_mp(pairs_list=pairs_list, timeframe=self.timeframe,
-                                                                save_load_history=False,
-                                                                number_of_last_candles=self.number_of_last_candles,
-                                                                API=API)
-        # delegate_momentum = _MomentumCalculations()
-        # performance_calculation_map_results = map(delegate_momentum.performance_calculations, all_pairs_history)
-        # global_performance_dataframe = df()
-        # for pair_results in performance_calculation_map_results:
-        #     global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
-        #                                              ignore_index=True)
-        # print(global_performance_dataframe)
-
     def main(self):
-        """Main function to run"""
-        print("Starting...")
         pairs_list, API = self.select_pairs_list_and_API()
+        all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=pairs_list, timeframe=self.timeframe,
+                                                             save_load_history=False,
+                                                             number_of_last_candles=self.number_of_last_candles,
+                                                             API=API)
         delegate_momentum = _MomentumCalculations()
-        partial_momentum = partial(delegate_momentum.performance_calculations, timeframe=self.timeframe,
-                                   number_of_last_candles=self.number_of_last_candles, API=API)
-        with mp.Pool(self.CORES_USED) as pool:
-            performance_calculation_map_results = pool.map(partial_momentum, pairs_list)
-
+        partial_performance_calculations = partial(delegate_momentum.performance_calculations,
+                                                   min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
+        print("Calculating performance for all the coins...")
+        performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
         global_performance_dataframe = df()
         for pair_results in performance_calculation_map_results:
             global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                      ignore_index=True)
-
         if self.PAIRS_MODE != 1:
             market_median_momentum = global_performance_dataframe["median momentum"].median()
             BTC_median_momentum = global_performance_dataframe.loc[
@@ -173,4 +158,4 @@ class MomentumRank(_MarketSettings):
 
 
 if __name__ == "__main__":
-    MomentumRank().srejn()
+    MomentumRank().main()
