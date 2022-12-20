@@ -1,8 +1,9 @@
 import pandas as pd
+from gieldy.general.log_config import configure_logging
 from loguru import logger
 from pandas import DataFrame as df
 
-logger.remove()
+configure_logging()
 
 
 def get_exchange_timestamp(API: dict) -> str:

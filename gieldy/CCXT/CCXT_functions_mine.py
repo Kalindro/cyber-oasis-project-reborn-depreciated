@@ -6,8 +6,9 @@ from loguru import logger
 
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_precisions_status
 from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
+from gieldy.general.log_config import configure_logging
 
-logger.remove()
+configure_logging()
 
 
 def get_pairs_list_USDT(API: dict) -> list[str]:
