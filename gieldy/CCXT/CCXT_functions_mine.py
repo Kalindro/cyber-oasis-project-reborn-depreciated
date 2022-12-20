@@ -1,11 +1,13 @@
 import concurrent.futures
-from loguru import logger
 from typing import Optional
 
 import pandas as pd
+from loguru import logger
 
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_precisions_status
 from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
+
+logger.remove()
 
 
 def get_pairs_list_USDT(API: dict) -> list[str]:

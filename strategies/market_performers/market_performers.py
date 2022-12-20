@@ -1,7 +1,9 @@
+import sys
 from functools import partial
 
 import numpy as np
 import pandas as pd
+from loguru import logger
 from pandas import DataFrame as df
 from scipy.stats import linregress
 from talib import NATR
@@ -15,6 +17,15 @@ from gieldy.general.utils import excel_save_formatted
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
+
+logger.remove()
+formatted_format = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+    "<level>{level: <9}</level>| "
+    "<level>{message: <50}</level> | "
+    "<magenta>{file}:{line}</magenta> | "
+    "<blue>{function}</blue>")
+logger.add(sink=sys.stderr, format=formatted_format)
 
 
 class _MarketSettings:

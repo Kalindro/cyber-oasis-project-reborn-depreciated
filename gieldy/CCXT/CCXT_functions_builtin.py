@@ -1,6 +1,8 @@
 import pandas as pd
-from pandas import DataFrame as df
 from loguru import logger
+from pandas import DataFrame as df
+
+logger.remove()
 
 
 def get_exchange_timestamp(API: dict) -> str:
@@ -17,7 +19,7 @@ def get_pairs_precisions_status(API: dict) -> pd.DataFrame:
     exchange_client = API["client"]
     pairs_precisions_status_df = exchange_client.fetch_markets()
     pairs_precisions_status_df = df(pairs_precisions_status_df,
-                                 columns=["symbol", "base", "quote", "active", "precision", "limits"])
+                                    columns=["symbol", "base", "quote", "active", "precision", "limits"])
     pairs_precisions_status_df = pairs_precisions_status_df.astype({"active": str})
     pairs_precisions_status_df.set_index("symbol", inplace=True)
     logger.success("Pairs precisions status completed, returning")
