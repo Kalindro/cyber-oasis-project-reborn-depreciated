@@ -1,4 +1,3 @@
-import logging
 from functools import partial
 
 import numpy as np
@@ -11,14 +10,14 @@ from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
 from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC, \
     get_history_of_all_pairs_on_list
-from gieldy.general.log_config import configure_logging
+from gieldy.general.log_config import ConfigureLoguru
 from gieldy.general.utils import excel_save_formatted
 
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
-logger1 = configure_logging(logging.INFO)
+logger = ConfigureLoguru().debug_level()
 
 
 class _MarketSettings:
@@ -40,6 +39,7 @@ class _MarketSettings:
         self.API_fut = ExchangeAPISelect().binance_futures_read_only()
         self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.min_vol_USD / self.BTC_price
+        logger.debug("CHUJ XD")
 
     def pairs_list_futures_USDT(self):
         """Only pairs on Binance futures USDT"""
@@ -141,7 +141,7 @@ class MomentumRank(_MarketSettings):
         delegate_momentum = _MomentumCalculations()
         partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                    min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
-        logger1.info("Calculating performance for all the coins...")
+        logger.info("Calculating performance for all the coins...")
         performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
         global_performance_dataframe = df()
         for pair_results in performance_calculation_map_results:
@@ -158,7 +158,7 @@ class MomentumRank(_MarketSettings):
             print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
         excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
                              perc_cols="F:Q")
-        logger1.success("Saved excel, done")
+        logger.success("Saved excel, done")
 
 
 if __name__ == "__main__":
