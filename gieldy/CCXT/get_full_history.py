@@ -182,22 +182,25 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
 
     def main(self, pair: str) -> pd.DataFrame:
         """Main logic function to loop the history acquisition"""
-        print(f"Getting {pair} history")
-        exchange = self.API["exchange"]
-        delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
-        delegate_query_history = _QueryHistory()
-        delegate_df_clean_cut = _DFCleanAndCut()
+        try:
+            print(f"Getting {pair} history")
+            exchange = self.API["exchange"]
+            delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
+            delegate_query_history = _QueryHistory()
+            delegate_df_clean_cut = _DFCleanAndCut()
 
-        if self.save_load_history:
-            hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
-            if dataframe_is_not_none_and_has_elements(hist_df_full):
-                return hist_df_full
-        hist_df_full = delegate_query_history.get_history_range(pair, self.timeframe, self.since_timestamp,
-                                                                self.end_timestamp, self.API)
-        hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
+            if self.save_load_history:
+                hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
+                if dataframe_is_not_none_and_has_elements(hist_df_full):
+                    return hist_df_full
+            hist_df_full = delegate_query_history.get_history_range(pair, self.timeframe, self.since_timestamp,
+                                                                    self.end_timestamp, self.API)
+            hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
 
-        if self.save_load_history:
-            delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
-        hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, self.since_datetime,
-                                                                                self.end_datetime)
-        return hist_df_final_cut
+            if self.save_load_history:
+                delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
+            hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, self.since_datetime,
+                                                                                    self.end_datetime)
+            return hist_df_final_cut
+        except Exception as err:
+            logger.error(f"Error on main full history, {err}")

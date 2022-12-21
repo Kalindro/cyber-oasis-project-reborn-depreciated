@@ -48,23 +48,24 @@ def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_c
 
 
 def timeframe_to_timestamp_ms(timeframe):
-    if timeframe.lower() == "1m":
+    timeframe = timeframe.lower()
+    if timeframe == "1m" or timeframe == "1min":
         timestamp_ms = 60000
-    elif timeframe.lower() == "5m":
+    elif timeframe == "5m" or timeframe == "5min":
         timestamp_ms = 300000
-    elif timeframe.lower() == "15m":
+    elif timeframe == "15m" or timeframe == "15min":
         timestamp_ms = 900000
-    elif timeframe.lower() == "30m":
+    elif timeframe == "30m" or timeframe == "30min":
         timestamp_ms = 1800000
-    elif timeframe.lower() == "1h" or timeframe.lower() == "60m":
+    elif timeframe == "1h" or timeframe == "60m" or timeframe == "60min":
         timestamp_ms = 3600000
-    elif timeframe.lower() == "4h":
+    elif timeframe == "4h":
         timestamp_ms = 14400000
-    elif timeframe.lower() == "12h":
+    elif timeframe == "12h":
         timestamp_ms = 43200000
-    elif timeframe.lower() == "24h" or timeframe.lower() == "1d":
+    elif timeframe == "24h" or timeframe == "1d":
         timestamp_ms = 86400000
-    elif timeframe.lower() == "7d" or timeframe.lower() == "1w":
+    elif timeframe == "7d" or timeframe == "1w":
         timestamp_ms = 604800000
     else:
         raise ValueError("Unsupported timeframe to convert to timestamp")

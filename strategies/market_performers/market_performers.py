@@ -134,32 +134,35 @@ class _MomentumCalculations:
 
 class MomentumRank(_MarketSettings):
     def main(self) -> None:
-        pairs_list, API = self.select_pairs_list_and_API()
-        all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=pairs_list, timeframe=self.timeframe,
-                                                             save_load_history=False,
-                                                             number_of_last_candles=self.number_of_last_candles,
-                                                             API=API)
-        delegate_momentum = _MomentumCalculations()
-        partial_performance_calculations = partial(delegate_momentum.performance_calculations,
-                                                   min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
-        logger.info("Calculating performance for all the coins...")
-        performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
-        global_performance_dataframe = df()
-        for pair_results in performance_calculation_map_results:
-            global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
-                                                     ignore_index=True)
-        if self.PAIRS_MODE != 1:
-            market_median_momentum = global_performance_dataframe["median momentum"].median()
-            BTC_median_momentum = global_performance_dataframe.loc[
-                global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
-            ETH_median_momentum = global_performance_dataframe.loc[
-                global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
-            print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
-            print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
-            print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
-        excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
-                             perc_cols="F:Q")
-        logger.success("Saved excel, all done")
+        try:
+            pairs_list, API = self.select_pairs_list_and_API()
+            all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=pairs_list, timeframe=self.timeframe,
+                                                                 save_load_history=False,
+                                                                 number_of_last_candles=self.number_of_last_candles,
+                                                                 API=API)
+            delegate_momentum = _MomentumCalculations()
+            partial_performance_calculations = partial(delegate_momentum.performance_calculations,
+                                                       min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
+            logger.info("Calculating performance for all the coins...")
+            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
+            global_performance_dataframe = df()
+            for pair_results in performance_calculation_map_results:
+                global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
+                                                         ignore_index=True)
+            if self.PAIRS_MODE != 1:
+                market_median_momentum = global_performance_dataframe["median momentum"].median()
+                BTC_median_momentum = global_performance_dataframe.loc[
+                    global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
+                ETH_median_momentum = global_performance_dataframe.loc[
+                    global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
+                print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
+                print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
+                print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
+            excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
+                                 perc_cols="F:Q")
+            logger.success("Saved excel, all done")
+        except Exception as err:
+            logger.error(f"Error on main market performance, {err}")
 
 
 if __name__ == "__main__":
