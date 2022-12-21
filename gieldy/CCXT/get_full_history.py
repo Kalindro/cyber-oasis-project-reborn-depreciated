@@ -2,6 +2,7 @@ import datetime as dt
 import inspect
 import os
 import time
+from loguru import logger
 from pathlib import Path
 from random import randint
 from typing import Optional, Union
@@ -70,7 +71,7 @@ class _DFCleanAndCut:
             hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
                                   pair[:-5] if pair.endswith("/USDT") else pair[:-4])
         else:
-            print(f"{pair} is broken or too short")
+            logger.info(f"{pair} is broken or too short")
             return None
         return hist_dataframe
 
@@ -109,11 +110,10 @@ class _DataStoring:
                 os.makedirs(self.exchange_history_location)
             history_df_saved = pd.read_pickle(
                 f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
-            print("Saved history pickle found")
             return history_df_saved
 
         except FileNotFoundError as err:
-            print(f"No saved history for {self.pair_for_data}, {err}")
+            logger.info(f"No saved history for {self.pair_for_data}, {err}")
             return None
 
     def load_dataframe_and_pre_check(self) -> Union[pd.DataFrame, None]:
@@ -122,18 +122,18 @@ class _DataStoring:
         hist_df_full = self.parse_dataframe_from_pickle()
         if dataframe_is_not_none_and_has_elements(hist_df_full):
             if (hist_df_full.iloc[-1].name > self.end_datetime) and (hist_df_full.iloc[0].name < self.since_datetime):
-                print("Saved data is sufficient, returning")
+                logger.info("Saved data is sufficient, returning")
                 hist_df_final_cut = cut_delegate.cut_exact_df_dates_for_return(hist_df_full, self.since_datetime,
                                                                                self.end_datetime)
                 return hist_df_final_cut
-        print("Saved data found, not sufficient data range, getting whole fresh")
+        logger.info("Saved data found, not sufficient data range, getting whole fresh")
         return None
 
     def save_dataframe_to_pickle(self, df_to_save: pd.DataFrame) -> None:
         """Pickle the data and save"""
         df_to_save.to_pickle(
             f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
-        print("Saved history dataframe as pickle")
+        logger.info("Saved history dataframe as pickle")
 
 
 class _QueryHistory:
@@ -168,7 +168,7 @@ class _QueryHistory:
                 if local_since_timestamp >= (end_timestamp + safety_buffer):
                     break
             except Exception as error:
-                print(f"Error on history fragments loop, {error}")
+                logger.error(f"Error on history fragments loop, {error}")
         return hist_df_full
 
 

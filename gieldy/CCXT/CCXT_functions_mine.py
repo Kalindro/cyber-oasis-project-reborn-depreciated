@@ -4,29 +4,29 @@ from typing import Optional
 import pandas as pd
 from loguru import logger
 
-from gieldy.CCXT.CCXT_functions_builtin import get_pairs_precisions_status
+from gieldy.CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
 from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 
 
 def get_pairs_list_USDT(API: dict) -> list[str]:
     """Get all USDT active pairs list"""
     logger.info("Getting USDT pairs list...")
-    pairs_precisions_status = get_pairs_precisions_status(API)
+    pairs_precisions_status = get_pairs_with_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
-    logger.info("Pairs list completed, returning")
+    logger.debug("Pairs list completed, returning")
     return pairs_list
 
 
 def get_pairs_list_BTC(API: dict) -> list[str]:
     """Get all BTC active pairs list"""
     logger.info("Getting BTC pairs list...")
-    pairs_precisions_status = get_pairs_precisions_status(API)
+    pairs_precisions_status = get_pairs_with_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/BTC")]
-    logger.info("Pairs list completed, returning")
+    logger.debug("Pairs list completed, returning")
     return pairs_list
 
 
@@ -39,5 +39,5 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
                                                     end=end, API=API)
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         all_coins_history = list(executor.map(delegate_history.main, pairs_list))
-    logger.info("History of all the coins completed, returning")
+    logger.success("History of all the coins completed, returning")
     return all_coins_history

@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
-logger = ConfigureLoguru().debug_level()
+logger = ConfigureLoguru().info_level()
 
 
 class _MarketSettings:
@@ -39,46 +40,45 @@ class _MarketSettings:
         self.API_fut = ExchangeAPISelect().binance_futures_read_only()
         self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.min_vol_USD / self.BTC_price
-        logger.debug("CHUJ XD")
 
-    def pairs_list_futures_USDT(self):
+    def pairs_list_futures_USDT(self) -> list[str]:
         """Only pairs on Binance futures USDT"""
         pairs_list = get_pairs_list_USDT(self.API_fut)
         return pairs_list
 
-    def pairs_list_spot_USDT(self):
+    def pairs_list_spot_USDT(self) -> list[str]:
         """Only pairs on Binance spot BTC"""
         pairs_list = get_pairs_list_USDT(self.API_spot)
         return pairs_list
 
-    def pairs_list_spot_BTC(self):
+    def pairs_list_spot_BTC(self) -> list[str]:
         """Only pairs on Binance spot BTC"""
         pairs_list = get_pairs_list_BTC(self.API_spot)
         return pairs_list
 
-    def select_pairs_list_and_API(self):
+    def select_pairs_list_and_API(self) -> Tuple[list[str], dict]:
         """Depending on the PAIRS_MODE, return correct paris list and API"""
         pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], self.API_fut),
-                              2: (self.pairs_list_futures_USDT(), self.API_fut),
-                              3: (self.pairs_list_spot_USDT(), self.API_spot),
-                              4: (self.pairs_list_spot_BTC(), self.API_spot)}
-        pairs_list_and_api = pairs_list_and_api.get(self.PAIRS_MODE)
+                              2: (self.pairs_list_futures_USDT, self.API_fut),
+                              3: (self.pairs_list_spot_USDT, self.API_spot),
+                              4: (self.pairs_list_spot_BTC, self.API_spot)}
+        pairs_list, API = pairs_list_and_api.get(self.PAIRS_MODE)
         if pairs_list_and_api is None:
             raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
-        return pairs_list_and_api
+        return pairs_list(), API
 
 
 class _MomentumCalculations:
 
     @classmethod
-    def calculate_price_change(cls, cut_history_dataframe):
+    def calculate_price_change(cls, cut_history_dataframe: pd.DataFrame) -> float:
         """Function counting price change in %"""
         performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
                       cut_history_dataframe.iloc[0]["close"]
         return performance
 
     @classmethod
-    def calculate_momentum(cls, pair_history_dataframe):
+    def calculate_momentum(cls, pair_history_dataframe: pd.DataFrame) -> float:
         """Momentum calculation"""
         closes = pair_history_dataframe["close"]
         returns = np.log(closes)
@@ -87,7 +87,8 @@ class _MomentumCalculations:
         momentum = slope * 100
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, coin_history_df, min_vol_USD, min_vol_BTC):
+    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int
+                                 ) -> Union[dict, None]:
         """Calculation all the needed performance metrics for the pair"""
         last_24h_hourly_history = coin_history_df.tail(24)
         last_2d_hourly_history = coin_history_df.tail(48)
@@ -132,7 +133,7 @@ class _MomentumCalculations:
 
 
 class MomentumRank(_MarketSettings):
-    def main(self):
+    def main(self) -> None:
         pairs_list, API = self.select_pairs_list_and_API()
         all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=pairs_list, timeframe=self.timeframe,
                                                              save_load_history=False,
@@ -153,12 +154,12 @@ class MomentumRank(_MarketSettings):
                 global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
             ETH_median_momentum = global_performance_dataframe.loc[
                 global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
-            print(f"\033[92mMarket median momentum: {market_median_momentum:.2%}\033[0m")
-            print(f"\033[92mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
-            print(f"\033[92mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
+            print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
+            print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
+            print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
         excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
                              perc_cols="F:Q")
-        logger.success("Saved excel, done")
+        logger.success("Saved excel, all done")
 
 
 if __name__ == "__main__":
