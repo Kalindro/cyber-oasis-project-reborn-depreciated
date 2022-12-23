@@ -183,7 +183,7 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
     def main(self, pair: str) -> pd.DataFrame:
         """Main logic function to loop the history acquisition"""
         try:
-            print(f"Getting {pair} history")
+            logger.info(f"Getting {pair} history")
             exchange = self.API["exchange"]
             delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
             delegate_query_history = _QueryHistory()
