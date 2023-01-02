@@ -21,7 +21,7 @@ pd.set_option('display.width', 0)
 logger = ConfigureLoguru().info_level()
 
 
-class _MarketSettings:
+class _BaseSettings:
     """
     Script for performance of all coins in a table. Pairs modes:
     - test (1)
@@ -132,7 +132,7 @@ class _MomentumCalculations:
         return performance_dict
 
 
-class MomentumRank(_MarketSettings):
+class MomentumRank(_BaseSettings):
     def main(self) -> None:
         try:
             pairs_list, API = self.select_pairs_list_and_API()
