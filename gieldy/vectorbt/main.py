@@ -17,31 +17,7 @@ class Backtest:
         self.END_DATE = "10.10.2022"
         self.TIMEFRAME = "1h"
 
-    def pairs_list_spot_BTC(self):
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_BTC(self.API_spot)
-
-        return pairs_list
-
-    def select_pairs_list_and_API(self):
-        """Depending on the PAIRS_MODE, return correct paris list and API"""
-        fut_API = ExchangeAPI().binance_futures_read_only()
-        spot_API = ExchangeAPI().binance_spot_read_only()
-
-        if self.PAIRS_MODE == 1:
-            pairs_list = ["BTC/USDT", "ETH/USDT"]
-            API = spot_API
-        elif self.PAIRS_MODE == 2:
-            pairs_list = self.pairs_list_futures_USDT()
-            API = fut_API
-        elif self.PAIRS_MODE == 3:
-            pairs_list = self.pairs_list_spot_USDT()
-            API = spot_API
-        elif self.PAIRS_MODE == 4:
-            pairs_list = self.pairs_list_spot_BTC()
-            API = spot_API
-        else:
-            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
 
 
 if __name__ == "__main__":
+    pass

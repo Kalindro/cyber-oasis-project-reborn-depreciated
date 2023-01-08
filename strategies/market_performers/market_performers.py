@@ -32,10 +32,11 @@ class _BaseSettings:
 
     def __init__(self):
         self.PAIRS_MODE = 2
-        self.CORES_USED = 6
-        self.min_vol_USD = 150_000
         self.timeframe = "1h"
         self.number_of_last_candles = 2000
+        self.min_vol_USD = 150_000
+        self.CORES_USED = 6
+
         self.API_spot = ExchangeAPISelect().binance_spot_read_only()
         self.API_fut = ExchangeAPISelect().binance_futures_read_only()
         self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
@@ -44,6 +45,11 @@ class _BaseSettings:
     def pairs_list_futures_USDT(self) -> list[str]:
         """Only pairs on Binance futures USDT"""
         pairs_list = get_pairs_list_USDT(self.API_fut)
+        return pairs_list
+
+    def pairs_list_futures_BTC(self) -> list[str]:
+        """Only pairs on Binance futures USDT"""
+        pairs_list = get_pairs_list_BTC(self.API_fut)
         return pairs_list
 
     def pairs_list_spot_USDT(self) -> list[str]:
