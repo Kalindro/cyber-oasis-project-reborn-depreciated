@@ -4,6 +4,7 @@ from typing import Optional
 import pandas as pd
 from loguru import logger
 
+from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
 from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
 
@@ -41,3 +42,29 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
         all_coins_history = list(executor.map(delegate_history.main, pairs_list))
     logger.success("History of all the coins completed, returning")
     return all_coins_history
+
+
+class _BaseSettings:
+    """
+    Script for performance of all coins in a table. Pairs modes:
+    - test (1)
+    - futures_USDT (2)
+    - spot_BTC (3)
+    - spot_USDT (4)
+    """
+
+    def __init__(self, API):
+        pass
+
+    def select_pairs_list_and_API(self) -> list[str]:
+        """Depending on the PAIRS_MODE, return correct pairs list"""
+        pairs_list = {1: ["BTC/USDT", "ETH/USDT"],
+                      2: get_pairs_list_USDT(ExchangeAPISelect().binance_spot_read_only()),
+                      3: get_pairs_list_BTC(ExchangeAPISelect().binance_spot_read_only()),
+                      4: get_pairs_list_USDT(ExchangeAPISelect().binance_futures_read_only()),
+                      5: get_pairs_list_BTC(ExchangeAPISelect().binance_futures_read_only()),
+                      }
+        pairs_list = pairs_list.get(self.PAIRS_MODE)
+        if pairs_list is None:
+            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
+        return pairs_list()
