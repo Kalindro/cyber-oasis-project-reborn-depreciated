@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -7,10 +7,9 @@ from pandas import DataFrame as df
 from scipy.stats import linregress
 from talib import NATR
 
-from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
-from gieldy.CCXT.CCXT_functions_mine import get_pairs_list_USDT, get_pairs_list_BTC, \
-    get_history_of_all_pairs_on_list
+from gieldy.CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
+    select_pairs_list_mode
 from gieldy.general.log_config import ConfigureLoguru
 from gieldy.general.utils import excel_save_formatted
 
@@ -24,54 +23,24 @@ logger = ConfigureLoguru().info_level()
 class _MarketSettings:
     """
     Script for performance of all coins in a table. Pairs modes:
-    - test (1)
-    - futures_USDT (2)
-    - spot_BTC (3)
-    - spot_USDT (4)
     """
 
     def __init__(self):
-        self.PAIRS_MODE = 2
+        """
+        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+        :PAIRS_MODE: 1 - Test; 2 - BTC; 3 - USDT
+        """
+        self.EXCHANGE_MODE = 1
+        self.PAIRS_MODE = 1
         self.timeframe = "1h"
         self.number_of_last_candles = 2000
         self.min_vol_USD = 150_000
         self.CORES_USED = 6
 
-        self.API_spot = ExchangeAPISelect().binance_spot_read_only()
-        self.API_fut = ExchangeAPISelect().binance_futures_read_only()
-        self.BTC_price = get_pairs_prices(self.API_spot).loc["BTC/USDT"]["price"]
+        self.API = select_exchange_mode(self.EXCHANGE_MODE)
+        self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
+        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.min_vol_USD / self.BTC_price
-
-    def pairs_list_futures_USDT(self) -> list[str]:
-        """Only pairs on Binance futures USDT"""
-        pairs_list = get_pairs_list_USDT(self.API_fut)
-        return pairs_list
-
-    def pairs_list_futures_BTC(self) -> list[str]:
-        """Only pairs on Binance futures USDT"""
-        pairs_list = get_pairs_list_BTC(self.API_fut)
-        return pairs_list
-
-    def pairs_list_spot_USDT(self) -> list[str]:
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_USDT(self.API_spot)
-        return pairs_list
-
-    def pairs_list_spot_BTC(self) -> list[str]:
-        """Only pairs on Binance spot BTC"""
-        pairs_list = get_pairs_list_BTC(self.API_spot)
-        return pairs_list
-
-    def select_pairs_list_and_API(self) -> Tuple[list[str], dict]:
-        """Depending on the PAIRS_MODE, return correct paris list and API"""
-        pairs_list_and_api = {1: (["BTC/USDT", "ETH/USDT"], self.API_fut),
-                              2: (self.pairs_list_futures_USDT, self.API_fut),
-                              3: (self.pairs_list_spot_USDT, self.API_spot),
-                              4: (self.pairs_list_spot_BTC, self.API_spot)}
-        pairs_list, API = pairs_list_and_api.get(self.PAIRS_MODE)
-        if pairs_list_and_api is None:
-            raise ValueError("Invalid mode: " + str(self.PAIRS_MODE))
-        return pairs_list(), API
 
 
 class _MomentumCalculations:
@@ -141,11 +110,10 @@ class _MomentumCalculations:
 class MomentumRank(_MarketSettings):
     def main(self) -> None:
         try:
-            pairs_list, API = self.select_pairs_list_and_API()
-            all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=pairs_list, timeframe=self.timeframe,
+            all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list, timeframe=self.timeframe,
                                                                  save_load_history=False,
                                                                  number_of_last_candles=self.number_of_last_candles,
-                                                                 API=API)
+                                                                 API=self.API)
             delegate_momentum = _MomentumCalculations()
             partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                        min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
