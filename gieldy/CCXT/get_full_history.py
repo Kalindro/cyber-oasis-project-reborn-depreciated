@@ -97,19 +97,19 @@ class _DataStoring:
         self.since_datetime = since_datetime
 
     @property
-    def exchange_history_location(self) -> str:
+    def pair_history_location(self) -> str:
         """Return the path where the history for this exchange should be saved"""
         current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
         project_path = Path(current_path).parent.parent
-        return f"{project_path}/history_data/{self.exchange}"
+        return f"{project_path}\\history_data\\{self.exchange}\\{self.timeframe}"
 
     def parse_dataframe_from_pickle(self) -> Union[pd.DataFrame, None]:
         """Check for pickled data and load, if no folder for data - create"""
         try:
-            if not os.path.exists(self.exchange_history_location):
-                os.makedirs(self.exchange_history_location)
+            if not os.path.exists(self.pair_history_location):
+                os.makedirs(self.pair_history_location)
             history_df_saved = pd.read_pickle(
-                f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
+                f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
             return history_df_saved
 
         except FileNotFoundError as err:
@@ -132,7 +132,7 @@ class _DataStoring:
     def save_dataframe_to_pickle(self, df_to_save: pd.DataFrame) -> None:
         """Pickle the data and save"""
         df_to_save.to_pickle(
-            f"{self.exchange_history_location}/{self.timeframe}/{self.pair_for_data}_{self.timeframe}.pickle")
+            f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
         logger.info("Saved history dataframe as pickle")
 
 

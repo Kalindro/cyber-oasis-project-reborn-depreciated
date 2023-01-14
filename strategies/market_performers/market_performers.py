@@ -28,10 +28,10 @@ class _BaseSettings:
     def __init__(self):
         """
         :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-        :PAIRS_MODE: 1 - Test; 2 - BTC; 3 - USDT
+        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 1
+        self.PAIRS_MODE = 2
         self.timeframe = "1h"
         self.number_of_last_candles = 2000
         self.min_vol_USD = 150_000
@@ -118,7 +118,7 @@ class MomentumRank(_BaseSettings):
             partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                        min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
             logger.info("Calculating performance for all the coins...")
-            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history)
+            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history.values())
             global_performance_dataframe = df()
             for pair_results in performance_calculation_map_results:
                 global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
