@@ -51,7 +51,7 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
                                                     number_of_last_candles=number_of_last_candles, since=since,
                                                     end=end, API=API)
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        all_coins_history = dict(zip(pairs_list, executor.map(delegate_history.main, pairs_list)))
+        all_coins_history = list(executor.map(delegate_history.main, pairs_list))
     logger.success("History of all the coins completed, returning")
     return all_coins_history
 
