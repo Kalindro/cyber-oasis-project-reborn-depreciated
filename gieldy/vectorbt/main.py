@@ -59,15 +59,16 @@ class _BaseSettings:
         entries = keltner.close_crossed_below(keltner.kcle)
         exits = keltner.close_crossed_above(keltner.kcue)
 
-        fig = df.vbt.ohlcv.plot(plot_type="candlestick")
+        pf = vbt.Portfolio.from_signals(df["close"], entries, exits)
+
+        fig = df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False)
         fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")), fig=fig)
         fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")), fig=fig)
         fig = entries.vbt.signals.plot_as_entry_markers(df["close"], fig=fig)
         fig = exits.vbt.signals.plot_as_exit_markers(df["close"], fig=fig)
-        fig.show()
 
-        pf = vbt.Portfolio.from_signals(df["close"], entries, exits)
-        print(pf.stats())
+        # print(pf.stats())
+        # fig.show()
 
 
 if __name__ == "__main__":
