@@ -12,8 +12,8 @@ pd.set_option('display.width', 0)
 
 logger = ConfigureLoguru().info_level()
 
-vbt.settings['plotting']['layout']['width'] = 1600
-vbt.settings['plotting']['layout']['height'] = 800
+vbt.settings['plotting']['layout']['width'] = 1000
+vbt.settings['plotting']['layout']['height'] = 500
 
 vbt.settings.set_theme("seaborn")
 vbt.settings.portfolio['init_cash'] = 1000
@@ -53,22 +53,44 @@ class _BaseSettings:
                                                                      save_load_history=True, since=self.since,
                                                                      end=self.end,
                                                                      API=self.API)
-        df = pd.concat(all_coins_history_df_list, axis=1)
-        keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=df["high"], low=df["low"], close=df["close"],
+        price_df = pd.concat(all_coins_history_df_list, axis=1)
+        keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=price_df["high"], low=price_df["low"],
+                                                                close=price_df["close"],
                                                                 length=self.period, scalar=self.deviation)
         entries = keltner.close_crossed_below(keltner.kcle)
         exits = keltner.close_crossed_above(keltner.kcue)
 
-        pf = vbt.Portfolio.from_signals(df["close"], entries, exits)
+        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
+                                        low=price_df["low"], entries=entries, exits=exits)
+        print(pf.stats())
 
-        fig = df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False)
-        fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")), fig=fig)
-        fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")), fig=fig)
-        fig = entries.vbt.signals.plot_as_entry_markers(df["close"], fig=fig)
-        fig = exits.vbt.signals.plot_as_exit_markers(df["close"], fig=fig)
+        fig = pf.plot(subplots=[
+            ("price", dict(title="Price",
+                           yaxis_kwargs=dict(title="Price"))),
+            "orders",
+            "trade_pnl",
+        ])
 
-        # print(pf.stats())
-        # fig.show()
+        # ohlc_scatter = vbt.plotting.Scatter(data=price_df["close"], x_labels=price_df.index,
+        #                                     trace_names=["Price"], add_trace_kwargs=(dict(row=1, col=1)), fig=fig)
+        # upper_band_scatter = vbt.plotting.Scatter(data=keltner.kcue, x_labels=keltner.kcue.index,
+        #                                           trace_names=["Upper Band"], add_trace_kwargs=(dict(row=1, col=1)),
+        #                                           fig=fig)
+        # lower_band_scatter = vbt.plotting.Scatter(data=keltner.kcle, x_labels=keltner.kcue.index,
+        #                                           trace_names=["Lower Band"], add_trace_kwargs=(dict(row=1, col=1)),
+        #                                           fig=fig)
+        # entry_scatter = vbt.plotting.Scatter(data=entries, x_labels=entries.index,
+        #                                      trace_names=["Entry"], add_trace_kwargs=(dict(row=1, col=1)),
+        #                                      fig=fig)
+
+        fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
+                                     ohlc_add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        # fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")), fig=fig)
+        # fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")), fig=fig)
+        # fig = entries.vbt.signals.plot_as_entry_markers(price_df["close"], fig=fig)
+        # fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], fig=fig)
+
+        fig.show()
 
 
 if __name__ == "__main__":
