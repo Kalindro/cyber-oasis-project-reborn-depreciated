@@ -1,1 +1,19 @@
 2023-01-14 20:52:15 | ERROR    | Error on main market performance, 'str' object has no attribute 'tail' | main | market_performers.py:139
+2023-01-23 15:18:32 | ERROR    | Error on main market performance, 'list' object has no attribute 'values' | main | market_performers.py:139
+2023-01-23 15:21:16 | ERROR    | Error on main market performance, 'list' object has no attribute 'values' | main | market_performers.py:139
+2023-01-23 15:25:25 | ERROR    | Error on main market performance, 'list' object has no attribute 'values' | main | market_performers.py:140
+2023-01-23 15:31:53 | ERROR    | Error on main full history, single positional indexer is out-of-bounds | main | get_full_history.py:209
+2023-01-23 15:31:53 | ERROR    | Error on main full history, single positional indexer is out-of-bounds | main | get_full_history.py:209
+2023-01-23 15:32:04 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:141
+2023-01-23 15:38:30 | ERROR    | Error on main full history, single positional indexer is out-of-bounds | main | get_full_history.py:209
+2023-01-23 15:38:30 | ERROR    | Error on main full history, single positional indexer is out-of-bounds | main | get_full_history.py:209
+2023-01-23 15:38:38 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:142
+2023-01-23 15:47:40 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | main | get_full_history.py:211
+2023-01-23 15:47:41 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | main | get_full_history.py:211
+2023-01-23 15:47:48 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:142
+2023-01-23 16:03:05 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | main | get_full_history.py:211
+2023-01-23 16:03:05 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | main | get_full_history.py:211
+2023-01-23 16:03:12 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:142
+2023-01-23 16:19:03 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:142
+2023-01-23 18:55:23 | ERROR    | Error on main market performance, object of type 'NoneType' has no len() | main | market_performers.py:144
+2023-01-23 19:16:21 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'tail' | main | market_performers.py:144

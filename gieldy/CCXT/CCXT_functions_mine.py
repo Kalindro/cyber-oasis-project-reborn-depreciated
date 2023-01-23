@@ -53,6 +53,7 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history.main, pairs_list))
     logger.success("History of all the coins completed, returning")
+    all_coins_history = [df for df in all_coins_history if df is not None]
     return all_coins_history
 
 

@@ -23,7 +23,9 @@ def timestamp_ms_to_datetime(timestamp_ms) -> dt.datetime:
 
 
 def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
-    return dataframe is not None and not dataframe.empty
+    if dataframe is not None:
+        if len(dataframe) >= 2:
+            return True
 
 
 def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_cols) -> None:

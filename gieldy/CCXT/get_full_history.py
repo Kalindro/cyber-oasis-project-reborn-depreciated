@@ -2,12 +2,13 @@ import datetime as dt
 import inspect
 import os
 import time
-from loguru import logger
+import traceback
 from pathlib import Path
 from random import randint
 from typing import Optional, Union
 
 import pandas as pd
+from loguru import logger
 from pandas import DataFrame as df
 
 from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
@@ -70,10 +71,9 @@ class _DFCleanAndCut:
             hist_dataframe.insert(len(hist_dataframe.columns), "pair", pair)
             hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
                                   pair[:-5] if pair.endswith("/USDT") else pair[:-4])
+            return hist_dataframe
         else:
-            logger.info(f"{pair} is broken or too short")
             return None
-        return hist_dataframe
 
     @staticmethod
     def cut_exact_df_dates_for_return(final_dataframe: pd.DataFrame, since_datetime: dt.datetime,
@@ -152,11 +152,13 @@ class _QueryHistory:
         return history_dataframe_new
 
     def get_history_range(self, pair: str, timeframe: str, since_timestamp: int, end_timestamp: int,
-                          API: dict) -> pd.DataFrame:
+                          API: dict) -> Union[pd.DataFrame, None]:
         """Get range of history"""
         safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 18)
         local_since_timestamp = since_timestamp
         hist_df_test = self._get_history_one_fragment(pair, timeframe, local_since_timestamp, API)
+        if len(hist_df_test) < 2:
+            return None
         delta = int(hist_df_test.iloc[-1].date - hist_df_test.iloc[0].date - safety_buffer)
         hist_df_full = df()
         while True:
@@ -169,6 +171,7 @@ class _QueryHistory:
                     break
             except Exception as error:
                 logger.error(f"Error on history fragments loop, {error}")
+                print(traceback.format_exc())
         return hist_df_full
 
 
@@ -180,12 +183,13 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
         super().__init__(timeframe, save_load_history, number_of_last_candles, since, end)
         self.API = API
 
-    def main(self, pair: str) -> pd.DataFrame:
+    def main(self, pair: str) -> Union[pd.DataFrame, None]:
         """Main logic function to loop the history acquisition"""
         try:
             logger.info(f"Getting {pair} history")
             exchange = self.API["exchange"]
-            delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime, self.since_datetime)
+            delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime,
+                                                 self.since_datetime)
             delegate_query_history = _QueryHistory()
             delegate_df_clean_cut = _DFCleanAndCut()
 
@@ -196,11 +200,15 @@ class GetFullCleanHistoryDataframe(_BaseInfoClassWithValidation):
             hist_df_full = delegate_query_history.get_history_range(pair, self.timeframe, self.since_timestamp,
                                                                     self.end_timestamp, self.API)
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
-
+            if not dataframe_is_not_none_and_has_elements(hist_df_full):
+                logger.info(f"{pair} is broken or too short")
+                return None
             if self.save_load_history:
                 delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
+
             hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, self.since_datetime,
                                                                                     self.end_datetime)
             return hist_df_final_cut
         except Exception as err:
             logger.error(f"Error on main full history, {err}")
+            print(traceback.format_exc())

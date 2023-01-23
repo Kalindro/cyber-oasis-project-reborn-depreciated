@@ -1,3 +1,4 @@
+import traceback
 from functools import partial
 from typing import Union
 
@@ -31,7 +32,8 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 2
+        self.PAIRS_MODE = 4
+        self.save_load_history = True
         self.timeframe = "1h"
         self.number_of_last_candles = 2000
         self.min_vol_USD = 150_000
@@ -110,15 +112,16 @@ class _MomentumCalculations:
 class MomentumRank(_BaseSettings):
     def main(self) -> None:
         try:
-            all_pairs_history = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list, timeframe=self.timeframe,
-                                                                 save_load_history=False,
-                                                                 number_of_last_candles=self.number_of_last_candles,
-                                                                 API=self.API)
+            all_pairs_history_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
+                                                                      timeframe=self.timeframe,
+                                                                      save_load_history=self.save_load_history,
+                                                                      number_of_last_candles=self.number_of_last_candles,
+                                                                      API=self.API)
             delegate_momentum = _MomentumCalculations()
             partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                        min_vol_USD=self.min_vol_USD, min_vol_BTC=self.min_vol_BTC)
             logger.info("Calculating performance for all the coins...")
-            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history.values())
+            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history_list)
             global_performance_dataframe = df()
             for pair_results in performance_calculation_map_results:
                 global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
@@ -137,6 +140,7 @@ class MomentumRank(_BaseSettings):
             logger.success("Saved excel, all done")
         except Exception as err:
             logger.error(f"Error on main market performance, {err}")
+            print(traceback.format_exc())
 
 
 if __name__ == "__main__":

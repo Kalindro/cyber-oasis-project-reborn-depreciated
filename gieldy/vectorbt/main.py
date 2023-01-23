@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
@@ -56,8 +57,10 @@ class _BaseSettings:
                                      ohlc_add_trace_kwargs=dict(row=1, col=1),
                                      fig=fig, xaxis=dict(rangeslider_visible=False))
         fig = entries.vbt.signals.plot_as_entry_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
-                                                        fig=fig)
-        fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1), fig=fig)
+                                                        trace_kwargs=dict(marker=dict(color="deepskyblue")), fig=fig)
+        fig = fig
+        fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
+                                                     trace_kwargs=dict(marker=dict(color="orange")), fig=fig)
         return fig
 
     def keltner_strat(self, price_df):
@@ -69,10 +72,12 @@ class _BaseSettings:
         return entries, exits, keltner
 
     def keltner_print(self, keltner, fig):
-        fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")),
-                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
-        fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")),
-                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        fig = keltner.kcue.vbt.plot(
+            trace_kwargs=dict(name="Upper Band", opacity=0.6, line=dict(color="darkslateblue")),
+            add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        fig = keltner.kcle.vbt.plot(
+            trace_kwargs=dict(name="Lower Band", opacity=0.6, line=dict(color="darkslateblue")),
+            add_trace_kwargs=dict(row=1, col=1), fig=fig)
         return fig
 
     def main(self):
@@ -85,7 +90,7 @@ class _BaseSettings:
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 
         pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
-                                        low=price_df["low"], entries=entries, exits=exits)
+                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
         print(pf.stats())
 
         fig = self.plot_base(portfolio=pf, price_df=price_df, entries=entries, exits=exits)
