@@ -5,13 +5,16 @@ from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
 from gieldy.CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from gieldy.general.log_config import ConfigureLoguru
-from gieldy.vectorbt.plot import plot_base
 
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
 logger = ConfigureLoguru().info_level()
+
+vbt.settings['plotting']['layout']['width'] = 1300
+vbt.settings['plotting']['layout']['height'] = 650
+vbt.settings.set_theme("seaborn")
 
 vbt.settings.portfolio['init_cash'] = 1000
 vbt.settings.portfolio['fees'] = 0.0025
@@ -44,6 +47,34 @@ class _BaseSettings:
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.min_vol_USD / self.BTC_price
 
+    def plot_base(self, portfolio, price_df, entries, exits):
+        pf = portfolio
+        fig = pf.plot(
+            subplots=[("price", dict(title="Price", yaxis_kwargs=dict(title="Price"))), "trades", "trade_pnl", "cash",
+                      "cum_returns", "drawdowns", ])
+        fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
+                                     ohlc_add_trace_kwargs=dict(row=1, col=1),
+                                     fig=fig, xaxis=dict(rangeslider_visible=False))
+        fig = entries.vbt.signals.plot_as_entry_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
+                                                        fig=fig)
+        fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        return fig
+
+    def keltner_strat(self, price_df):
+        keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=price_df["high"], low=price_df["low"],
+                                                                close=price_df["close"],
+                                                                length=self.period, scalar=self.deviation)
+        entries = keltner.close_crossed_below(keltner.kcle)
+        exits = keltner.close_crossed_above(keltner.kcue)
+        return entries, exits, keltner
+
+    def keltner_print(self, keltner, fig):
+        fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")),
+                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")),
+                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        return fig
+
     def main(self):
         all_coins_history_df_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
                                                                      timeframe=self.timeframe,
@@ -51,21 +82,14 @@ class _BaseSettings:
                                                                      end=self.end,
                                                                      API=self.API)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
-        keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=price_df["high"], low=price_df["low"],
-                                                                close=price_df["close"],
-                                                                length=self.period, scalar=self.deviation)
-        entries = keltner.close_crossed_below(keltner.kcle)
-        exits = keltner.close_crossed_above(keltner.kcue)
+        entries, exits, keltner = self.keltner_strat(price_df=price_df)
 
         pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
                                         low=price_df["low"], entries=entries, exits=exits)
         print(pf.stats())
 
-        fig = plot_base(portfolio=pf, price_df=price_df, entries=entries, exits=exits)
-        fig = keltner.kcue.vbt.plot(trace_kwargs=dict(name="Upper Band", line=dict(color="darkslateblue")),
-                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
-        fig = keltner.kcle.vbt.plot(trace_kwargs=dict(name="Lower Band", line=dict(color="darkslateblue")),
-                                    add_trace_kwargs=dict(row=1, col=1), fig=fig)
+        fig = self.plot_base(portfolio=pf, price_df=price_df, entries=entries, exits=exits)
+        fig = self.keltner_print(keltner=keltner, fig=fig)
         fig.show()
 
 
