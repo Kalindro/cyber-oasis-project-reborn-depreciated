@@ -22,12 +22,10 @@ logger = ConfigureLoguru().info_level()
 
 
 class _BaseSettings:
-    """
-    Script for performance of all coins in a table. Pairs modes:
-    """
 
     def __init__(self):
         """
+        Modes available:
         :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
@@ -64,8 +62,8 @@ class _MomentumCalculations:
         momentum = slope * 100
         return momentum * (rvalue ** 2)
 
-    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int
-                                 ) -> Union[dict, None]:
+    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> Union[
+        dict, None]:
         """Calculation all the needed performance metrics for the pair"""
         last_24h_hourly_history = coin_history_df.tail(24)
         last_2d_hourly_history = coin_history_df.tail(48)
@@ -97,8 +95,7 @@ class _MomentumCalculations:
                          last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
         median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
         median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {"pair": [pair],
-                            "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
+        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
                             "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
                             "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
                             "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],

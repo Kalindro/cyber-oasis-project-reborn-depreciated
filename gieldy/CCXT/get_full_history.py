@@ -131,8 +131,7 @@ class _DataStoring:
 
     def save_dataframe_to_pickle(self, df_to_save: pd.DataFrame) -> None:
         """Pickle the data and save"""
-        df_to_save.to_pickle(
-            f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
+        df_to_save.to_pickle(f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
         logger.info("Saved history dataframe as pickle")
 
 
@@ -151,8 +150,8 @@ class _QueryHistory:
         history_dataframe_new = df(candles_list, columns=columns_ordered)
         return history_dataframe_new
 
-    def get_history_range(self, pair: str, timeframe: str, since_timestamp: int, end_timestamp: int,
-                          API: dict) -> Union[pd.DataFrame, None]:
+    def get_history_range(self, pair: str, timeframe: str, since_timestamp: int, end_timestamp: int, API: dict) -> \
+    Union[pd.DataFrame, None]:
         """Get range of history"""
         safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 18)
         local_since_timestamp = since_timestamp
