@@ -41,6 +41,7 @@ class _BaseInfoClassWithValidation:
 
         # Parse and convert since and end dates to timestamps
         if self.number_of_last_candles:
+            logger.info("N last candles requested, saving/loading history disabled")
             self.save_load_history = False
             self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
                     self.number_of_last_candles * self.timeframe_in_timestamp)

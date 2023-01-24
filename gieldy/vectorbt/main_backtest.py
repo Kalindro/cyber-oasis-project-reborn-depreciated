@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import sys
 import vectorbt as vbt
 
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
@@ -9,6 +10,7 @@ from gieldy.general.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
+np.set_printoptions(threshold=sys.maxsize)
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
@@ -19,7 +21,6 @@ vbt.settings.set_theme("seaborn")
 
 vbt.settings.portfolio['init_cash'] = 1000
 vbt.settings.portfolio['fees'] = 0.0025
-vbt.settings.portfolio['slippage'] = 0.0025
 
 
 class _BaseSettings:
@@ -31,7 +32,7 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 2
+        self.PAIRS_MODE = 1
         self.plotting = True
         self.timeframe = "1h"
         self.min_vol_USD = 150_000
@@ -74,8 +75,13 @@ class _BaseSettings:
         keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=price_df["high"], low=price_df["low"],
                                                                 close=price_df["close"], length=self.period,
                                                                 scalar=self.deviation)
-        entries = keltner.close_crossed_below(keltner.kcle)
-        exits = keltner.close_crossed_above(keltner.kcue)
+        upper_band = keltner.kcue.to_numpy()
+        lower_band = keltner.kcle.to_numpy()
+        trend = np.where(price_df.close < lower_band, 1, 0)
+        trend = np.where(price_df.close > upper_band, -1, trend)
+
+        entries = trend == 1
+        exits = trend == -1
         return entries, exits, keltner
 
     def keltner_print(self, keltner, fig):
