@@ -13,7 +13,7 @@ from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp
 
 
 class _BaseInfoClassWithValidation:
-    """Class to handle all the parameters used by other classes"""
+    """Class to handle and validate all the parameters used by other classes"""
 
     def __init__(self, timeframe: str, save_load_history: bool, number_of_last_candles: tp.Optional[int] = None,
                  since: tp.Optional[str] = None, end: tp.Optional[str] = None):
@@ -55,7 +55,7 @@ class _BaseInfoClassWithValidation:
 
 
 class GetFullHistoryDF(_BaseInfoClassWithValidation):
-    """Main logic function to receive desired range of clean, usable history dataframe"""
+    """Main logic class to receive desired range of clean, usable history dataframe"""
 
     def __init__(self,
                  timeframe: str,
@@ -68,7 +68,7 @@ class GetFullHistoryDF(_BaseInfoClassWithValidation):
         self.API = API
 
     def main(self, pair: str) -> tp.Union[pd.DataFrame, None]:
-        """Main logic function to loop the history acquisition"""
+        """Main logic function"""
         try:
             logger.info(f"Getting {pair} history")
             exchange = self.API["exchange"]
@@ -99,6 +99,8 @@ class GetFullHistoryDF(_BaseInfoClassWithValidation):
 
 
 class _QueryHistory:
+    """Class handling data query"""
+
     def get_history_range(self,
                           pair: str,
                           timeframe: str,
@@ -106,6 +108,7 @@ class _QueryHistory:
                           end_timestamp: int,
                           API: dict,
                           candle_limit: int = 1000) -> tp.Union[pd.DataFrame, None]:
+        """Get desired range of history"""
 
         # Establish valid ts and delta to iter
         SAFETY_BUFFER = int(timeframe_to_timestamp_ms(timeframe) * 12)
@@ -160,6 +163,7 @@ class _QueryHistory:
 
     def _get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict,
                                   candle_limit) -> pd.DataFrame:
+        """Private, get history fragment"""
         exchange_client = API["client"]
         candles_list = exchange_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since,
                                                   limit=candle_limit)
@@ -187,7 +191,7 @@ class _DFCleanAndCut:
                                       end_datetime: dt.datetime) -> pd.DataFrame:
         """Cut the dataframe to exactly match the desired since/end, small quirk here as
          end_datetime can be precise to the second while the timeframe may be 1D - it
-          would never return correctly, mainly when end is now"""
+          would never return correctly, mainly when the end is now"""
         final_dataframe = final_dataframe.loc[since_datetime:min(final_dataframe.iloc[-1].name, end_datetime)]
         return final_dataframe
 
