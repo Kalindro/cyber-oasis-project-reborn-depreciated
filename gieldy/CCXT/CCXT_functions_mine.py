@@ -7,7 +7,7 @@ from loguru import logger
 
 from gieldy.API.API_exchange_initiator import ExchangeAPISelect
 from gieldy.CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
-from gieldy.CCXT.get_full_history import GetFullCleanHistoryDataframe
+from gieldy.CCXT.get_full_history import GetFullHistoryDF
 
 
 def get_pairs_list_test_single() -> list[str]:
@@ -47,11 +47,12 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
                                      end: Optional[str] = None) -> dict[str: pd.DataFrame]:
     workers = 3
     logger.info("Getting history of all the coins on provided pairs list...")
-    delegate_history = GetFullCleanHistoryDataframe(timeframe=timeframe, save_load_history=save_load_history,
-                                                    number_of_last_candles=number_of_last_candles, since=since,
-                                                    end=end, API=API)
+    delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
+                                       save_load_history=save_load_history,
+                                       API=API, number_of_last_candles=number_of_last_candles,
+                                       since=since, end=end)
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        all_coins_history = list(executor.map(delegate_history.main, pairs_list))
+        all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
     logger.success("History of all the coins completed, returning")
     all_coins_history = [df for df in all_coins_history if df is not None]
     return all_coins_history

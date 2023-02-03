@@ -12,87 +12,77 @@ from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp
                                   timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
 
 
-class _BaseInfoClassWithValidation:
-    """Class to handle and validate all the parameters used by other classes"""
-
-    def __init__(self, timeframe: str, save_load_history: bool, number_of_last_candles: tp.Optional[int] = None,
-                 since: tp.Optional[str] = None, end: tp.Optional[str] = None):
-        self.save_load_history = save_load_history
-        self.timeframe = timeframe.lower()
-        self.timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe)
-        self.number_of_last_candles = number_of_last_candles
-        self.since = since
-        self.since_datetime = None
-        self.since_timestamp = None
-        self.end = end
-        self.end_datetime = None
-        self.end_timestamp = None
-        self.validate_inputs()
-
-    def validate_inputs(self) -> None:
-        """Validate input parameters"""
-        if not (self.number_of_last_candles or self.since):
-            raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if self.number_of_last_candles and (self.since or self.end):
-            raise ValueError("You cannot provide since/end date together with last n candles parameter")
-
-        # Parse and convert since and end dates to timestamps
-        if self.number_of_last_candles:
-            logger.info("N last candles requested, saving/loading history disabled")
-            self.save_load_history = False
-            self.since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
-                    self.number_of_last_candles * self.timeframe_in_timestamp)
-            self.since_datetime = timestamp_ms_to_datetime(self.since_timestamp)
-        if self.since:
-            self.since_datetime = date_string_to_datetime(self.since)
-            self.since_timestamp = datetime_to_timestamp_ms(self.since_datetime)
-        if self.end:
-            self.end_datetime = date_string_to_datetime(self.end)
-            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
-        else:
-            self.end_datetime = dt.datetime.now()
-            self.end_timestamp = datetime_to_timestamp_ms(self.end_datetime)
-
-
-class GetFullHistoryDF(_BaseInfoClassWithValidation):
+class GetFullHistoryDF:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
-    def __init__(self,
-                 timeframe: str,
-                 save_load_history: bool,
-                 API: dict,
-                 number_of_last_candles: tp.Optional[int] = None,
-                 since: tp.Optional[str] = None,
-                 end: tp.Optional[str] = None):
-        super().__init__(timeframe, save_load_history, number_of_last_candles, since, end)
-        self.API = API
+    @staticmethod
+    def validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
+                       end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
+        timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
+        if not (number_of_last_candles or since):
+            raise ValueError("Please provide either starting date or number of last n candles to provide")
+        if number_of_last_candles and (since or end):
+            raise ValueError("You cannot provide since/end date together with last n candles parameter")
 
-    def main(self, pair: str) -> tp.Union[pd.DataFrame, None]:
-        """Main logic function"""
+        if number_of_last_candles:
+            since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
+                    number_of_last_candles * timeframe_in_timestamp)
+            since_datetime = timestamp_ms_to_datetime(since_timestamp)
+        if since:
+            since_datetime = date_string_to_datetime(since)
+            since_timestamp = datetime_to_timestamp_ms(since_datetime)
+        if end:
+            end_datetime = date_string_to_datetime(end)
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+        else:
+            end_datetime = dt.datetime.now()
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+
+        return since_timestamp, end_timestamp, since_datetime, end_datetime
+
+    @classmethod
+    def main(cls,
+             pair: str,
+             timeframe: str,
+             save_load_history: bool,
+             API: dict,
+             number_of_last_candles: tp.Optional[int] = None,
+             since: tp.Optional[str] = None,
+             end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
+
+        timeframe = timeframe.lower()
+        since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
+                                                                                          number_of_last_candles,
+                                                                                          since, end)
         try:
             logger.info(f"Getting {pair} history")
-            exchange = self.API["exchange"]
-            delegate_data_storing = _DataStoring(exchange, self.timeframe, pair, self.end_datetime,
-                                                 self.since_datetime)
+            exchange = API["exchange"]
             delegate_query_history = _QueryHistory()
             delegate_df_clean_cut = _DFCleanAndCut()
 
-            if self.save_load_history:
+            if save_load_history:
+                delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=exchange,
+                                                     end_datetime=end_datetime, since_datetime=since_datetime)
                 hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
                 if dataframe_is_not_none_and_has_elements(hist_df_full):
                     return hist_df_full
-            hist_df_full = delegate_query_history.get_history_range(pair, self.timeframe, self.since_timestamp,
-                                                                    self.end_timestamp, self.API)
+
+            hist_df_full = delegate_query_history.get_history_range(pair=pair, timeframe=timeframe,
+                                                                    since_timestamp=since_timestamp,
+                                                                    end_timestamp=end_timestamp,
+                                                                    API=API)
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
             if not dataframe_is_not_none_and_has_elements(hist_df_full):
                 logger.info(f"{pair} is broken or too short")
                 return None
-            if self.save_load_history:
+
+            if save_load_history:
                 delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
 
-            hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, self.since_datetime,
-                                                                                    self.end_datetime)
+            hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, since_datetime,
+                                                                                    end_datetime)
             return hist_df_final_cut
+
         except Exception as err:
             logger.error(f"Error on main full history, {err}")
             print(traceback.format_exc())
@@ -199,7 +189,7 @@ class _DFCleanAndCut:
 class _DataStoring:
     """Class for handling the history loading and saving to pickle"""
 
-    def __init__(self, exchange: str, timeframe: str, pair: str, end_datetime: dt.datetime,
+    def __init__(self, pair: str, timeframe: str, exchange: str, end_datetime: dt.datetime,
                  since_datetime: dt.datetime):
         self.exchange = exchange
         self.timeframe = timeframe
