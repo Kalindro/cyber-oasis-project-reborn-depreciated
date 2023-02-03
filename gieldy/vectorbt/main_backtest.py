@@ -32,7 +32,7 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 1
+        self.PAIRS_MODE = 2
         self.plotting = True
         self.timeframe = "1h"
         self.min_vol_USD = 150_000
@@ -97,6 +97,8 @@ class _BaseSettings:
         all_coins_history_df_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
                                                                      timeframe=self.timeframe, save_load_history=True,
                                                                      since=self.since, end=self.end, API=self.API)
+        price = vbt.CCXTData.download_symbol("BTC/USDT", timeframe="1h")
+        print(price)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 

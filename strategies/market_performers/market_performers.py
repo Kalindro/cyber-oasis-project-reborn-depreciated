@@ -30,8 +30,8 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 4
-        self.save_load_history = True
+        self.PAIRS_MODE = 1
+        self.save_load_history = False
         self.timeframe = "1h"
         self.number_of_last_candles = 2000
         self.min_vol_USD = 150_000
