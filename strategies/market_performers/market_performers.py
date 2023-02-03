@@ -8,11 +8,11 @@ from pandas import DataFrame as df
 from scipy.stats import linregress
 from talib import NATR
 
-from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
-from gieldy.CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
+from CCXT.CCXT_functions_builtin import get_pairs_prices
+from CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
-from gieldy.general.log_config import ConfigureLoguru
-from gieldy.general.utils import excel_save_formatted
+from general.log_config import ConfigureLoguru
+from general.utils import excel_save_formatted
 
 pd.set_option('display.max_rows', 0)
 pd.set_option('display.max_columns', 0)

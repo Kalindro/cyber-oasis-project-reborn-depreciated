@@ -5,9 +5,9 @@ from typing import Optional
 import pandas as pd
 from loguru import logger
 
-from gieldy.API.API_exchange_initiator import ExchangeAPISelect
-from gieldy.CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
-from gieldy.CCXT.get_full_history import GetFullHistoryDF
+from API.API_exchange_initiator import ExchangeAPISelect
+from CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
+from CCXT.get_full_history import GetFullHistoryDF
 
 
 def get_pairs_list_test_single() -> list[str]:

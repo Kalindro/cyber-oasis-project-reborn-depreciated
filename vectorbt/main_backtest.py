@@ -3,10 +3,10 @@ import pandas as pd
 import sys
 import vectorbt as vbt
 
-from gieldy.CCXT.CCXT_functions_builtin import get_pairs_prices
-from gieldy.CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
+from CCXT.CCXT_functions_builtin import get_pairs_prices
+from CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
-from gieldy.general.log_config import ConfigureLoguru
+from general.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
