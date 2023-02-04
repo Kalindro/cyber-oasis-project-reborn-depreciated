@@ -20,3 +20,6 @@
 2023-02-03 12:45:36 | ERROR    | Error on main full history, '_QueryHistory' object has no attribute '_get_history_one_fragment' | main | get_full_history.py:219
 2023-02-03 12:49:12 | ERROR    | Error on main full history, '_QueryHistory' object has no attribute '_get_history_one_fragment' | main | get_full_history.py:219
 2023-02-03 12:57:17 | ERROR    | Error on main full history, '_QueryHistory' object has no attribute '_get_history_one_fragment' | main | get_full_history.py:219
+2023-02-03 18:50:00 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\history_data\\binance_spot\\1h' | main | get_full_history.py:87
+2023-02-03 18:50:00 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\history_data\\binance_spot\\1h' | main | get_full_history.py:87
+2023-02-03 18:52:35 | ERROR    | Error on main market performance, single positional indexer is out-of-bounds | main | market_performers.py:139

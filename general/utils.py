@@ -71,7 +71,7 @@ def timeframe_to_timestamp_ms(timeframe) -> int:
     elif timeframe == "7d" or timeframe == "1w":
         timestamp_ms = 604800000
     else:
-        raise ValueError("Unsupported timeframe to convert to timestamp")
+        raise ValueError("Unsupported TIMEFRAME to convert to timestamp")
     return int(timestamp_ms)
 
 

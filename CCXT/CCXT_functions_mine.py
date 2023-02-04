@@ -12,7 +12,7 @@ from CCXT.get_full_history import GetFullHistoryDF
 
 def get_pairs_list_test_single() -> list[str]:
     """Get test pairs list"""
-    return ["BTC/USDT"]
+    return ["ACH/USDT"]
 
 
 def get_pairs_list_test_multi() -> list[str]:

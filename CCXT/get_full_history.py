@@ -8,8 +8,8 @@ from pathlib import Path
 import pandas as pd
 from loguru import logger
 
-from gieldy.general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
-                                  timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
+from general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
+                           timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
 
 
 class GetFullHistoryDF:
@@ -63,7 +63,7 @@ class GetFullHistoryDF:
             if save_load_history:
                 delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=exchange,
                                                      end_datetime=end_datetime, since_datetime=since_datetime)
-                hist_df_full = delegate_data_storing.load_dataframe_and_pre_check()
+                hist_df_full = delegate_data_storing.load_dataframe_and_pre_check(API=API)
                 if dataframe_is_not_none_and_has_elements(hist_df_full):
                     return hist_df_full
 
@@ -97,31 +97,27 @@ class _QueryHistory:
                           since_timestamp: int,
                           end_timestamp: int,
                           API: dict,
-                          candle_limit: int = 1000) -> tp.Union[pd.DataFrame, None]:
+                          candle_limit: int = 10000) -> tp.Union[pd.DataFrame, None]:
         """Get desired range of history"""
 
         # Establish valid ts and delta to iter
         SAFETY_BUFFER = int(timeframe_to_timestamp_ms(timeframe) * 12)
-        test_data = self._get_history_one_fragment(pair=pair,
-                                                   timeframe=timeframe,
-                                                   since=0,
-                                                   API=API,
-                                                   candle_limit=candle_limit)
+        test_data = self.get_test_data(pair=pair, timeframe=timeframe, API=API)
         if not len(test_data):
             return None
+        delta = int(test_data[-1][0] - test_data[0][0] - SAFETY_BUFFER)
         first_valid_timestamp = test_data[0][0]
         local_since_timestamp = max(since_timestamp, first_valid_timestamp)
-        delta = int(test_data[-1][0] - test_data[0][0] - SAFETY_BUFFER)
 
         # Iteratively collect the data
         data: tp.List[list] = []
         while True:
             try:
-                fresh_data = self._get_history_one_fragment(pair=pair,
-                                                            timeframe=timeframe,
-                                                            since=local_since_timestamp,
-                                                            API=API,
-                                                            candle_limit=candle_limit)
+                fresh_data = self.get_history_one_fragment(pair=pair,
+                                                           timeframe=timeframe,
+                                                           since=local_since_timestamp,
+                                                           API=API,
+                                                           candle_limit=candle_limit)
                 data += fresh_data
                 local_since_timestamp += delta
 
@@ -151,13 +147,15 @@ class _QueryHistory:
 
         return hist_df_full
 
-    def _get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict,
-                                  candle_limit) -> pd.DataFrame:
-        """Private, get history fragment"""
+    def get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict, candle_limit) -> pd.DataFrame:
+        """Get history fragment"""
         exchange_client = API["client"]
-        candles_list = exchange_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since,
-                                                  limit=candle_limit)
+        candles_list = exchange_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since, limit=candle_limit)
         return candles_list
+
+    def get_test_data(self, pair: str, timeframe: str, API: dict) -> pd.DataFrame:
+        test_data = self.get_history_one_fragment(pair=pair, timeframe=timeframe, since=0, API=API, candle_limit=10000)
+        return test_data
 
 
 class _DFCleanAndCut:
@@ -180,7 +178,7 @@ class _DFCleanAndCut:
     def cut_exact_df_dates_for_return(final_dataframe: pd.DataFrame, since_datetime: dt.datetime,
                                       end_datetime: dt.datetime) -> pd.DataFrame:
         """Cut the dataframe to exactly match the desired since/end, small quirk here as
-         end_datetime can be precise to the second while the timeframe may be 1D - it
+         end_datetime can be precise to the second while the TIMEFRAME may be 1D - it
           would never return correctly, mainly when the end is now"""
         final_dataframe = final_dataframe.loc[since_datetime:min(final_dataframe.iloc[-1].name, end_datetime)]
         return final_dataframe
@@ -193,6 +191,7 @@ class _DataStoring:
                  since_datetime: dt.datetime):
         self.exchange = exchange
         self.timeframe = timeframe
+        self.pair = pair
         self.pair_for_data = pair.replace("/", "-")
         self.end_datetime = end_datetime
         self.since_datetime = since_datetime
@@ -217,20 +216,34 @@ class _DataStoring:
             logger.info(f"No saved history for {self.pair_for_data}, {err}")
             return None
 
-    def load_dataframe_and_pre_check(self) -> tp.Union[pd.DataFrame, None]:
+    def load_dataframe_and_pre_check(self, API) -> tp.Union[pd.DataFrame, None]:
         """Check if loaded data range is sufficient for current request, if not - get new"""
         cut_delegate = _DFCleanAndCut()
         hist_df_full = self.parse_dataframe_from_pickle()
         if dataframe_is_not_none_and_has_elements(hist_df_full):
-            if (hist_df_full.iloc[-1].name > self.end_datetime) and (hist_df_full.iloc[0].name < self.since_datetime):
-                logger.info("Saved data is sufficient, returning")
+            if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
+                    hist_df_full.iloc[0].name <= self.since_datetime):
+                logger.info(f"Saved data for {self.pair} is sufficient, returning")
                 hist_df_final_cut = cut_delegate.cut_exact_df_dates_for_return(hist_df_full, self.since_datetime,
                                                                                self.end_datetime)
                 return hist_df_final_cut
-        logger.info("Saved data found, not sufficient data range, getting whole fresh")
+            else:
+                delegate_get_history = _QueryHistory()
+                test_data = delegate_get_history.get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
+                first_valid_datetime = timestamp_ms_to_datetime(test_data[0][0])
+                if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
+                        hist_df_full.iloc[0].name <= first_valid_datetime) and (
+                        first_valid_datetime > self.since_datetime):
+                    logger.info(
+                        f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
+                    hist_df_final_cut = cut_delegate.cut_exact_df_dates_for_return(hist_df_full, self.since_datetime,
+                                                                                   self.end_datetime)
+                    return hist_df_final_cut
+
+        logger.info(f"Saved data for {self.pair} found, not sufficient data range, getting whole fresh")
         return None
 
     def save_dataframe_to_pickle(self, df_to_save: pd.DataFrame) -> None:
         """Pickle the data and save"""
         df_to_save.to_pickle(f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
-        logger.info("Saved history dataframe as pickle")
+        logger.info(f"Saved {self.pair} history dataframe as pickle")

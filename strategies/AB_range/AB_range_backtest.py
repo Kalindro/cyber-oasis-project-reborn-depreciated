@@ -254,8 +254,8 @@ class WholeStrategySetup:
         plotinfo = dict(plot=False)
 
         def next(self):
-            returns_fast = np.log(self.data.get(size=int(self.p.period * 0.5)))
-            returns_slow = np.log(self.data.get(size=int(self.p.period)))
+            returns_fast = np.log(self.data.get(size=int(self.p.PERIOD * 0.5)))
+            returns_slow = np.log(self.data.get(size=int(self.p.PERIOD)))
             x_fast = np.arange(len(returns_fast))
             x_slow = np.arange(len(returns_slow))
             slope_fast, _, rvalue_fast, _, _ = linregress(x_fast, returns_fast)
