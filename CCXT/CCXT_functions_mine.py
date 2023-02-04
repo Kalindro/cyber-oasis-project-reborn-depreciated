@@ -8,6 +8,7 @@ from loguru import logger
 from API.API_exchange_initiator import ExchangeAPISelect
 from CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
 from CCXT.get_full_history import GetFullHistoryDF
+from general.utils import dataframe_is_not_none_and_has_elements
 
 
 def get_pairs_list_test_single() -> list[str]:
@@ -54,7 +55,7 @@ def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
     logger.success("History of all the coins completed, returning")
-    all_coins_history = [df for df in all_coins_history if df is not None]
+    all_coins_history = [df for df in all_coins_history if dataframe_is_not_none_and_has_elements(df)]
     return all_coins_history
 
 
