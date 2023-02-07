@@ -27,7 +27,7 @@ def get_pairs_list_BTC(API: dict) -> list[str]:
     pairs_precisions_status = get_pairs_with_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
-    pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/BTC")]
+    pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/BTC", ":BTC"))]
     logger.debug("Pairs list completed, returning")
     return pairs_list
 
@@ -38,7 +38,7 @@ def get_pairs_list_USDT(API: dict) -> list[str]:
     pairs_precisions_status = get_pairs_with_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
-    pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
+    pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/USDT", ":USDT"))]
     logger.debug("Pairs list completed, returning")
     return pairs_list
 
@@ -50,7 +50,7 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if
-                  (str(pair).endswith("/USDT") or str(pair).endswith("/BTC") or str(pair).endswith("/ETH"))]
+                  str(pair).endswith(("/USDT", ":USDT", "/BTC", ":BTC", "/ETH", ":ETH"))]
     logger.debug("Pairs list completed, returning")
     return pairs_list
 
@@ -97,5 +97,7 @@ def select_pairs_list_mode(PAIRS_MODE, API) -> list[str]:
 
 
 def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, API: dict) -> None:
+    logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
     change_leverage_and_mode_on_all_pairs_on_list(leverage=leverage, pairs_list=pairs_list, API=API)
+    logger.success("Finished changing leverage and margin mode on all")
