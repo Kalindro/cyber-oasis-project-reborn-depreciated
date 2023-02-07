@@ -30,10 +30,10 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 4
+        self.PAIRS_MODE = 3
         self.SAVE_LOAD_HISTORY = False
         self.TIMEFRAME = "1h"
-        self.NUMBER_OF_LAST_CANDLES = 2000
+        self.NUMBER_OF_LAST_CANDLES = 750
         self.MIN_VOL_USD = 150_000
         self.CORES_USED = 6
 
@@ -46,11 +46,13 @@ class _BaseSettings:
 class MomentumRank(_BaseSettings):
     def main(self) -> None:
         try:
+            self.pairs_list += ["BTC/USDT", "ETH/USDT"]
             all_pairs_history_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
                                                                       timeframe=self.TIMEFRAME,
                                                                       save_load_history=self.SAVE_LOAD_HISTORY,
                                                                       number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
                                                                       API=self.API)
+
             delegate_momentum = _MomentumCalculations()
             partial_performance_calculations = partial(delegate_momentum.performance_calculations,
                                                        min_vol_USD=self.MIN_VOL_USD, min_vol_BTC=self.min_vol_BTC)
@@ -69,8 +71,8 @@ class MomentumRank(_BaseSettings):
                 print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
                 print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
                 print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
-            excel_save_formatted(global_performance_dataframe, column_size=15, cash_cols="D:D", rounded_cols="E:E",
-                                 perc_cols="F:Q")
+            excel_save_formatted(global_performance_dataframe, global_cols_size=11, cash_cols="D:D", cash_cols_size=15,
+                                 rounded_cols="E:E", rounded_cols_size=11, perc_cols="F:Q", perc_cols_size=15)
             logger.success("Saved excel, all done")
         except Exception as err:
             logger.error(f"Error on main market performance, {err}")
@@ -113,7 +115,7 @@ class _MomentumCalculations:
             min_vol = min_vol_USD
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
-        if avg_24h_vol_usd < min_vol or len(coin_history_df) < 770:
+        if avg_24h_vol_usd < min_vol or len(coin_history_df) < 14 * 24:
             return
         last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
         last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)

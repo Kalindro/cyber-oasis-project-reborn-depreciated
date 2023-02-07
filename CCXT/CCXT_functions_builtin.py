@@ -33,3 +33,11 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
     pairs_prices_df.rename(columns={"average": "price"}, inplace=True)
     logger.debug("Pairs prices completed, returning")
     return pairs_prices_df
+
+
+def change_leverage_and_mode_on_all_pairs_on_list(leverage: int, pairs_list: list, API: dict) -> None:
+    exchange_client = API["client"]
+    for pair in pairs_list:
+        exchange_client.set_leverage(leverage=leverage, symbol=pair)
+        exchange_client.set_margin_mode(marginMode="isolated", symbol=pair)
+        logger.info(f"{pair} leverage changed to {leverage}, margin mode to isolated")

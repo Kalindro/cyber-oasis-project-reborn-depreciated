@@ -28,14 +28,14 @@ def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
             return True
 
 
-def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_cols) -> None:
+def excel_save_formatted(dataframe, global_cols_size, cash_cols, cash_cols_size, rounded_cols, rounded_cols_size,
+                         perc_cols, perc_cols_size) -> None:
     writer = ExcelWriter("performance.xlsx", engine="xlsxwriter")
     with writer as writer:
         dataframe.to_excel(writer, sheet_name="main")
         workbook = writer.book
         for worksheet_name in writer.sheets.keys():
             worksheet = writer.sheets[worksheet_name]
-            worksheet.set_column("B:AA", column_size)
             header_format = workbook.add_format({
                 "valign": "vcenter",
                 "align": "center",
@@ -45,9 +45,10 @@ def excel_save_formatted(dataframe, column_size, cash_cols, rounded_cols, perc_c
             rounded_format = workbook.add_format({"num_format": "0.00"})
             perc_format = workbook.add_format({"num_format": "0.00%"})
             worksheet.set_row(0, cell_format=header_format)
-            worksheet.set_column(cash_cols, None, cash_format)
-            worksheet.set_column(rounded_cols, None, rounded_format)
-            worksheet.set_column(perc_cols, None, perc_format)
+            worksheet.set_column("A:AAA", global_cols_size, None)
+            worksheet.set_column(cash_cols, cash_cols_size, cash_format)
+            worksheet.set_column(rounded_cols, rounded_cols_size, rounded_format)
+            worksheet.set_column(perc_cols, perc_cols_size, perc_format)
 
 
 def timeframe_to_timestamp_ms(timeframe) -> int:

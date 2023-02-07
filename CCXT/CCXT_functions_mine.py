@@ -6,7 +6,7 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status
+from CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status, change_leverage_and_mode_on_all_pairs_on_list
 from CCXT.get_full_history import GetFullHistoryDF
 from general.utils import dataframe_is_not_none_and_has_elements
 
@@ -39,6 +39,18 @@ def get_pairs_list_USDT(API: dict) -> list[str]:
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith("/USDT")]
+    logger.debug("Pairs list completed, returning")
+    return pairs_list
+
+
+def get_pairs_list_ALL(API: dict) -> list[str]:
+    """Get ALL active pairs list"""
+    logger.info("Getting ALL pairs list...")
+    pairs_precisions_status = get_pairs_with_precisions_status(API)
+    pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
+    pairs_list_original = list(pairs_precisions_status.index)
+    pairs_list = [str(pair) for pair in pairs_list_original if
+                  (str(pair).endswith("/USDT") or str(pair).endswith("/BTC") or str(pair).endswith("/ETH"))]
     logger.debug("Pairs list completed, returning")
     return pairs_list
 
@@ -82,3 +94,8 @@ def select_pairs_list_mode(PAIRS_MODE, API) -> list[str]:
     if pairs_list is None:
         raise ValueError("Invalid mode: " + str(PAIRS_MODE))
     return pairs_list()
+
+
+def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, API: dict) -> None:
+    pairs_list = get_pairs_list_ALL(API=API)
+    change_leverage_and_mode_on_all_pairs_on_list(leverage=leverage, pairs_list=pairs_list, API=API)
