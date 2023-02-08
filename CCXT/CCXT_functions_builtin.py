@@ -2,7 +2,6 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
 
-
 def get_exchange_timestamp(API: dict) -> str:
     """Get exchange time for timezone setting"""
     exchange_client = API["client"]
@@ -38,6 +37,16 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
 def change_leverage_and_mode_on_all_pairs_on_list(leverage: int, pairs_list: list, API: dict) -> None:
     exchange_client = API["client"]
     for pair in pairs_list:
-        exchange_client.set_leverage(leverage=leverage, symbol=pair)
-        exchange_client.set_margin_mode(marginMode="isolated", symbol=pair)
+        logger.info(f"Changing leverage and margin for {pair}")
+        if "bybit" in API["name"].lower():
+            try:
+                exchange_client.set_margin_mode(marginMode="ISOLATED", symbol=pair, params={"leverage": leverage})
+            except Exception as err:
+                if "not modified" in str(err):
+                    pass
+                else:
+                    print(err)
+        else:
+            exchange_client.set_leverage(leverage=leverage, symbol=pair)
+            exchange_client.set_margin_mode(marginMode="ISOLATED", symbol=pair)
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to isolated")

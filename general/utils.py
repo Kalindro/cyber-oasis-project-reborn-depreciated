@@ -82,3 +82,18 @@ def round_down(x) -> float:
 
 def round_up(x) -> float:
     return math.ceil(x * 4) / 4
+
+
+def omit_arg(d, *args):
+    if isinstance(d, dict):
+        result = d.copy()
+        for arg in args:
+            if type(arg) is list:
+                for key in arg:
+                    if key in result:
+                        del result[key]
+            else:
+                if arg in result:
+                    del result[arg]
+        return result
+    return d
