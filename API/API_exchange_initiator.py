@@ -43,6 +43,33 @@ class ExchangeAPISelect(_CCXTExchangeSelect):
                "client": self._binance_spot(public_key, secret_key)}
         return API
 
+    def binance_futures_read_only(self) -> dict:
+        name = "Binance Futures Read Only"
+        exchange = "binance_futures"
+        public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
+        secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
+        API = {"name": name, "exchange": exchange,
+               "client": self._binance_futures(public_key, secret_key)}
+        return API
+
+    def binance_futures_trade(self) -> dict:
+        name = "Binance Futures Trade"
+        exchange = "binance_futures"
+        public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
+        secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
+        API = {"name": name, "exchange": exchange,
+               "client": self._binance_futures(public_key, secret_key)}
+        return API
+
+    def binance_spot_trade(self) -> dict:
+        name = "Binance Spot Trade"
+        exchange = "binance_spot"
+        public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
+        secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
+        API = {"full_name": name, "exchange": exchange,
+               "client": self._binance_spot(public_key, secret_key)}
+        return API
+
     def kucoin_spot_read_only(self) -> dict:
         name = "Kucoin Spot Read Only"
         exchange = "kucoin_spot"
@@ -51,13 +78,4 @@ class ExchangeAPISelect(_CCXTExchangeSelect):
         passphrase = os.getenv("KUCOIN_SPOT_READ_ONLY_PASSPHRASE")
         API = {"name": name, "exchange": exchange,
                "client": self._kucoin_spot(public_key, secret_key, passphrase)}
-        return API
-
-    def binance_futures_read_only(self) -> dict:
-        name = "Binance Futures Read Only"
-        exchange = "binance_futures"
-        public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
-        secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
-        API = {"name": name, "exchange": exchange,
-               "client": self._binance_futures(public_key, secret_key)}
         return API

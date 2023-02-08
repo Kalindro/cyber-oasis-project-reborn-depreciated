@@ -15,5 +15,5 @@ class LeverageChange:
 
 
 if __name__ == "__main__":
-    API = ExchangeAPISelect().binance_futures_read_only()
+    API = ExchangeAPISelect().binance_futures_trade()
     LeverageChange().main(API=API)
