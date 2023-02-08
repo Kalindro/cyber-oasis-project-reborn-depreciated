@@ -33,7 +33,7 @@ class _BaseSettings:
         self.PAIRS_MODE = 3
         self.SAVE_LOAD_HISTORY = False
         self.TIMEFRAME = "1h"
-        self.NUMBER_OF_LAST_CANDLES = 750
+        self.N_CANDLES = 750
         self.MIN_VOL_USD = 150_000
         self.CORES_USED = 6
 
@@ -50,7 +50,7 @@ class MomentumRank(_BaseSettings):
             all_pairs_history_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
                                                                       timeframe=self.TIMEFRAME,
                                                                       save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                      number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                      number_of_last_candles=self.N_CANDLES,
                                                                       API=self.API)
 
             delegate_momentum = _MomentumCalculations()

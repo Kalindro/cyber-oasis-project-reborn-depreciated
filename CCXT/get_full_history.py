@@ -44,8 +44,8 @@ class GetFullHistoryDF:
     def main(cls,
              pair: str,
              timeframe: str,
-             save_load_history: bool,
              API: dict,
+             save_load_history: bool = False,
              number_of_last_candles: tp.Optional[int] = None,
              since: tp.Optional[str] = None,
              end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:

@@ -9,11 +9,11 @@ class LeverageChange:
     def __init__(self):
         self.LEVERAGE = 2
         self.ISOLATED = True
+        self.API = ExchangeAPISelect().bybit_trade()
 
-    def main(self, API):
-        change_leverage_and_mode_on_all_exchange_pairs(leverage=self.LEVERAGE, API=API)
+    def main(self):
+        change_leverage_and_mode_on_all_exchange_pairs(leverage=self.LEVERAGE, API=self.API)
 
 
 if __name__ == "__main__":
-    API = ExchangeAPISelect().bybit_trade()
-    LeverageChange().main(API=API)
+    LeverageChange().main()

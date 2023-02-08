@@ -2,6 +2,7 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
 
+
 def get_exchange_timestamp(API: dict) -> str:
     """Get exchange time for timezone setting"""
     exchange_client = API["client"]
