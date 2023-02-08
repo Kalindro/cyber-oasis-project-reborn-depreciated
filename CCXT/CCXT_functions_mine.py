@@ -55,9 +55,9 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     return pairs_list
 
 
-def get_history_of_all_pairs_on_list(pairs_list: list, timeframe: str, save_load_history: bool, API: dict,
-                                     number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
-                                     end: Optional[str] = None) -> dict[str: pd.DataFrame]:
+def get_history_df_of_pairs_on_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
+                                    number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+                                    end: Optional[str] = None) -> dict[str: pd.DataFrame]:
     workers = 3
     logger.info("Getting history of all the coins on provided pairs list...")
     delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
@@ -96,8 +96,8 @@ def select_pairs_list_mode(PAIRS_MODE, API) -> list[str]:
     return pairs_list()
 
 
-def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, API: dict) -> None:
+def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, isolated: bool, API: dict) -> None:
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
-    change_leverage_and_mode_on_all_pairs_on_list(leverage=leverage, pairs_list=pairs_list, API=API)
+    change_leverage_and_mode_on_all_pairs_on_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated, API=API)
     logger.success("Finished changing leverage and margin mode on all")

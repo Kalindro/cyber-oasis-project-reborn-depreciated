@@ -4,7 +4,7 @@ import time
 
 import dateutil.parser
 import pandas as pd
-from pandas import ExcelWriter as ExcelWriter
+from pandas import ExcelWriter
 
 
 def date_string_to_datetime(date_string) -> dt.datetime:

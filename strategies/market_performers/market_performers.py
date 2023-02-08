@@ -9,7 +9,7 @@ from scipy.stats import linregress
 from talib import NATR
 
 from CCXT.CCXT_functions_builtin import get_pairs_prices
-from CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
+from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 from general.utils import excel_save_formatted
@@ -19,64 +19,6 @@ pd.set_option('display.max_columns', 0)
 pd.set_option('display.width', 0)
 
 logger = ConfigureLoguru().info_level()
-
-
-class _BaseSettings:
-
-    def __init__(self):
-        """
-        Modes available:
-        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-        """
-        self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 3
-        self.SAVE_LOAD_HISTORY = False
-        self.TIMEFRAME = "1h"
-        self.N_CANDLES = 750
-        self.MIN_VOL_USD = 150_000
-        self.CORES_USED = 6
-
-        self.API = select_exchange_mode(self.EXCHANGE_MODE)
-        self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
-        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
-        self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
-
-
-class MomentumRank(_BaseSettings):
-    def main(self) -> None:
-        try:
-            self.pairs_list += ["BTC/USDT", "ETH/USDT"]
-            all_pairs_history_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
-                                                                      timeframe=self.TIMEFRAME,
-                                                                      save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                      number_of_last_candles=self.N_CANDLES,
-                                                                      API=self.API)
-
-            delegate_momentum = _MomentumCalculations()
-            partial_performance_calculations = partial(delegate_momentum.performance_calculations,
-                                                       min_vol_USD=self.MIN_VOL_USD, min_vol_BTC=self.min_vol_BTC)
-            logger.info("Calculating performance for all the coins...")
-            performance_calculation_map_results = map(partial_performance_calculations, all_pairs_history_list)
-            global_performance_dataframe = df()
-            for pair_results in performance_calculation_map_results:
-                global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
-                                                         ignore_index=True)
-            if self.PAIRS_MODE != 1:
-                market_median_momentum = global_performance_dataframe["median momentum"].median()
-                BTC_median_momentum = global_performance_dataframe.loc[
-                    global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
-                ETH_median_momentum = global_performance_dataframe.loc[
-                    global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
-                print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
-                print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
-                print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
-            excel_save_formatted(global_performance_dataframe, global_cols_size=11, cash_cols="D:D", cash_cols_size=15,
-                                 rounded_cols="E:E", rounded_cols_size=11, perc_cols="F:Q", perc_cols_size=15)
-            logger.success("Saved excel, all done")
-        except Exception as err:
-            logger.error(f"Error on main market performance, {err}")
-            print(traceback.format_exc())
 
 
 class _MomentumCalculations:
@@ -140,6 +82,62 @@ class _MomentumCalculations:
                             "14d performance": [last_14d_performance], "14d momentum": [last_14d_momentum],
                             "median momentum": [median_momentum], "mom weighted": [median_momentum_weighted]}
         return performance_dict
+
+
+class _BaseSettings:
+
+    def __init__(self):
+        """
+        Modes available:
+        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
+        """
+        self.EXCHANGE_MODE = 1
+        self.PAIRS_MODE = 3
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 750
+        self.MIN_VOL_USD = 150_000
+        self.CORES_USED = 6
+
+        self.API = select_exchange_mode(self.EXCHANGE_MODE)
+        self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
+        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
+        self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
+
+
+class MomentumRank(_BaseSettings):
+    def main(self) -> None:
+        try:
+            self.pairs_list += ["BTC/USDT", "ETH/USDT"]
+            pairs_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                    API=self.API)
+
+            delegate_momentum = _MomentumCalculations()
+            partial_performance_calculations = partial(delegate_momentum.performance_calculations,
+                                                       min_vol_USD=self.MIN_VOL_USD, min_vol_BTC=self.min_vol_BTC)
+            logger.info("Calculating performance for all the coins...")
+            performance_calculation_map_results = map(partial_performance_calculations, pairs_history_df_list)
+            global_performance_dataframe = df()
+            for pair_results in performance_calculation_map_results:
+                global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
+                                                         ignore_index=True)
+            if self.PAIRS_MODE != 1:
+                market_median_momentum = global_performance_dataframe["median momentum"].median()
+                BTC_median_momentum = global_performance_dataframe.loc[
+                    global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
+                ETH_median_momentum = global_performance_dataframe.loc[
+                    global_performance_dataframe["symbol"] == "ETH", "median momentum"].iloc[-1]
+                print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
+                print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
+                print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
+            excel_save_formatted(global_performance_dataframe, global_cols_size=11, cash_cols="D:D", cash_cols_size=15,
+                                 rounded_cols="E:E", rounded_cols_size=11, perc_cols="F:Q", perc_cols_size=15)
+            logger.success("Saved excel, all done")
+        except Exception as err:
+            logger.error(f"Error on main market performance, {err}")
+            print(traceback.format_exc())
 
 
 if __name__ == "__main__":

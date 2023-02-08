@@ -5,7 +5,7 @@ import pandas as pd
 import vectorbt as vbt
 
 from CCXT.CCXT_functions_builtin import get_pairs_prices
-from CCXT.CCXT_functions_mine import get_history_of_all_pairs_on_list, select_exchange_mode, \
+from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 
@@ -96,10 +96,10 @@ class _BaseSettings:
         return fig
 
     def main(self):
-        all_coins_history_df_list = get_history_of_all_pairs_on_list(pairs_list=self.pairs_list,
-                                                                     timeframe=self.TIMEFRAME,
-                                                                     save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                     since=self.since, end=self.end, API=self.API)
+        all_coins_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
+                                                                    since=self.since, end=self.end, API=self.API)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 

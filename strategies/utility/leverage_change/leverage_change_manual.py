@@ -12,7 +12,7 @@ class LeverageChange:
         self.API = ExchangeAPISelect().bybit_trade()
 
     def main(self):
-        change_leverage_and_mode_on_all_exchange_pairs(leverage=self.LEVERAGE, API=self.API)
+        change_leverage_and_mode_on_all_exchange_pairs(leverage=self.LEVERAGE, isolated=self.ISOLATED, API=self.API)
 
 
 if __name__ == "__main__":
