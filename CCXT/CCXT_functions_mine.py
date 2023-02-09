@@ -97,6 +97,7 @@ def select_pairs_list_mode(PAIRS_MODE, API) -> list[str]:
 
 
 def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, isolated: bool, API: dict) -> None:
+    """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
     change_leverage_and_mode_on_all_pairs_on_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated, API=API)

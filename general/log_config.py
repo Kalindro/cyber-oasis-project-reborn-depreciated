@@ -1,4 +1,5 @@
 import sys
+import pandas as pd
 from typing import Optional
 
 from loguru import logger
@@ -7,6 +8,10 @@ from loguru import logger
 class ConfigureLoguru:
 
     def _basic_config(self, level: str, level_filter_only: Optional[str] = None) -> logger:
+        pd.set_option('display.max_rows', 0)
+        pd.set_option('display.max_columns', 0)
+        pd.set_option('display.width', 0)
+
         self.level_filter_only = level_filter_only
         logger.remove()
         formatted_format = ("<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "

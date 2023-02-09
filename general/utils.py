@@ -41,14 +41,20 @@ def excel_save_formatted(dataframe, global_cols_size, cash_cols, cash_cols_size,
                 "align": "center",
                 "bold": True,
             })
-            cash_format = workbook.add_format({"num_format": "$#,##0"})
-            rounded_format = workbook.add_format({"num_format": "0.00"})
-            perc_format = workbook.add_format({"num_format": "0.00%"})
+            cash_formatting = workbook.add_format({"num_format": "$#,##0"})
+            rounded_formatting = workbook.add_format({"num_format": "0.00"})
+            perc_formatting = workbook.add_format({"num_format": "0.00%"})
             worksheet.set_row(0, cell_format=header_format)
             worksheet.set_column("A:AAA", global_cols_size, None)
-            worksheet.set_column(cash_cols, cash_cols_size, cash_format)
-            worksheet.set_column(rounded_cols, rounded_cols_size, rounded_format)
-            worksheet.set_column(perc_cols, perc_cols_size, perc_format)
+
+            columns = [(cash_cols, cash_cols_size, cash_formatting),
+                       (rounded_cols, rounded_cols_size, rounded_formatting),
+                       (perc_cols, perc_cols_size, perc_formatting)]
+
+            for cols, cols_size, formatting in columns:
+                if cols is not None:
+                    args = [cols] if cols_size is None else [cols, cols_size]
+                    worksheet.set_column(*args, formatting)
 
 
 def timeframe_to_timestamp_ms(timeframe) -> int:

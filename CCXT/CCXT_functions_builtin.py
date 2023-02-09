@@ -36,6 +36,7 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
 
 
 def change_leverage_and_mode_on_all_pairs_on_list(leverage: int, pairs_list: list, isolated: bool, API: dict) -> None:
+    """Change leverage and margin mode on all pairs on list"""
     exchange_client = API["client"]
     mmode = "ISOLATED" if isolated else "CROSS"
     for pair in pairs_list:

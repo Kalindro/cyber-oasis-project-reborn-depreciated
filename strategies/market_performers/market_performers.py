@@ -6,17 +6,12 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame as df
 from scipy.stats import linregress
-from talib import NATR
 
 from CCXT.CCXT_functions_builtin import get_pairs_prices
 from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 from general.utils import excel_save_formatted
-
-pd.set_option('display.max_rows', 0)
-pd.set_option('display.max_columns', 0)
-pd.set_option('display.width', 0)
 
 logger = ConfigureLoguru().info_level()
 
@@ -43,44 +38,28 @@ class _MomentumCalculations:
     def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> Union[
         dict, None]:
         """Calculation all the needed performance metrics for the pair"""
-        last_24h_hourly_history = coin_history_df.tail(24)
-        last_2d_hourly_history = coin_history_df.tail(48)
-        last_3d_hourly_history = coin_history_df.tail(72)
-        last_7d_hourly_history = coin_history_df.tail(168)
-        last_14d_hourly_history = coin_history_df.tail(336)
-        avg_daily_volume_base = last_7d_hourly_history["volume"].sum() / 7
-        avg_24h_vol_usd = avg_daily_volume_base * last_7d_hourly_history.iloc[-1]["close"]
+        days_list = [1, 3, 7, 14]
+        days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in
+                             days_list}
+        avg_daily_volume_base = days_history_dict["7d_hourly_history"]["volume"].sum() / 7
+        avg_daily_volume_quote = avg_daily_volume_base * days_history_dict["7d_hourly_history"].iloc[-1]["close"]
+
         pair = str(coin_history_df.iloc[-1].pair)
+        symbol = str(coin_history_df.iloc[-1].symbol)
         if pair.endswith("/BTC"):
             min_vol = min_vol_BTC
         elif pair.endswith("/USDT"):
             min_vol = min_vol_USD
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
-        if avg_24h_vol_usd < min_vol or len(coin_history_df) < 14 * 24:
+        if avg_daily_volume_quote < min_vol or len(coin_history_df) < 14 * 24:
             return
-        last_24h_performance = self.calculate_price_change(last_24h_hourly_history)
-        last_24h_momentum = self.calculate_momentum(last_24h_hourly_history)
-        last_2d_performance = self.calculate_price_change(last_2d_hourly_history)
-        last_2d_momentum = self.calculate_momentum(last_2d_hourly_history)
-        last_3d_performance = self.calculate_price_change(last_3d_hourly_history)
-        last_3d_momentum = self.calculate_momentum(last_3d_hourly_history)
-        last_7d_performance = self.calculate_price_change(last_7d_hourly_history)
-        last_7d_momentum = self.calculate_momentum(last_7d_hourly_history)
-        last_14d_performance = self.calculate_price_change(last_14d_hourly_history)
-        last_14d_momentum = self.calculate_momentum(last_14d_hourly_history)
-        coin_NATR = NATR(last_14d_hourly_history["high"], last_14d_hourly_history["low"],
-                         last_14d_hourly_history["close"], timeperiod=len(last_14d_hourly_history) - 4)
-        median_momentum = np.median([last_24h_momentum, last_3d_momentum, last_7d_momentum, last_14d_performance])
-        median_momentum_weighted = median_momentum / coin_NATR[-1]
-        performance_dict = {"pair": [pair], "symbol": [last_24h_hourly_history.iloc[-1]["symbol"]],
-                            "avg_24h_vol_usd": [avg_24h_vol_usd], "NATR": [coin_NATR[-1]],
-                            "24h performance": [last_24h_performance], "24h momentum": [last_24h_momentum],
-                            "2d performance": [last_2d_performance], "2d momentum": [last_2d_momentum],
-                            "3d performance": [last_3d_performance], "3d momentum": [last_3d_momentum],
-                            "7d performance": [last_7d_performance], "7d momentum": [last_7d_momentum],
-                            "14d performance": [last_14d_performance], "14d momentum": [last_14d_momentum],
-                            "median momentum": [median_momentum], "mom weighted": [median_momentum_weighted]}
+
+        performance_dict = {"pair": [pair], "symbol": [symbol], "24h_vol": [avg_daily_volume_quote]}
+        performance_dict.update({
+            f"{days}d_performance": self.calculate_price_change(days_history_dict[f"{days}d_hourly_history"])
+            for days in days_list})
+
         return performance_dict
 
 
@@ -131,8 +110,8 @@ class MomentumRank(_BaseSettings):
                 print(f"\033[93mMarket median momentum: {market_median_momentum:.2%}\033[0m")
                 print(f"\033[93mBTC median momentum: {BTC_median_momentum:.2%}\033[0m")
                 print(f"\033[93mETH median momentum: {ETH_median_momentum:.2%}\033[0m")
-            excel_save_formatted(global_performance_dataframe, global_cols_size=11, cash_cols="D:D", cash_cols_size=15,
-                                 rounded_cols="E:E", rounded_cols_size=11, perc_cols="F:Q", perc_cols_size=15)
+            excel_save_formatted(global_performance_dataframe, global_cols_size=11, cash_cols="D:D", cash_cols_size=None,
+                                 rounded_cols=None, rounded_cols_size=None, perc_cols="E:H", perc_cols_size=16)
             logger.success("Saved excel, all done")
         except Exception as err:
             logger.error(f"Error on main market performance, {err}")
