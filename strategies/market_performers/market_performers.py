@@ -108,7 +108,6 @@ class _BaseSettings:
 class MomentumRank(_BaseSettings):
     def main(self) -> None:
         try:
-            self.pairs_list += ["BTC/USDT", "ETH/USDT"]
             pairs_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
                                                                     timeframe=self.TIMEFRAME,
                                                                     number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
@@ -123,7 +122,7 @@ class MomentumRank(_BaseSettings):
             for pair_results in performance_calculation_map_results:
                 global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                          ignore_index=True)
-            if self.PAIRS_MODE != 1:
+            if self.PAIRS_MODE == 4:
                 market_median_momentum = global_performance_dataframe["median momentum"].median()
                 BTC_median_momentum = global_performance_dataframe.loc[
                     global_performance_dataframe["symbol"] == "BTC", "median momentum"].iloc[-1]
