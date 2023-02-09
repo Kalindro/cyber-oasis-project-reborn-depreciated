@@ -29,6 +29,7 @@ def get_pairs_list_BTC(API: dict) -> list[str]:
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/BTC", ":BTC"))]
     logger.debug("Pairs list completed, returning")
+
     return pairs_list
 
 
@@ -40,6 +41,7 @@ def get_pairs_list_USDT(API: dict) -> list[str]:
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/USDT", ":USDT"))]
     logger.debug("Pairs list completed, returning")
+
     return pairs_list
 
 
@@ -52,6 +54,7 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     pairs_list = [str(pair) for pair in pairs_list_original if
                   str(pair).endswith(("/USDT", ":USDT", "/BTC", ":BTC", "/ETH", ":ETH"))]
     logger.debug("Pairs list completed, returning")
+
     return pairs_list
 
 
@@ -64,10 +67,12 @@ def get_history_df_of_pairs_on_list(pairs_list: list, timeframe: str, API: dict,
                                        save_load_history=save_load_history,
                                        API=API, number_of_last_candles=number_of_last_candles,
                                        since=since, end=end)
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
-    logger.success("History of all the coins completed, returning")
     all_coins_history = [df for df in all_coins_history if dataframe_is_not_none_and_has_elements(df)]
+    logger.success("History of all the coins completed, returning")
+
     return all_coins_history
 
 
@@ -80,6 +85,7 @@ def select_exchange_mode(EXCHANGE_MODE) -> dict:
     exchange = exchanges_dict.get(EXCHANGE_MODE)
     if exchange is None:
         raise ValueError("Invalid mode: " + str(EXCHANGE_MODE))
+
     return exchange()
 
 
@@ -93,6 +99,7 @@ def select_pairs_list_mode(PAIRS_MODE, API) -> list[str]:
     pairs_list = pairs_list.get(PAIRS_MODE)
     if pairs_list is None:
         raise ValueError("Invalid mode: " + str(PAIRS_MODE))
+
     return pairs_list()
 
 

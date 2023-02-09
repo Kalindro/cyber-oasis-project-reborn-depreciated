@@ -8,6 +8,7 @@ def get_exchange_timestamp(API: dict) -> str:
     exchange_client = API["client"]
     exchange_status = exchange_client.fetch_status()
     exchange_timestamp = exchange_status["updated"]
+
     return exchange_timestamp
 
 
@@ -21,6 +22,7 @@ def get_pairs_with_precisions_status(API: dict) -> pd.DataFrame:
     pairs_precisions_status_df = pairs_precisions_status_df.astype({"active": str})
     pairs_precisions_status_df.set_index("symbol", inplace=True)
     logger.debug("Pairs with precisions and status completed, returning")
+
     return pairs_precisions_status_df
 
 
@@ -32,6 +34,7 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
     pairs_prices_df = df.from_dict(raw_pairs, orient="index", columns=["average"])
     pairs_prices_df.rename(columns={"average": "price"}, inplace=True)
     logger.debug("Pairs prices completed, returning")
+
     return pairs_prices_df
 
 
@@ -39,6 +42,7 @@ def change_leverage_and_mode_on_all_pairs_on_list(leverage: int, pairs_list: lis
     """Change leverage and margin mode on all pairs on list"""
     exchange_client = API["client"]
     mmode = "ISOLATED" if isolated else "CROSS"
+
     for pair in pairs_list:
         logger.info(f"Changing leverage and margin for {pair}")
         if "bybit" in API["name"].lower():

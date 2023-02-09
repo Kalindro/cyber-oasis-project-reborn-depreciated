@@ -3,8 +3,10 @@ import math
 import time
 
 import dateutil.parser
+import numpy as np
 import pandas as pd
 from pandas import ExcelWriter
+from scipy.stats import linregress
 
 
 def date_string_to_datetime(date_string) -> dt.datetime:
@@ -53,8 +55,7 @@ def excel_save_formatted(dataframe, global_cols_size, cash_cols, cash_cols_size,
 
             for cols, cols_size, formatting in columns:
                 if cols is not None:
-                    args = [cols] if cols_size is None else [cols, cols_size]
-                    worksheet.set_column(*args, formatting)
+                    worksheet.set_column(cols, width=cols_size, cell_format=formatting)
 
 
 def timeframe_to_timestamp_ms(timeframe) -> int:
@@ -103,3 +104,14 @@ def omit_arg(d, *args):
                     del result[arg]
         return result
     return d
+
+
+def calculate_momentum(cls, pair_history_dataframe: pd.DataFrame) -> float:
+    """Momentum calculation"""
+    closes = pair_history_dataframe["close"]
+    returns = np.log(closes)
+    x = np.arange(len(returns))
+    slope, _, rvalue, _, _ = linregress(x, returns)
+    momentum = slope * 100
+
+    return momentum * (rvalue ** 2)

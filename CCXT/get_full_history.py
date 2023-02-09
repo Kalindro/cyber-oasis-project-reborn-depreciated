@@ -105,6 +105,7 @@ class _DFCleanAndCut:
          end_datetime can be precise to the second while the TIMEFRAME may be 1D - it
           would never return correctly, mainly when the end is now"""
         final_dataframe = final_dataframe.loc[since_datetime:min(final_dataframe.iloc[-1].name, end_datetime)]
+
         return final_dataframe
 
 
@@ -144,6 +145,7 @@ class _DataStoring:
         """Check if loaded data range is sufficient for current request, if not - get new"""
         cut_delegate = _DFCleanAndCut()
         hist_df_full = self.parse_dataframe_from_pickle()
+
         if dataframe_is_not_none_and_has_elements(hist_df_full):
             if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
                     hist_df_full.iloc[0].name <= self.since_datetime):
