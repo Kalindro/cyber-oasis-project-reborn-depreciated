@@ -91,9 +91,9 @@ class _DFCleanAndCut:
         if dataframe_is_not_none_and_has_elements(hist_dataframe):
             hist_dataframe.dropna(inplace=True)
             hist_dataframe = hist_dataframe[~hist_dataframe.index.duplicated(keep="last")]
-            hist_dataframe.insert(len(hist_dataframe.columns), "pair", pair)
-            hist_dataframe.insert(len(hist_dataframe.columns), "symbol",
-                                  pair[:-5] if pair.endswith("/USDT") else pair[:-4])
+            hist_dataframe.insert(len(hist_dataframe.columns), "pair",
+                                  pair.split(':')[0] if ":" in pair else pair)
+            hist_dataframe.insert(len(hist_dataframe.columns), "symbol", pair.split('/')[0])
             return hist_dataframe
         else:
             return None

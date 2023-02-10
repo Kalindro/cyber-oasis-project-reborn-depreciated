@@ -33,6 +33,7 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
     raw_pairs = exchange_client.fetch_tickers()
     pairs_prices_df = df.from_dict(raw_pairs, orient="index", columns=["average"])
     pairs_prices_df.rename(columns={"average": "price"}, inplace=True)
+    pairs_prices_df.index = pairs_prices_df.index.to_series().apply(lambda x: x.split(':')[0] if ":" in x else x)
     logger.debug("Pairs prices completed, returning")
 
     return pairs_prices_df

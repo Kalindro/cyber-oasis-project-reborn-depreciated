@@ -6,11 +6,13 @@ from dotenv import load_dotenv
 
 
 def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
-                              passphrase: Optional[str] = None) -> ccxt.Exchange:
+                              passphrase: Optional[str] = None, options: Optional[dict] = None) -> ccxt.Exchange:
     """Factory function for creating CCXT exchange instance"""
     exchange_params = {"apiKey": public_key, "secret": secret_key}
     if passphrase:
         exchange_params["password"] = passphrase
+    if options:
+        exchange_params["options"] = options
     return getattr(ccxt, CCXT_exchange_name)(exchange_params)
 
 
@@ -19,11 +21,13 @@ class _CCXTExchangeSelect:
 
     @staticmethod
     def _binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binance", public_key, secret_key)
+        return _create_exchange_instance("binance", public_key=public_key, secret_key=secret_key,
+                                         options={"defaultType": "spot", "fetchMarkets": ["spot"]})
 
     @staticmethod
     def _binance_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binanceusdm", public_key, secret_key)
+        return _create_exchange_instance("binanceusdm", public_key, secret_key,
+                                         options={"defaultType": "future", "fetchMarkets": ["linear"]})
 
     @staticmethod
     def _kucoin_spot(public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
