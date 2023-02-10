@@ -99,10 +99,12 @@ class MomentumRank(_BaseSettings):
                 global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                          ignore_index=True)
 
-            first_quartile = global_performance_dataframe['avg_hourly_vol_1d'].quantile(0.25)
+            first_quartile_1d = global_performance_dataframe['avg_hourly_vol_1d'].quantile(0.50)
+            first_quartile_31d = global_performance_dataframe['avg_hourly_vol_31d'].quantile(0.50)
             global_performance_dataframe = global_performance_dataframe[
-                global_performance_dataframe['avg_hourly_vol_1d'] >= first_quartile]
-            logger.info("Dropped bottom 25% volume coins")
+                (global_performance_dataframe['avg_hourly_vol_1d'] >= first_quartile_1d) & (
+                        global_performance_dataframe['avg_hourly_vol_31d'] >= first_quartile_31d)]
+            logger.info("Dropped bottom 50% volume coins")
 
             if self.PAIRS_MODE == 4:
                 market_median_performance = global_performance_dataframe["median_performance"].median()
