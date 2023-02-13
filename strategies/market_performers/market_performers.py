@@ -35,9 +35,9 @@ class _MomentumCalculations:
         days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in
                              days_list}
 
-        avg_hourly_vol_1d = (days_history_dict["1d_hourly_history"]["volume"].sum() / 24) * price
-        avg_hourly_vol_31d = ((days_history_dict["31d_hourly_history"]["volume"].sum() / 31) / 24) * price
-        vol_increase = avg_hourly_vol_1d / avg_hourly_vol_31d
+        avg_vol_3d = (days_history_dict["3d_hourly_history"]["volume"].sum() / 3) * price
+        avg_vol_31d = (days_history_dict["31d_hourly_history"]["volume"].sum() / 31) * price
+        vol_increase = avg_vol_3d / avg_vol_31d
 
         if pair.endswith(("/BTC", ":BTC")):
             min_vol = min_vol_BTC
@@ -45,12 +45,12 @@ class _MomentumCalculations:
             min_vol = min_vol_USD
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
-        if avg_hourly_vol_31d < min_vol or len(coin_history_df) < max(days_list * 24):
+        if avg_vol_31d < min_vol or len(coin_history_df) < max(days_list * 24):
             logger.info(f"Skipping {pair}, not enough volume or too short")
             return
 
-        core_dict = {"pair": [pair], "symbol": [symbol], "avg_hourly_vol_1d": [avg_hourly_vol_1d],
-                     "avg_hourly_vol_31d": [avg_hourly_vol_31d], "vol_increase": [vol_increase]}
+        core_dict = {"pair": [pair], "symbol": [symbol], "avg_vol_3d": [avg_vol_3d],
+                     "avg_vol_31d": [avg_vol_31d], "vol_increase": [vol_increase]}
         performance_dict = {
             f"{days}d_performance": self._calculate_price_change(days_history_dict[f"{days}d_hourly_history"])
             for days in days_list}
@@ -69,10 +69,11 @@ class _BaseSettings:
         :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
         """
         self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 4
+        self.PAIRS_MODE = 1
         self.TIMEFRAME = "1h"
         self.NUMBER_OF_LAST_CANDLES = 1000
-        self.MIN_VOL_USD = 300_000 / 24
+        self.MIN_VOL_USD = 300_000
+        self.QUANTILE = 0.75
         self.CORES_USED = 6
 
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
@@ -99,12 +100,13 @@ class MomentumRank(_BaseSettings):
                 global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
                                                          ignore_index=True)
 
-            first_quartile_1d = global_performance_dataframe['avg_hourly_vol_1d'].quantile(0.50)
-            first_quartile_31d = global_performance_dataframe['avg_hourly_vol_31d'].quantile(0.50)
+            fast_history = global_performance_dataframe['avg_vol_3d']
+            slow_history = global_performance_dataframe['avg_vol_31d']
+            fast_history_quantile = fast_history.quantile(self.QUANTILE)
+            slow_history_quantile = slow_history.quantile(self.QUANTILE)
             global_performance_dataframe = global_performance_dataframe[
-                (global_performance_dataframe['avg_hourly_vol_1d'] >= first_quartile_1d) & (
-                        global_performance_dataframe['avg_hourly_vol_31d'] >= first_quartile_31d)]
-            logger.info("Dropped bottom 50% volume coins")
+                (fast_history >= fast_history_quantile) & (slow_history >= slow_history_quantile)]
+            logger.info(f"Dropped bottom {self.QUANTILE} volume coins")
 
             if self.PAIRS_MODE == 4:
                 market_median_performance = global_performance_dataframe["median_performance"].median()
@@ -116,9 +118,9 @@ class MomentumRank(_BaseSettings):
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
 
-            excel_save_formatted(global_performance_dataframe, global_cols_size=13, cash_cols="D:E",
-                                 cash_cols_size=17, rounded_cols=None, rounded_cols_size=None, perc_cols="F:L",
-                                 perc_cols_size=16)
+            excel_save_formatted(global_performance_dataframe, filename="performance.xlsx", global_cols_size=13,
+                                 cash_cols="D:E", cash_cols_size=17, rounded_cols=None, rounded_cols_size=None,
+                                 perc_cols="F:L", perc_cols_size=16)
             logger.success("Saved excel, all done")
 
         except Exception as err:

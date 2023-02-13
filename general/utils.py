@@ -5,6 +5,7 @@ import time
 import dateutil.parser
 import numpy as np
 import pandas as pd
+from loguru import logger
 from pandas import ExcelWriter
 from scipy.stats import linregress
 
@@ -30,32 +31,44 @@ def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
             return True
 
 
-def excel_save_formatted(dataframe, global_cols_size, cash_cols, cash_cols_size, rounded_cols, rounded_cols_size,
+def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_cols_size, rounded_cols, rounded_cols_size,
                          perc_cols, perc_cols_size) -> None:
-    writer = ExcelWriter("performance.xlsx", engine="xlsxwriter")
-    with writer as writer:
-        dataframe.to_excel(writer, sheet_name="main")
-        workbook = writer.book
-        for worksheet_name in writer.sheets.keys():
-            worksheet = writer.sheets[worksheet_name]
-            header_format = workbook.add_format({
-                "valign": "vcenter",
-                "align": "center",
-                "bold": True,
-            })
-            cash_formatting = workbook.add_format({"num_format": "$#,##0"})
-            rounded_formatting = workbook.add_format({"num_format": "0.00"})
-            perc_formatting = workbook.add_format({"num_format": "0.00%"})
-            worksheet.set_row(0, cell_format=header_format)
-            worksheet.set_column("A:AAA", global_cols_size, None)
+    count = 1
+    while True:
+        try:
+            writer = ExcelWriter(filename, engine="xlsxwriter")
+            with writer as writer:
+                dataframe.to_excel(writer, sheet_name="main")
+                workbook = writer.book
+                for worksheet_name in writer.sheets.keys():
+                    worksheet = writer.sheets[worksheet_name]
+                    header_format = workbook.add_format({
+                        "valign": "vcenter",
+                        "align": "center",
+                        "bold": True,
+                    })
+                    cash_formatting = workbook.add_format({"num_format": "$#,##0"})
+                    rounded_formatting = workbook.add_format({"num_format": "0.00"})
+                    perc_formatting = workbook.add_format({"num_format": "0.00%"})
+                    worksheet.set_row(0, cell_format=header_format)
+                    worksheet.set_column("A:AAA", global_cols_size, None)
 
-            columns = [(cash_cols, cash_cols_size, cash_formatting),
-                       (rounded_cols, rounded_cols_size, rounded_formatting),
-                       (perc_cols, perc_cols_size, perc_formatting)]
+                    columns = [(cash_cols, cash_cols_size, cash_formatting),
+                               (rounded_cols, rounded_cols_size, rounded_formatting),
+                               (perc_cols, perc_cols_size, perc_formatting)]
 
-            for cols, cols_size, formatting in columns:
-                if cols is not None:
-                    worksheet.set_column(cols, width=cols_size, cell_format=formatting)
+                    for cols, cols_size, formatting in columns:
+                        if cols is not None:
+                            worksheet.set_column(cols, width=cols_size, cell_format=formatting)
+                break
+
+        except PermissionError as e:
+            if "denied" in str(e):
+                filename = f"{filename.split('.')[0].split('_')[0]}_{count}.xlsx"
+                logger.warning(f"Trying to save as v{count} because access denied")
+                count += 1
+            else:
+                raise e
 
 
 def timeframe_to_timestamp_ms(timeframe) -> int:
@@ -106,7 +119,7 @@ def omit_arg(d, *args):
     return d
 
 
-def calculate_momentum(cls, pair_history_dataframe: pd.DataFrame) -> float:
+def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
     """Momentum calculation"""
     closes = pair_history_dataframe["close"]
     returns = np.log(closes)
