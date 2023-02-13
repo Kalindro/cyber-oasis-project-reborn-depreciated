@@ -93,6 +93,7 @@ def timeframe_to_timestamp_ms(timeframe) -> int:
         timestamp_ms = 604800000
     else:
         raise ValueError("Unsupported TIMEFRAME to convert to timestamp")
+
     return int(timestamp_ms)
 
 
