@@ -12,6 +12,82 @@ from general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, ti
                            timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
 
 
+class GetFullHistoryDF:
+    """Main logic class to receive desired range of clean, usable history dataframe"""
+
+    @staticmethod
+    def validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
+                       end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
+        timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
+        if not (number_of_last_candles or since):
+            raise ValueError("Please provide either starting date or number of last n candles to provide")
+        if number_of_last_candles and (since or end):
+            raise ValueError("You cannot provide since/end date together with last n candles parameter")
+
+        if number_of_last_candles:
+            since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
+                    number_of_last_candles * timeframe_in_timestamp)
+            since_datetime = timestamp_ms_to_datetime(since_timestamp)
+        if since:
+            since_datetime = date_string_to_datetime(since)
+            since_timestamp = datetime_to_timestamp_ms(since_datetime)
+        if end:
+            end_datetime = date_string_to_datetime(end)
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+        else:
+            end_datetime = dt.datetime.now()
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+
+        return since_timestamp, end_timestamp, since_datetime, end_datetime
+
+    @classmethod
+    def main(cls,
+             pair: str,
+             timeframe: str,
+             API: dict,
+             save_load_history: bool = False,
+             number_of_last_candles: tp.Optional[int] = None,
+             since: tp.Optional[str] = None,
+             end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
+
+        timeframe = timeframe.lower()
+        since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
+                                                                                          number_of_last_candles,
+                                                                                          since, end)
+        try:
+            logger.info(f"Getting {pair} history")
+            exchange = API["exchange"]
+            delegate_query_history = _QueryHistory()
+            delegate_df_clean_cut = _DFCleanAndCut()
+
+            if save_load_history:
+                delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=exchange,
+                                                     end_datetime=end_datetime, since_datetime=since_datetime)
+                hist_df_full = delegate_data_storing.load_dataframe_and_pre_check(API=API)
+                if dataframe_is_not_none_and_has_elements(hist_df_full):
+                    return hist_df_full
+
+            hist_df_full = delegate_query_history.get_history_range(pair=pair, timeframe=timeframe,
+                                                                    since_timestamp=since_timestamp,
+                                                                    end_timestamp=end_timestamp,
+                                                                    API=API)
+            hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
+            if not dataframe_is_not_none_and_has_elements(hist_df_full):
+                logger.info(f"{pair} is broken or too short")
+                return None
+
+            if save_load_history:
+                delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
+
+            hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, since_datetime,
+                                                                                    end_datetime)
+            return hist_df_final_cut
+
+        except Exception as err:
+            logger.error(f"Error on main full history, {err}")
+            print(traceback.format_exc())
+
+
 class _QueryHistory:
     """Class handling data query"""
 
@@ -173,79 +249,3 @@ class _DataStoring:
         """Pickle the data and save"""
         df_to_save.to_pickle(f"{self.pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
         logger.info(f"Saved {self.pair} history dataframe as pickle")
-
-
-class GetFullHistoryDF:
-    """Main logic class to receive desired range of clean, usable history dataframe"""
-
-    @staticmethod
-    def validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
-                       end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
-        timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
-        if not (number_of_last_candles or since):
-            raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if number_of_last_candles and (since or end):
-            raise ValueError("You cannot provide since/end date together with last n candles parameter")
-
-        if number_of_last_candles:
-            since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
-                    number_of_last_candles * timeframe_in_timestamp)
-            since_datetime = timestamp_ms_to_datetime(since_timestamp)
-        if since:
-            since_datetime = date_string_to_datetime(since)
-            since_timestamp = datetime_to_timestamp_ms(since_datetime)
-        if end:
-            end_datetime = date_string_to_datetime(end)
-            end_timestamp = datetime_to_timestamp_ms(end_datetime)
-        else:
-            end_datetime = dt.datetime.now()
-            end_timestamp = datetime_to_timestamp_ms(end_datetime)
-
-        return since_timestamp, end_timestamp, since_datetime, end_datetime
-
-    @classmethod
-    def main(cls,
-             pair: str,
-             timeframe: str,
-             API: dict,
-             save_load_history: bool = False,
-             number_of_last_candles: tp.Optional[int] = None,
-             since: tp.Optional[str] = None,
-             end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
-
-        timeframe = timeframe.lower()
-        since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
-                                                                                          number_of_last_candles,
-                                                                                          since, end)
-        try:
-            logger.info(f"Getting {pair} history")
-            exchange = API["exchange"]
-            delegate_query_history = _QueryHistory()
-            delegate_df_clean_cut = _DFCleanAndCut()
-
-            if save_load_history:
-                delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=exchange,
-                                                     end_datetime=end_datetime, since_datetime=since_datetime)
-                hist_df_full = delegate_data_storing.load_dataframe_and_pre_check(API=API)
-                if dataframe_is_not_none_and_has_elements(hist_df_full):
-                    return hist_df_full
-
-            hist_df_full = delegate_query_history.get_history_range(pair=pair, timeframe=timeframe,
-                                                                    since_timestamp=since_timestamp,
-                                                                    end_timestamp=end_timestamp,
-                                                                    API=API)
-            hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
-            if not dataframe_is_not_none_and_has_elements(hist_df_full):
-                logger.info(f"{pair} is broken or too short")
-                return None
-
-            if save_load_history:
-                delegate_data_storing.save_dataframe_to_pickle(hist_df_final)
-
-            hist_df_final_cut = delegate_df_clean_cut.cut_exact_df_dates_for_return(hist_df_final, since_datetime,
-                                                                                    end_datetime)
-            return hist_df_final_cut
-
-        except Exception as err:
-            logger.error(f"Error on main full history, {err}")
-            print(traceback.format_exc())

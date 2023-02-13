@@ -26,16 +26,17 @@ class _BaseSettings:
         """
         self.EXCHANGE_MODE = 1
         self.PAIRS_MODE = 4
-        self.TIMEFRAME = "1h"  # Don't change
-        self.NUMBER_OF_LAST_CANDLES = 1000  # Don't change
         self.MIN_VOL_USD = 300_000
         self.QUANTILE = 0.75
-        self.CORES_USED = 6
 
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
+
+        # Don't change
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
 
 
 class MomentumRank(_BaseSettings):

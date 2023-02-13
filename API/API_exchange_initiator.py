@@ -5,37 +5,33 @@ import ccxt
 from dotenv import load_dotenv
 
 
-def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
-                              passphrase: Optional[str] = None, options: Optional[dict] = None) -> ccxt.Exchange:
-    """Factory function for creating CCXT exchange instance"""
-    exchange_params = {"apiKey": public_key, "secret": secret_key}
-    if passphrase:
-        exchange_params["password"] = passphrase
-    if options:
-        exchange_params["options"] = options
-    return getattr(ccxt, CCXT_exchange_name)(exchange_params)
-
-
 class _CCXTExchangeSelect:
     """Class to create CCXT instance of selected exchange"""
 
-    @staticmethod
-    def _binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binance", public_key=public_key, secret_key=secret_key,
-                                         options={"defaultType": "spot", "fetchMarkets": ["spot"]})
+    @classmethod
+    def _create_exchange_instance(cls, CCXT_exchange_name: str, public_key: str, secret_key: str,
+                                  passphrase: Optional[str] = None, options: Optional[dict] = None) -> ccxt.Exchange:
+        """Factory function for creating CCXT exchange instance"""
+        exchange_params = {"apiKey": public_key, "secret": secret_key}
+        if passphrase:
+            exchange_params["password"] = passphrase
+        if options:
+            exchange_params["options"] = options
+        return getattr(ccxt, CCXT_exchange_name)(exchange_params)
 
-    @staticmethod
-    def _binance_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binanceusdm", public_key, secret_key,
-                                         options={"defaultType": "future", "fetchMarkets": ["linear"]})
+    def _binance_spot(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+        return self._create_exchange_instance("binance", public_key=public_key, secret_key=secret_key,
+                                              options={"defaultType": "spot", "fetchMarkets": ["spot"]})
 
-    @staticmethod
-    def _kucoin_spot(public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
-        return _create_exchange_instance("kucoin", public_key, secret_key, passphrase)
+    def _binance_futures(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+        return self._create_exchange_instance("binanceusdm", public_key, secret_key,
+                                              options={"defaultType": "future", "fetchMarkets": ["linear"]})
 
-    @staticmethod
-    def _bybit_spot_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("bybit", public_key, secret_key)
+    def _kucoin_spot(self, public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
+        return self._create_exchange_instance("kucoin", public_key, secret_key, passphrase)
+
+    def _bybit_spot_futures(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+        return self._create_exchange_instance("bybit", public_key, secret_key)
 
 
 class ExchangeAPISelect(_CCXTExchangeSelect):

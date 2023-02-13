@@ -61,6 +61,7 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
 def get_history_df_of_pairs_on_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
                                     number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
                                     end: Optional[str] = None) -> dict[str: pd.DataFrame]:
+    """Get history of all pairs on list"""
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
     delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
