@@ -20,8 +20,8 @@ class _BaseSettings:
         self.PAIR_LONG = "RNDR/USDT"
         self.PAIR_SHORT = "ETH/USDT"
         self.PAIR_BENCHMARK = "ETH/USDT"
-        self.INVESTMENT = 1000
-        self.NUMBER_OF_LAST_CANDLES = 100
+        self.INVESTMENT = 2020
+        self.NUMBER_OF_LAST_CANDLES = 170
 
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
 
