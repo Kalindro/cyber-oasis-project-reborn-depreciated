@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
-from CCXT.CCXT_functions_builtin import get_pairs_prices
+from CCXT.CCXT_functions_base import get_pairs_prices
 from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
@@ -27,7 +27,7 @@ class _BaseSettings:
         self.EXCHANGE_MODE = 1
         self.PAIRS_MODE = 4
         self.MIN_VOL_USD = 300_000
-        self.QUANTILE = 0.75
+        self.QUANTILE = 0.25
 
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
@@ -87,14 +87,6 @@ class MomentumRank(_BaseSettings):
 
 class _MomentumCalculations:
 
-    @classmethod
-    def _calculate_price_change(cls, cut_history_dataframe: pd.DataFrame) -> float:
-        """Function counting price change in %"""
-        performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
-                      cut_history_dataframe.iloc[0]["close"]
-
-        return performance
-
     def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> Union[
         dict, None]:
         """Calculation all the needed performance metrics for the pair"""
@@ -132,6 +124,14 @@ class _MomentumCalculations:
         core_dict.update(performance_dict)
 
         return core_dict
+
+    @staticmethod
+    def _calculate_price_change(cut_history_dataframe: pd.DataFrame) -> float:
+        """Function counting price change in %"""
+        performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
+                      cut_history_dataframe.iloc[0]["close"]
+
+        return performance
 
 
 if __name__ == "__main__":

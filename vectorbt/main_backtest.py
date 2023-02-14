@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
-from CCXT.CCXT_functions_builtin import get_pairs_prices
+from CCXT.CCXT_functions_base import get_pairs_prices
 from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
@@ -12,9 +12,6 @@ from general.log_config import ConfigureLoguru
 logger = ConfigureLoguru().info_level()
 
 np.set_printoptions(threshold=sys.maxsize)
-pd.set_option('display.max_rows', 0)
-pd.set_option('display.max_columns', 0)
-pd.set_option('display.width', 0)
 
 vbt.settings['plotting']['layout']['width'] = 1800
 vbt.settings['plotting']['layout']['height'] = 800
@@ -73,6 +70,22 @@ class _BaseSettings:
         #                                              trace_kwargs=dict(marker=dict(color="orange")), fig=fig)
         return fig
 
+    def main(self):
+        all_coins_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
+                                                                    since=self.since, end=self.end, API=self.API)
+        price_df = pd.concat(all_coins_history_df_list, axis=1)
+        entries, exits, keltner = self.keltner_strat(price_df=price_df)
+
+        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
+                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
+        print(pf.stats())
+        if self.PLOTTING:
+            fig = self.plot_base(portfolio=pf, price_df=price_df)
+            fig = self.keltner_print(keltner=keltner, fig=fig)
+            fig.show()
+
     def keltner_strat(self, price_df):
         keltner = vbt.IndicatorFactory.from_pandas_ta("kc").run(high=price_df["high"], low=price_df["low"],
                                                                 close=price_df["close"], length=self.PERIOD,
@@ -94,22 +107,6 @@ class _BaseSettings:
             trace_kwargs=dict(name="Lower Band", opacity=0.55, line=dict(color="darkslateblue")),
             add_trace_kwargs=dict(row=1, col=1), fig=fig)
         return fig
-
-    def main(self):
-        all_coins_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
-                                                                    timeframe=self.TIMEFRAME,
-                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                    since=self.since, end=self.end, API=self.API)
-        price_df = pd.concat(all_coins_history_df_list, axis=1)
-        entries, exits, keltner = self.keltner_strat(price_df=price_df)
-
-        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
-                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
-        print(pf.stats())
-        if self.PLOTTING:
-            fig = self.plot_base(portfolio=pf, price_df=price_df)
-            fig = self.keltner_print(keltner=keltner, fig=fig)
-            fig.show()
 
 
 if __name__ == "__main__":

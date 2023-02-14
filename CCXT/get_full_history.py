@@ -18,6 +18,7 @@ class GetFullHistoryDF:
     @staticmethod
     def validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
                        end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
+        """Validate if correct arguments are passed"""
         timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
         if not (number_of_last_candles or since):
             raise ValueError("Please provide either starting date or number of last n candles to provide")
@@ -49,6 +50,7 @@ class GetFullHistoryDF:
              number_of_last_candles: tp.Optional[int] = None,
              since: tp.Optional[str] = None,
              end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
+        """Main function to get the desired history"""
 
         timeframe = timeframe.lower()
         since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
@@ -102,7 +104,7 @@ class _QueryHistory:
 
         # Establish valid ts and delta to iter
         SAFETY_BUFFER = int(timeframe_to_timestamp_ms(timeframe) * 12)
-        test_data = self.get_test_data(pair=pair, timeframe=timeframe, API=API)
+        test_data = self._get_test_data(pair=pair, timeframe=timeframe, API=API)
         if not len(test_data):
             return None
         delta = int(test_data[-1][0] - test_data[0][0] - SAFETY_BUFFER)
@@ -113,11 +115,11 @@ class _QueryHistory:
         data: tp.List[list] = []
         while True:
             try:
-                fresh_data = self.get_history_one_fragment(pair=pair,
-                                                           timeframe=timeframe,
-                                                           since=local_since_timestamp,
-                                                           API=API,
-                                                           candle_limit=candle_limit)
+                fresh_data = self._get_history_one_fragment(pair=pair,
+                                                            timeframe=timeframe,
+                                                            since=local_since_timestamp,
+                                                            API=API,
+                                                            candle_limit=candle_limit)
                 data += fresh_data
                 local_since_timestamp += delta
 
@@ -130,32 +132,35 @@ class _QueryHistory:
 
         # Convert data to a DataFrame
         hist_df_full = pd.DataFrame(data, columns=[
-            'date',
-            'open',
-            'high',
-            'low',
-            'close',
-            'volume'
+            "date",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume"
         ])
-        hist_df_full.index = pd.to_datetime(hist_df_full['date'], unit='ms')
-        del hist_df_full['date']
-        hist_df_full['open'] = hist_df_full['open'].astype(float)
-        hist_df_full['high'] = hist_df_full['high'].astype(float)
-        hist_df_full['low'] = hist_df_full['low'].astype(float)
-        hist_df_full['close'] = hist_df_full['close'].astype(float)
-        hist_df_full['volume'] = hist_df_full['volume'].astype(float)
+        hist_df_full.index = pd.to_datetime(hist_df_full["date"], unit="ms")
+        del hist_df_full["date"]
+        hist_df_full["open"] = hist_df_full["open"].astype(float)
+        hist_df_full["high"] = hist_df_full["high"].astype(float)
+        hist_df_full["low"] = hist_df_full["low"].astype(float)
+        hist_df_full["close"] = hist_df_full["close"].astype(float)
+        hist_df_full["volume"] = hist_df_full["volume"].astype(float)
 
         return hist_df_full
 
-    def get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict, candle_limit) -> pd.DataFrame:
+    def _get_test_data(self, pair: str, timeframe: str, API: dict) -> pd.DataFrame:
+        """Get test sample of data, mainly to determine first available timestamp and one query length"""
+        test_data = self._get_history_one_fragment(pair=pair, timeframe=timeframe, since=0, API=API,
+                                                   candle_limit=10000)
+        return test_data
+
+    def _get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict,
+                                  candle_limit: int) -> pd.DataFrame:
         """Get history fragment"""
         exchange_client = API["client"]
         candles_list = exchange_client.fetchOHLCV(symbol=pair, timeframe=timeframe, since=since, limit=candle_limit)
         return candles_list
-
-    def get_test_data(self, pair: str, timeframe: str, API: dict) -> pd.DataFrame:
-        test_data = self.get_history_one_fragment(pair=pair, timeframe=timeframe, since=0, API=API, candle_limit=10000)
-        return test_data
 
 
 class _DFCleanAndCut:
@@ -231,7 +236,7 @@ class _DataStoring:
                 return hist_df_final_cut
             else:
                 delegate_get_history = _QueryHistory()
-                test_data = delegate_get_history.get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
+                test_data = delegate_get_history._get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
                 first_valid_datetime = timestamp_ms_to_datetime(test_data[0][0])
                 if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
                         hist_df_full.iloc[0].name <= first_valid_datetime) and (

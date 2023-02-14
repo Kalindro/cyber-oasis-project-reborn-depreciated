@@ -121,7 +121,6 @@ def omit_arg(d, *args):
 
 
 def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
-    """Momentum calculation"""
     closes = pair_history_dataframe["close"]
     returns = np.log(closes)
     x = np.arange(len(returns))

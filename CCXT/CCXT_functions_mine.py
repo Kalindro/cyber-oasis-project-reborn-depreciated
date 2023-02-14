@@ -6,7 +6,7 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.CCXT_functions_builtin import get_pairs_with_precisions_status, change_leverage_and_mode_on_all_pairs_on_list
+from CCXT.CCXT_functions_base import get_pairs_with_precisions_status, change_leverage_and_mode_on_all_pairs_on_list
 from CCXT.get_full_history import GetFullHistoryDF
 from general.utils import dataframe_is_not_none_and_has_elements
 

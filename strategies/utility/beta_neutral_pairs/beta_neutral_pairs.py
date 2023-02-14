@@ -17,17 +17,16 @@ class _BaseSettings:
         """
         self.EXCHANGE_MODE = 1
         self.TIMEFRAME = "1h"
-        self.PAIR_LONG = "RNDR/USDT"
-        self.PAIR_SHORT = "ETH/USDT"
-        self.PAIR_BENCHMARK = "ETH/USDT"
-        self.INVESTMENT = 2020
+        self.PAIR_LONG = "ETH/USDT"
+        self.PAIR_SHORT = "FET/USDT"
+        self.PAIR_BENCHMARK = "BTC/USDT"
+        self.INVESTMENT = 1000
         self.NUMBER_OF_LAST_CANDLES = 170
 
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
 
 
 class PairsBalance(_BaseSettings):
-
     def beta_neutral(self):
         history_a = GetFullHistoryDF.main(pair=self.PAIR_LONG, timeframe=self.TIMEFRAME, API=self.API,
                                           number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
@@ -47,6 +46,7 @@ class PairsBalance(_BaseSettings):
 
         allocation_PAIR_A = (total_beta - beta_pair_A) / total_beta * self.INVESTMENT
         allocation_PAIR_B = (total_beta - beta_pair_B) / total_beta * -self.INVESTMENT
+
 
         print(f"Allocation to {self.PAIR_LONG}: {allocation_PAIR_A}")
         print(f"Allocation to {self.PAIR_SHORT}: {allocation_PAIR_B}")

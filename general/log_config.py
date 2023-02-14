@@ -1,7 +1,7 @@
 import sys
-import pandas as pd
 from typing import Optional
 
+import pandas as pd
 from loguru import logger
 
 
