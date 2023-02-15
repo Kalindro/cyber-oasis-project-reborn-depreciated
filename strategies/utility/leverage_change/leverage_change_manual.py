@@ -8,7 +8,7 @@ logger = ConfigureLoguru().info_level()
 class LeverageChange:
     """Used to manually change leverage and margin mode on all pairs on the exchange"""
     def __init__(self):
-        self.LEVERAGE = 2
+        self.LEVERAGE = 3
         self.ISOLATED = True
         self.API = ExchangeAPISelect().bybit_trade()
 

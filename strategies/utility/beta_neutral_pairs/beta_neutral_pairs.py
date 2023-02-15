@@ -21,7 +21,7 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     TIMEFRAME: str = "1h"
     PAIR_LONG: str = "RNDR/USDT"
-    PAIR_SHORT: str = "BTC/USDT"
+    PAIR_SHORT: str = "ETH/USDT"
     PAIR_BENCHMARK: str = "BTC/USDT"
     INVESTMENT: int = 2300
     NUMBER_OF_LAST_CANDLES: int = 170
