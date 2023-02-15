@@ -9,13 +9,16 @@ from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
 from CCXT.CCXT_functions_base import get_pairs_prices
-from CCXT.CCXT_functions_mine import get_history_df_of_pairs_on_list, select_exchange_mode, \
+from CCXT.CCXT_functions_mine import get_history_df_dict_pairs_list, select_exchange_mode, \
     select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 from general.utils import excel_save_formatted
 
 logger = ConfigureLoguru().info_level()
 
+
+# TODO Wyjebac okna dni po których nie bede filtrował z koncowego dict, dodać sektory do coinów (chuj wie jak),
+#  dodac medium vol,
 
 @dataclass
 class _BaseSettings:
@@ -27,8 +30,8 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     MIN_VOL_USD: float = 300_000
-    QUANTILE: float = 0.50
-    WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
+    QUANTILE: float = 0.75
+    DAYS_WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
 
     # Don't change
     TIMEFRAME: str = "1h"
@@ -38,47 +41,29 @@ class _BaseSettings:
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
-        self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
+        self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
 
 
-class MomentumRank(_BaseSettings):
+class PerformanceRankAnalysis(_BaseSettings):
+    """Main analysis class"""
+
     def main(self) -> None:
+        """Main function runin the analysis"""
         try:
-            pairs_history_df_list = get_history_df_of_pairs_on_list(pairs_list=self.pairs_list,
-                                                                    timeframe=self.TIMEFRAME,
-                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                    API=self.API)
-
-            delegate_momentum = _MomentumCalculations()
-            partial_performance_calculations = partial(delegate_momentum.performance_calculations,
-                                                       min_vol_USD=self.MIN_VOL_USD, min_vol_BTC=self.min_vol_BTC)
-            logger.info("Calculating performance for all the coins...")
-            performance_calculation_map_results = map(partial_performance_calculations, pairs_history_df_list)
-            global_performance_dataframe = df()
-            for pair_results in performance_calculation_map_results:
-                global_performance_dataframe = pd.concat([df(pair_results), global_performance_dataframe],
-                                                         ignore_index=True)
-
-            fast_history = global_performance_dataframe['avg_vol_fast']
-            slow_history = global_performance_dataframe['avg_vol_slow']
-            fast_history_quantile = fast_history.quantile(self.QUANTILE)
-            slow_history_quantile = slow_history.quantile(self.QUANTILE)
-            global_performance_dataframe = global_performance_dataframe[
-                (fast_history >= fast_history_quantile) & (slow_history >= slow_history_quantile)]
-            logger.info(f"Dropped bottom {self.QUANTILE} volume coins")
+            performance_calculation_results = self._calculate_performances_on_list()
+            full_performance_df = self._performances_list_to_clean_df(performance_calculation_results)
 
             if self.PAIRS_MODE == 4:
-                market_median_performance = global_performance_dataframe["median_performance"].median()
-                BTC_median_performance = global_performance_dataframe.loc[
-                    global_performance_dataframe["symbol"] == "BTC", "median_performance"].iloc[-1]
-                ETH_median_performance = global_performance_dataframe.loc[
-                    global_performance_dataframe["symbol"] == "ETH", "median_performance"].iloc[-1]
+                market_median_performance = full_performance_df["median_performance"].median()
+                BTC_median_performance = full_performance_df.loc[
+                    full_performance_df["pair"] == "BTC/USDT", "median_performance"].iloc[-1]
+                ETH_median_performance = full_performance_df.loc[
+                    full_performance_df["pair"] == "ETH/USDT", "median_performance"].iloc[-1]
                 print(f"\033[93mMarket median performance: {market_median_performance:.2%}\033[0m")
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
 
-            global_performance_dataframe.sort_values(by="vol_increase", ascending=False, inplace=True)
-            excel_save_formatted(global_performance_dataframe, filename="performance.xlsx", global_cols_size=13,
+            excel_save_formatted(full_performance_df, filename="performance.xlsx", global_cols_size=13,
                                  cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", rounded_cols_size=None,
                                  perc_cols="G:N", perc_cols_size=16)
             logger.success("Saved excel, all done")
@@ -87,46 +72,81 @@ class MomentumRank(_BaseSettings):
             logger.error(f"Error on main market performance, {err}")
             print(traceback.format_exc())
 
+    def _calculate_performances_on_list(self) -> list[dict]:
+        """Calculate performance on all pairs on provided list"""
+        pairs_history_df_list = get_history_df_dict_pairs_list(pairs_list=self.pairs_list,
+                                                               timeframe=self.TIMEFRAME,
+                                                               number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                               API=self.API)
 
-class _MomentumCalculations:
+        logger.info("Calculating performance for all the coins...")
+        partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
+                                                   days_windows=self.DAYS_WINDOWS,
+                                                   min_vol_usd=self.MIN_VOL_USD,
+                                                   min_vol_btc=self.MIN_VOL_BTC)
+        performances_calculation_results = [partial_performance_calculations(pair_history) for pair_history in
+                                            pairs_history_df_list]
 
-    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> tp.Union[
-        dict, None]:
+        return performances_calculation_results
+
+    def _performances_list_to_clean_df(self, performance_calculation_map_results: list[dict]) -> pd.DataFrame:
+        """Process the list of performances and output in formatted dataframe"""
+        full_performance_df = df()
+        for pair_results in performance_calculation_map_results:
+            full_performance_df = pd.concat([df(pair_results), full_performance_df],
+                                            ignore_index=True)
+
+        fast_history = full_performance_df["avg_vol_fast"]
+        slow_history = full_performance_df["avg_vol_slow"]
+        fast_history_quantile = fast_history.quantile(self.QUANTILE)
+        slow_history_quantile = slow_history.quantile(self.QUANTILE)
+        full_performance_df = full_performance_df[
+            (fast_history >= fast_history_quantile) & (slow_history >= slow_history_quantile)]
+        logger.info(f"Dropped bottom {self.QUANTILE * 100}% volume coins")
+        full_performance_df.sort_values(by="vol_increase", ascending=False, inplace=True)
+
+        return full_performance_df
+
+
+class _PerformanceCalculation:
+    """CLass containing calculations"""
+
+    def performance_calculations(self, coin_history_df: pd.DataFrame, days_windows: list[int], min_vol_usd: int,
+                                 min_vol_btc: int) -> tp.Union[dict, None]:
         """Calculation all the needed performance metrics for the pair"""
         pair = str(coin_history_df.iloc[-1].pair)
         symbol = str(coin_history_df.iloc[-1].symbol)
         price = coin_history_df.iloc[-1]["close"]
-        days_list = [1, 2, 3, 7, 14, 31]
-        days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in
-                             days_list}
-        fast_history = days_history_dict["2d_hourly_history"]
+        days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in days_windows}
+        fast_history = days_history_dict["3d_hourly_history"]
         slow_history = days_history_dict["31d_hourly_history"]
         avg_vol_fast = (fast_history["volume"].sum() / int(len(fast_history) / 24)) * price
         avg_vol_slow = (slow_history["volume"].sum() / int(len(slow_history) / 24)) * price
         vol_increase = avg_vol_fast / avg_vol_slow
 
-        if pair.endswith(("/BTC", ":BTC")):
-            min_vol = min_vol_BTC
-        elif pair.endswith(("/USDT", ":USDT")):
-            min_vol = min_vol_USD
+        if pair.endswith(("/USDT", ":USDT")):
+            min_vol = min_vol_usd
+        elif pair.endswith(("/BTC", ":BTC")):
+            min_vol = min_vol_btc
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
-        if avg_vol_slow < min_vol or len(coin_history_df) < max(days_list * 24):
+        if avg_vol_slow < min_vol or len(coin_history_df) < max(days_windows * 24):
             logger.info(f"Skipping {pair}, not enough volume or too short")
             return
 
         coin_NATR = NATR(close=fast_history["close"], high=fast_history["high"], low=fast_history["low"],
                          period=len(fast_history))[-1]
 
-        core_dict = {"pair": [pair], "symbol": [symbol], "natr": [coin_NATR], "avg_vol_fast": [avg_vol_fast],
-                     "avg_vol_slow": [avg_vol_slow], "vol_increase": [vol_increase]}
-        performance_dict = {
+        full_performance_dict = {"pair": [pair], "symbol": [symbol], "natr": [coin_NATR],
+                                 "avg_vol_fast": [avg_vol_fast], "avg_vol_slow": [avg_vol_slow],
+                                 "vol_increase": [vol_increase]}
+        price_change_dict = {
             f"{days}d_performance": self._calculate_price_change(days_history_dict[f"{days}d_hourly_history"])
-            for days in days_list}
-        performance_dict["median_performance"] = statistics.median(performance_dict.values())
-        core_dict.update(performance_dict)
+            for days in days_windows}
+        price_change_dict["median_performance"] = statistics.median(price_change_dict.values())
+        full_performance_dict.update(price_change_dict)
 
-        return core_dict
+        return full_performance_dict
 
     @staticmethod
     def _calculate_price_change(cut_history_dataframe: pd.DataFrame) -> float:
@@ -138,4 +158,4 @@ class _MomentumCalculations:
 
 
 if __name__ == "__main__":
-    MomentumRank().main()
+    PerformanceRankAnalysis().main()

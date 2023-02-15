@@ -2,3 +2,10 @@
 2023-02-13 20:32:40 | ERROR    | Error on main market performance, invalid index to scalar variable. | main | market_performers.py:135
 2023-02-13 21:28:45 | ERROR    | Error on main market performance, unsupported operand type(s) for -: 'str' and 'str' | main | market_performers.py:135
 2023-02-13 21:33:25 | ERROR    | Error on main market performance, unsupported operand type(s) for /: 'str' and 'str' | main | market_performers.py:135
+2023-02-15 20:16:38 | ERROR    | Error on main market performance, MomentumRank._performance_calculations() got an unexpected keyword argument 'min_vol_USD' | main | market_performers.py:71
+2023-02-15 20:19:57 | ERROR    | Error on main market performance, 'BTC'       | main | market_performers.py:73
+2023-02-15 20:20:05 | ERROR    | Error on main market performance, 'BTC/USDT'  | main | market_performers.py:73
+2023-02-15 20:20:28 | ERROR    | Error on main market performance, 'BTC/USDT'  | main | market_performers.py:74
+2023-02-15 20:21:06 | ERROR    | Error on main market performance, 'BTC/USDT'  | main | market_performers.py:74
+2023-02-15 21:08:50 | ERROR    | Error on main market performance, PerformanceCalculation.performance_calculations() missing 3 required positional arguments: 'days_windows', 'min_vol_usd', and 'min_vol_btc' | main | market_performers.py:70
+2023-02-15 21:35:31 | ERROR    | Error on main market performance, -1          | main | market_performers.py:72

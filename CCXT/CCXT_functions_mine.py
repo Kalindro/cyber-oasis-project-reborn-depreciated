@@ -11,6 +11,14 @@ from CCXT.get_full_history import GetFullHistoryDF
 from general.utils import dataframe_is_not_none_and_has_elements
 
 
+def remove_shit_from_pairs_list(pairs_list):
+    forbidden_symbols = ("EUR", "USD", "GBP")
+    forbidden_ending = ("UP", "DOWN")
+    pairs_list = [str(pair) for pair in pairs_list if not (str(pair).split("/")[0] in forbidden_symbols)]
+    pairs_list = [str(pair) for pair in pairs_list if not str(pair).endswith(forbidden_ending)]
+    return pairs_list
+
+
 def get_pairs_list_test_single() -> list[str]:
     """Get test pairs list"""
     return ["ACH/USDT"]
@@ -18,7 +26,7 @@ def get_pairs_list_test_single() -> list[str]:
 
 def get_pairs_list_test_multi() -> list[str]:
     """Get test pairs list"""
-    return ["BTC/USDT", "ETH/USDT"]
+    return ["ACH/USDT", "BTC/USDT", "ETH/USDT"]
 
 
 def get_pairs_list_BTC(API: dict) -> list[str]:
@@ -28,6 +36,7 @@ def get_pairs_list_BTC(API: dict) -> list[str]:
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/BTC", ":BTC"))]
+    pairs_list = remove_shit_from_pairs_list(pairs_list=pairs_list)
     logger.debug("Pairs list completed, returning")
 
     return pairs_list
@@ -40,6 +49,7 @@ def get_pairs_list_USDT(API: dict) -> list[str]:
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/USDT", ":USDT"))]
+    pairs_list = remove_shit_from_pairs_list(pairs_list=pairs_list)
     logger.debug("Pairs list completed, returning")
 
     return pairs_list
@@ -53,14 +63,15 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     pairs_list_original = list(pairs_precisions_status.index)
     pairs_list = [str(pair) for pair in pairs_list_original if
                   str(pair).endswith(("/USDT", ":USDT", "/BTC", ":BTC", "/ETH", ":ETH"))]
+    pairs_list = remove_shit_from_pairs_list(pairs_list=pairs_list)
     logger.debug("Pairs list completed, returning")
 
     return pairs_list
 
 
-def get_history_df_of_pairs_on_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
-                                    number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
-                                    end: Optional[str] = None) -> dict[str: pd.DataFrame]:
+def get_history_df_dict_pairs_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
+                                   number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+                                   end: Optional[str] = None) -> dict[str: pd.DataFrame]:
     """Get history of all pairs on list"""
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
