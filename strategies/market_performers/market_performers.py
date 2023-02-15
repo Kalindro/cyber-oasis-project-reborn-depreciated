@@ -1,7 +1,7 @@
 import statistics
 import traceback
 import typing as tp
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 
 import pandas as pd
@@ -27,7 +27,8 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     MIN_VOL_USD: float = 300_000
-    QUANTILE: float = 0.25
+    QUANTILE: float = 0.50
+    WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
 
     # Don't change
     TIMEFRAME: str = "1h"
@@ -76,6 +77,7 @@ class MomentumRank(_BaseSettings):
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
 
+            global_performance_dataframe.sort_values(by="vol_increase", ascending=False, inplace=True)
             excel_save_formatted(global_performance_dataframe, filename="performance.xlsx", global_cols_size=13,
                                  cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", rounded_cols_size=None,
                                  perc_cols="G:N", perc_cols_size=16)
