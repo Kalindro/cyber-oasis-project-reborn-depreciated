@@ -1,7 +1,8 @@
 import statistics
 import traceback
+import typing as tp
+from dataclasses import dataclass
 from functools import partial
-from typing import Union
 
 import pandas as pd
 from pandas import DataFrame as df
@@ -16,27 +17,27 @@ from general.utils import excel_save_formatted
 logger = ConfigureLoguru().info_level()
 
 
+@dataclass
 class _BaseSettings:
+    """
+    Modes available:
+    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
+    """
+    EXCHANGE_MODE: int = 1
+    PAIRS_MODE: int = 4
+    MIN_VOL_USD: float = 300_000
+    QUANTILE: float = 0.25
 
-    def __init__(self):
-        """
-        Modes available:
-        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-        """
-        self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 4
-        self.MIN_VOL_USD = 300_000
-        self.QUANTILE = 0.25
+    # Don't change
+    TIMEFRAME: str = "1h"
+    NUMBER_OF_LAST_CANDLES: int = 1000
 
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
-
-        # Don't change
-        self.TIMEFRAME = "1h"
-        self.NUMBER_OF_LAST_CANDLES = 1000
 
 
 class MomentumRank(_BaseSettings):
@@ -87,7 +88,7 @@ class MomentumRank(_BaseSettings):
 
 class _MomentumCalculations:
 
-    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> Union[
+    def performance_calculations(self, coin_history_df: pd.DataFrame, min_vol_USD: int, min_vol_BTC: int) -> tp.Union[
         dict, None]:
         """Calculation all the needed performance metrics for the pair"""
         pair = str(coin_history_df.iloc[-1].pair)

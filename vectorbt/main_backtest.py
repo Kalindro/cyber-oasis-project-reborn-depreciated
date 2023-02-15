@@ -1,4 +1,5 @@
 import sys
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -21,27 +22,25 @@ vbt.settings.portfolio['init_cash'] = 1000
 vbt.settings.portfolio['fees'] = 0.0025
 
 
+@dataclass
 class _BaseSettings:
+    """
+    Modes available:
+    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
+    """
+    EXCHANGE_MODE: int = 1
+    PAIRS_MODE: int = 4
+    SAVE_LOAD_HISTORY: bool = True
+    PLOTTING: bool = True
+    TIMEFRAME: str = "1h"
+    MIN_VOL_USD: int = 150_000
+    since: str = "01.01.2022"
+    end: str = "31.12.2022"
+    PERIOD: int = 20
+    DEVIATION: int = 2
 
-    def __init__(self):
-        """
-        Modes available:
-        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-        """
-        self.EXCHANGE_MODE = 1
-        self.PAIRS_MODE = 4
-        self.SAVE_LOAD_HISTORY = True
-        self.PLOTTING = True
-        self.TIMEFRAME = "1h"
-        self.MIN_VOL_USD = 150_000
-        self.CORES_USED = 6
-
-        self.since = "01.01.2022"
-        self.end = "31.12.2022"
-        self.PERIOD = 20
-        self.DEVIATION = 2
-
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]

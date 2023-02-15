@@ -1,4 +1,8 @@
+from dataclasses import dataclass
+from functools import partial
+
 import numpy as np
+from scipy.stats import linregress
 
 from CCXT.CCXT_functions_mine import select_exchange_mode
 from CCXT.get_full_history import GetFullHistoryDF
@@ -7,49 +11,51 @@ from general.log_config import ConfigureLoguru
 logger = ConfigureLoguru().info_level()
 
 
+@dataclass
 class _BaseSettings:
+    """
+    Modes available:
+    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
+    """
+    EXCHANGE_MODE: int = 1
+    TIMEFRAME: str = "1h"
+    PAIR_LONG: str = "RNDR/USDT"
+    PAIR_SHORT: str = "BTC/USDT"
+    PAIR_BENCHMARK: str = "BTC/USDT"
+    INVESTMENT: int = 2300
+    NUMBER_OF_LAST_CANDLES: int = 170
 
-    def __init__(self):
-        """
-        Modes available:
-        :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-        :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-        """
-        self.EXCHANGE_MODE = 1
-        self.TIMEFRAME = "1h"
-        self.PAIR_LONG = "ETH/USDT"
-        self.PAIR_SHORT = "FET/USDT"
-        self.PAIR_BENCHMARK = "BTC/USDT"
-        self.INVESTMENT = 1000
-        self.NUMBER_OF_LAST_CANDLES = 170
-
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
 
 
 class PairsBalance(_BaseSettings):
+
     def beta_neutral(self):
-        history_a = GetFullHistoryDF.main(pair=self.PAIR_LONG, timeframe=self.TIMEFRAME, API=self.API,
-                                          number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
-        history_b = GetFullHistoryDF.main(pair=self.PAIR_SHORT, timeframe=self.TIMEFRAME, API=self.API,
-                                          number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
-        history_benchmark = GetFullHistoryDF.main(pair=self.PAIR_BENCHMARK, timeframe=self.TIMEFRAME, API=self.API,
-                                                  number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
+        pairs = {
+            "long_pair": self.PAIR_LONG,
+            "short_pair": self.PAIR_SHORT,
+            "benchmark": self.PAIR_BENCHMARK
+        }
 
-        pair_A_returns = history_a["close"].pct_change().dropna()
-        pair_B_returns = history_b["close"].pct_change().dropna()
-        pair_BENCHMARK_returns = history_benchmark["close"].pct_change().dropna()
+        hist_func_partial = partial(GetFullHistoryDF.main, timeframe=self.TIMEFRAME, API=self.API,
+                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
+        histories = {pair_side: hist_func_partial(pair=pair_name) for pair_side, pair_name in pairs.items()}
 
-        beta_pair_A = np.cov(pair_A_returns, pair_BENCHMARK_returns)[0, 1] / np.var(pair_BENCHMARK_returns)
-        beta_pair_B = np.cov(pair_B_returns, pair_BENCHMARK_returns)[0, 1] / np.var(pair_BENCHMARK_returns)
+        for pair_side, history_df in histories.items():
+            history_df["returns"] = np.log(history_df["close"])
+        for pair_side, history_df in histories.items():
+            history_df["slope"] = linregress(x=histories["benchmark"]["returns"], y=history_df["returns"])[0]
 
-        total_beta = beta_pair_A + beta_pair_B
+        beta_long_pair = histories["long_pair"]["slope"][-1]
+        beta_short_pair = histories["short_pair"]["slope"][-1]
+        total_beta = beta_long_pair + beta_short_pair
+        allocation_long_pair = (total_beta - beta_long_pair) / total_beta * self.INVESTMENT
+        allocation_short_pair = (total_beta - beta_short_pair) / total_beta * -self.INVESTMENT
 
-        allocation_PAIR_A = (total_beta - beta_pair_A) / total_beta * self.INVESTMENT
-        allocation_PAIR_B = (total_beta - beta_pair_B) / total_beta * -self.INVESTMENT
-
-
-        print(f"Allocation to {self.PAIR_LONG}: {allocation_PAIR_A}")
-        print(f"Allocation to {self.PAIR_SHORT}: {allocation_PAIR_B}")
+        print(f"Allocation to {self.PAIR_LONG}: {allocation_long_pair}")
+        print(f"Allocation to {self.PAIR_SHORT}: {allocation_short_pair}")
 
 
 if __name__ == "__main__":
