@@ -30,7 +30,7 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     MIN_VOL_USD: float = 300_000
-    QUANTILE: float = 0.75
+    QUANTILE: float = 0.60
     DAYS_WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
 
     # Don't change

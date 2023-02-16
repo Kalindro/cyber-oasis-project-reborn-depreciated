@@ -12,7 +12,7 @@ from general.utils import dataframe_is_not_none_and_has_elements
 
 
 def remove_shit_from_pairs_list(pairs_list):
-    forbidden_symbols = ("EUR", "USD", "GBP")
+    forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
     forbidden_ending = ("UP", "DOWN")
     pairs_list = [str(pair) for pair in pairs_list if not (str(pair).split("/")[0] in forbidden_symbols)]
     pairs_list = [str(pair) for pair in pairs_list if not str(pair).endswith(forbidden_ending)]

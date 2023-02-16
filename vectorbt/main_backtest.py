@@ -1,4 +1,3 @@
-import sys
 from dataclasses import dataclass
 
 import numpy as np
@@ -11,8 +10,6 @@ from CCXT.CCXT_functions_mine import get_history_df_dict_pairs_list, select_exch
 from general.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
-
-np.set_printoptions(threshold=sys.maxsize)
 
 vbt.settings['plotting']['layout']['width'] = 1800
 vbt.settings['plotting']['layout']['height'] = 800
@@ -51,6 +48,10 @@ class _BaseSettings:
         """Validate input parameters"""
         if self.PAIRS_MODE != 1:
             self.PLOTTING = False
+
+
+class MainBacktest(_BaseSettings):
+    """Main class with backtesting template"""
 
     def plot_base(self, portfolio, price_df):
         pf = portfolio
