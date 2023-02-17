@@ -12,16 +12,19 @@ from general_funcs.utils import dataframe_is_not_none_and_has_elements
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
-                                    number_of_last_candles: tp.Optional[int] = None, since: tp.Optional[str] = None,
-                                    end: tp.Optional[str] = None,
-                                    min_length: tp.Optional[int] = None) -> dict[str: pd.DataFrame]:
-    """Get history of all pairs on list"""
+                                    number_of_last_candles: tp.Optional[int] = None,
+                                    since: tp.Optional[str] = None,
+                                    end: tp.Optional[str] = None, **kwargs) -> dict[str: pd.DataFrame]:
+    """Get history of all pairs on list
+    args:
+        min_length: Default 24 in main function, change min length of data
+    """
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
     delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
                                        save_load_history=save_load_history,
                                        API=API, number_of_last_candles=number_of_last_candles,
-                                       since=since, end=end, min_length=min_length)
+                                       since=since, end=end, **kwargs)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history_partial, pairs_list))

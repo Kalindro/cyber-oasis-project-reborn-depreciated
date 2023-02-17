@@ -76,9 +76,10 @@ class GetFullHistoryDF:
                                                                     API=API)
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
 
-            if not dataframe_is_not_none_and_has_elements(hist_df_full):
+            if not dataframe_is_not_none_and_has_elements(hist_df_final):
                 logger.info(f"{pair} is broken or too short")
                 return None
+
             if len(hist_df_final) < min_length:
                 logger.info(f"{pair} is shorter han min length {min_length}")
                 return None
@@ -126,9 +127,7 @@ class _QueryHistory:
                                                             candle_limit=candle_limit)
                 data += fresh_data
                 local_since_timestamp += delta
-                print(local_since_timestamp)
-                print(delta)
-                print(end_timestamp)
+
                 if local_since_timestamp >= (end_timestamp + safety_buffer):
                     break
 

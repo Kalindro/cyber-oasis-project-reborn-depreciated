@@ -44,8 +44,8 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     print(f"Allocation to {pair_short}: {allocation_short_pair}")
 
 
-def portfolio_parity(pairs_list: list[str], investment: int, timeframe: str, number_of_last_candles: int, period: int,
-                     API: dict) -> None:
+def calc_portfolio_parity(pairs_list: list[str], investment: int, period: int, timeframe: str,
+                          number_of_last_candles: int, API: dict) -> None:
     """Calculate parity allocation for list/portfolio"""
     pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=pairs_list, timeframe=timeframe,
                                                             number_of_last_candles=number_of_last_candles, API=API)
