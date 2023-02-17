@@ -1,6 +1,6 @@
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.functions_mine import change_leverage_and_mode_on_all_exchange_pairs
-from general.log_config import ConfigureLoguru
+from CCXT.functions_mine import change_leverage_n_mode_for_all_exchange_pairs
+from general_funcs.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
@@ -13,7 +13,7 @@ class LeverageChange:
         self.API = ExchangeAPISelect().bybit_trade()
 
     def main(self):
-        change_leverage_and_mode_on_all_exchange_pairs(leverage=self.LEVERAGE, isolated=self.ISOLATED, API=self.API)
+        change_leverage_n_mode_for_all_exchange_pairs(leverage=self.LEVERAGE, isolated=self.ISOLATED, API=self.API)
 
 
 if __name__ == "__main__":

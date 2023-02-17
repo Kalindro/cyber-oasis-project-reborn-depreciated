@@ -8,8 +8,8 @@ from pathlib import Path
 import pandas as pd
 from loguru import logger
 
-from general.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
-                           timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
+from general_funcs.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
+                                 timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
 
 
 class GetFullHistoryDF:

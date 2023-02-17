@@ -4,10 +4,9 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
-from CCXT.functions_base import get_pairs_prices
-from CCXT.functions_mine import get_history_df_dict_from_list, select_exchange_mode
+from CCXT.functions_mine import get_full_history_for_pairs_list, select_exchange_mode
 from CCXT.functions_pairs_list import select_pairs_list_mode
-from general.log_config import ConfigureLoguru
+from general_funcs.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
@@ -30,8 +29,8 @@ class _BaseSettings:
     PAIRS_MODE: int = 4
     SAVE_LOAD_HISTORY: bool = True
     PLOTTING: bool = True
+
     TIMEFRAME: str = "1h"
-    MIN_VOL_USD: int = 150_000
     since: str = "01.01.2022"
     end: str = "31.12.2022"
     PERIOD: int = 20
@@ -40,8 +39,6 @@ class _BaseSettings:
     def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
-        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
-        self.min_vol_BTC = self.MIN_VOL_USD / self.BTC_price
         self.validate_inputs()
 
     def validate_inputs(self) -> None:
@@ -55,9 +52,8 @@ class MainBacktest(_BaseSettings):
 
     def plot_base(self, portfolio, price_df):
         pf = portfolio
-        fig = pf.plot(
-            subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))), "value",
-                      "trades", "cum_returns", "drawdowns", "cash"])
+        fig = pf.plot(subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))
+                                 ), "value", "trades", "cum_returns", "drawdowns", "cash"])
         fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
                                      ohlc_add_trace_kwargs=dict(row=1, col=1), xaxis=dict(rangeslider_visible=False),
                                      fig=fig)
@@ -68,14 +64,14 @@ class MainBacktest(_BaseSettings):
         #                                                 trace_kwargs=dict(marker=dict(color="deepskyblue")), fig=fig)
         # fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
         #                                              trace_kwargs=dict(marker=dict(color="orange")), fig=fig)
-        
+
         return fig
 
     def main(self):
-        all_coins_history_df_list = get_history_df_dict_from_list(pairs_list=self.pairs_list,
-                                                                  timeframe=self.TIMEFRAME,
-                                                                  save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                  since=self.since, end=self.end, API=self.API)
+        all_coins_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
+                                                                    since=self.since, end=self.end, API=self.API)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 

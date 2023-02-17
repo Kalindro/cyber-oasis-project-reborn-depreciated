@@ -6,7 +6,7 @@ from scipy.stats import linregress
 
 from CCXT.functions_mine import select_exchange_mode
 from CCXT.get_full_history import GetFullHistoryDF
-from general.log_config import ConfigureLoguru
+from general_funcs.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
@@ -21,7 +21,7 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     TIMEFRAME: str = "1h"
     PAIR_LONG: str = "RNDR/USDT"
-    PAIR_SHORT: str = "ETH/USDT"
+    PAIR_SHORT: str = "BTC/USDT"
     PAIR_BENCHMARK: str = "BTC/USDT"
     INVESTMENT: int = 2300
     NUMBER_OF_LAST_CANDLES: int = 170

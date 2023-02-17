@@ -3,11 +3,9 @@ import math
 import time
 
 import dateutil.parser
-import numpy as np
 import pandas as pd
 from loguru import logger
 from pandas import ExcelWriter
-from scipy.stats import linregress
 
 
 def date_string_to_datetime(date_string) -> dt.datetime:
@@ -104,28 +102,3 @@ def round_down(x) -> float:
 
 def round_up(x) -> float:
     return math.ceil(x * 4) / 4
-
-
-def omit_arg(d, *args):
-    if isinstance(d, dict):
-        result = d.copy()
-        for arg in args:
-            if type(arg) is list:
-                for key in arg:
-                    if key in result:
-                        del result[key]
-            else:
-                if arg in result:
-                    del result[arg]
-        return result
-    return d
-
-
-def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
-    closes = pair_history_dataframe["close"]
-    returns = np.log(closes)
-    x = np.arange(len(returns))
-    slope, _, rvalue, _, _ = linregress(x, returns)
-    momentum = slope * 100
-
-    return momentum * (rvalue ** 2)

@@ -1,7 +1,7 @@
 from pandas_ta.volatility import natr as NATR
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.functions_mine import get_history_df_dict_from_list
+from CCXT.functions_mine import get_full_history_for_pairs_list
 
 
 class PortfolioAllocationParity:
@@ -12,8 +12,8 @@ class PortfolioAllocationParity:
              number_of_last_candles: int,
              period: int,
              API: dict):
-        pairs_history_df_list = get_history_df_dict_from_list(pairs_list=pairs_list, timeframe=timeframe,
-                                                              number_of_last_candles=number_of_last_candles, API=API)
+        pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=pairs_list, timeframe=timeframe,
+                                                                number_of_last_candles=number_of_last_candles, API=API)
         inv_vola_calculation = lambda history_df: 1 / NATR(high=history_df["high"], low=history_df["low"],
                                                          close=history_df["close"],
                                                          length=period).tail(1)

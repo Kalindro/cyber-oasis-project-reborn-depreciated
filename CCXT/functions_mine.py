@@ -6,14 +6,14 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.get_full_history import GetFullHistoryDF
 from CCXT.functions_pairs_list import get_pairs_list_ALL
-from general.utils import dataframe_is_not_none_and_has_elements
+from CCXT.get_full_history import GetFullHistoryDF
+from general_funcs.utils import dataframe_is_not_none_and_has_elements
 
 
-def get_history_df_dict_from_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
-                                  number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
-                                  end: Optional[str] = None) -> dict[str: pd.DataFrame]:
+def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
+                                    number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
+                                    end: Optional[str] = None) -> dict[str: pd.DataFrame]:
     """Get history of all pairs on list"""
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
@@ -43,7 +43,7 @@ def select_exchange_mode(exchange_mode) -> dict:
     return exchange()
 
 
-def change_leverage_and_mode_on_all_on_list(leverage: int, pairs_list: list, isolated: bool, API: dict) -> None:
+def chagne_leverage_n_mode_for_pairs_list(leverage: int, pairs_list: list, isolated: bool, API: dict) -> None:
     """Change leverage and margin mode on all pairs on list"""
     exchange_client = API["client"]
     mmode = "ISOLATED" if isolated else "CROSS"
@@ -64,10 +64,10 @@ def change_leverage_and_mode_on_all_on_list(leverage: int, pairs_list: list, iso
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to isolated")
 
 
-def change_leverage_and_mode_on_all_exchange_pairs(leverage: int, isolated: bool, API: dict) -> None:
+def change_leverage_n_mode_for_all_exchange_pairs(leverage: int, isolated: bool, API: dict) -> None:
     """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
-    change_leverage_and_mode_on_all_on_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated,
-                                            API=API)
+    chagne_leverage_n_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated,
+                                          API=API)
     logger.success("Finished changing leverage and margin mode on all")
