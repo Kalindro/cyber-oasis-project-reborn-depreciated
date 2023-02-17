@@ -1,6 +1,6 @@
 import concurrent.futures
+import typing as tp
 from functools import partial
-from typing import Optional
 
 import pandas as pd
 from loguru import logger
@@ -12,15 +12,16 @@ from general_funcs.utils import dataframe_is_not_none_and_has_elements
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
-                                    number_of_last_candles: Optional[int] = None, since: Optional[str] = None,
-                                    end: Optional[str] = None) -> dict[str: pd.DataFrame]:
+                                    number_of_last_candles: tp.Optional[int] = None, since: tp.Optional[str] = None,
+                                    end: tp.Optional[str] = None,
+                                    min_length: tp.Optional[int] = None) -> dict[str: pd.DataFrame]:
     """Get history of all pairs on list"""
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
     delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
                                        save_load_history=save_load_history,
                                        API=API, number_of_last_candles=number_of_last_candles,
-                                       since=since, end=end)
+                                       since=since, end=end, min_length=min_length)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
@@ -43,7 +44,7 @@ def select_exchange_mode(exchange_mode) -> dict:
     return exchange()
 
 
-def chagne_leverage_n_mode_for_pairs_list(leverage: int, pairs_list: list, isolated: bool, API: dict) -> None:
+def change_leverage_n_mode_for_pairs_list(leverage: int, pairs_list: list, isolated: bool, API: dict) -> None:
     """Change leverage and margin mode on all pairs on list"""
     exchange_client = API["client"]
     mmode = "ISOLATED" if isolated else "CROSS"
@@ -68,6 +69,6 @@ def change_leverage_n_mode_for_all_exchange_pairs(leverage: int, isolated: bool,
     """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
-    chagne_leverage_n_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated,
+    change_leverage_n_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated,
                                           API=API)
     logger.success("Finished changing leverage and margin mode on all")

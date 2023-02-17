@@ -9,3 +9,10 @@
 2023-02-15 20:21:06 | ERROR    | Error on main market performance, 'BTC/USDT'  | main | market_performers.py:74
 2023-02-15 21:08:50 | ERROR    | Error on main market performance, PerformanceCalculation.performance_calculations() missing 3 required positional arguments: 'days_windows', 'min_vol_usd', and 'min_vol_btc' | main | market_performers.py:70
 2023-02-15 21:35:31 | ERROR    | Error on main market performance, -1          | main | market_performers.py:72
+2023-02-17 20:01:05 | ERROR    | Error on main market performance, 'avg_vol_fast' | main | market_performers.py:72
+2023-02-17 20:28:33 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
+2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
+2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
+2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
+2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
+2023-02-17 20:33:48 | ERROR    | Error on main market performance, 'avg_vol_fast' | main | market_performers.py:73

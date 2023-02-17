@@ -42,6 +42,7 @@ class _BaseSettings:
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
+        self.min_length = max(self.DAYS_WINDOWS) * 24
 
 
 class PerformanceRankAnalysis(_BaseSettings):
@@ -77,7 +78,7 @@ class PerformanceRankAnalysis(_BaseSettings):
         pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
                                                                 timeframe=self.TIMEFRAME,
                                                                 number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                API=self.API)
+                                                                API=self.API, min_length=self.min_length)
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
@@ -130,8 +131,8 @@ class _PerformanceCalculation:
             min_vol = min_vol_btc
         else:
             raise ValueError("Invalid pair quote currency: " + pair)
-        if avg_vol_slow < min_vol or len(coin_history_df) < max(days_windows * 24):
-            logger.info(f"Skipping {pair}, not enough volume or too short")
+        if avg_vol_slow < min_vol:
+            logger.info(f"Skipping {pair}, not enough volume")
             return
 
         coin_NATR = NATR(close=fast_history["close"], high=fast_history["high"], low=fast_history["low"],

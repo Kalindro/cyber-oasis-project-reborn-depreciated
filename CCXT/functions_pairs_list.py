@@ -9,14 +9,15 @@ def remove_shit_from_pairs_list(pairs_list):
     """Remove bs pairs from ever list"""
     forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
     forbidden_ending = ("UP", "DOWN")
-    pairs_list = [str(pair) for pair in pairs_list if not (str(pair).split("/")[0] in forbidden_symbols)]
-    pairs_list = [str(pair) for pair in pairs_list if not str(pair).endswith(forbidden_ending)]
+    def symbol_func(pair): return str(pair).split("/")[0]
+    pairs_list = [str(pair) for pair in pairs_list if not (symbol_func(pair) in forbidden_symbols)]
+    pairs_list = [str(pair) for pair in pairs_list if not symbol_func(pair).endswith(forbidden_ending)]
     return pairs_list
 
 
 def get_pairs_list_test_single() -> list[str]:
     """Get test pairs list"""
-    return ["ACH/USDT"]
+    return ["GNS/USDT"]
 
 
 def get_pairs_list_test_multi() -> list[str]:

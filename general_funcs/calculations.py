@@ -10,6 +10,7 @@ from CCXT.get_full_history import GetFullHistoryDF
 
 
 def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
+    """Calculating momentum from close"""
     closes = pair_history_dataframe["close"]
     returns = np.log(closes)
     x = np.arange(len(returns))
@@ -19,12 +20,13 @@ def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
     return momentum * (rvalue ** 2)
 
 
-def calc_beta_neutral_allocation_for_two_pairs(self):
+def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, investment: int, timeframe: str,
+                                               number_of_last_candles: int, API: dict) -> None:
     """Calculate beta neutral allocation for two pairs"""
-    pairs = {"long_pair": self.PAIR_LONG, "short_pair": self.PAIR_SHORT, "benchmark": self.PAIR_BENCHMARK}
+    pairs = {"pair_long": pair_long, "pair_short": pair_short, "benchmark": "BTC/USDT"}
 
-    hist_func_partial = partial(GetFullHistoryDF.main, timeframe=self.TIMEFRAME, API=self.API,
-                                number_of_last_candles=self.NUMBER_OF_LAST_CANDLES)
+    hist_func_partial = partial(GetFullHistoryDF.main, timeframe=timeframe, API=API,
+                                number_of_last_candles=number_of_last_candles)
     histories = {pair_side: hist_func_partial(pair=pair_name) for pair_side, pair_name in pairs.items()}
 
     for pair_side, history_df in histories.items():
@@ -32,18 +34,19 @@ def calc_beta_neutral_allocation_for_two_pairs(self):
     for pair_side, history_df in histories.items():
         history_df["slope"] = linregress(x=histories["benchmark"]["returns"], y=history_df["returns"])[0]
 
-    beta_long_pair = histories["long_pair"]["slope"][-1]
-    beta_short_pair = histories["short_pair"]["slope"][-1]
+    beta_long_pair = histories["pair_long"]["slope"][-1]
+    beta_short_pair = histories["pair_short"]["slope"][-1]
     total_beta = beta_long_pair + beta_short_pair
-    allocation_long_pair = (total_beta - beta_long_pair) / total_beta * self.INVESTMENT
-    allocation_short_pair = (total_beta - beta_short_pair) / total_beta * -self.INVESTMENT
+    allocation_long_pair = (total_beta - beta_long_pair) / total_beta * investment
+    allocation_short_pair = (total_beta - beta_short_pair) / total_beta * investment
 
-    print(f"Allocation to {self.PAIR_LONG}: {allocation_long_pair}")
-    print(f"Allocation to {self.PAIR_SHORT}: {allocation_short_pair}")
+    print(f"Allocation to {pair_long}: {allocation_long_pair}")
+    print(f"Allocation to {pair_short}: {allocation_short_pair}")
 
 
 def portfolio_parity(pairs_list: list[str], investment: int, timeframe: str, number_of_last_candles: int, period: int,
-                     API: dict):
+                     API: dict) -> None:
+    """Calculate parity allocation for list/portfolio"""
     pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=pairs_list, timeframe=timeframe,
                                                             number_of_last_candles=number_of_last_candles, API=API)
     inv_vola_calculation = lambda history_df: 1 / NATR(high=history_df["high"], low=history_df["low"],

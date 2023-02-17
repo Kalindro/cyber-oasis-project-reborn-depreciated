@@ -49,7 +49,8 @@ class GetFullHistoryDF:
              save_load_history: bool = False,
              number_of_last_candles: tp.Optional[int] = None,
              since: tp.Optional[str] = None,
-             end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
+             end: tp.Optional[str] = None,
+             min_length: tp.Optional[int] = 24) -> tp.Union[pd.DataFrame, None]:
         """Main function to get the desired history"""
 
         timeframe = timeframe.lower()
@@ -74,8 +75,12 @@ class GetFullHistoryDF:
                                                                     end_timestamp=end_timestamp,
                                                                     API=API)
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
+
             if not dataframe_is_not_none_and_has_elements(hist_df_full):
                 logger.info(f"{pair} is broken or too short")
+                return None
+            if len(hist_df_final) < min_length:
+                logger.info(f"{pair} is shorter han min length {min_length}")
                 return None
 
             if save_load_history:
@@ -103,11 +108,12 @@ class _QueryHistory:
         """Get desired range of history"""
 
         # Establish valid ts and delta to iter
-        SAFETY_BUFFER = int(timeframe_to_timestamp_ms(timeframe) * 12)
-        test_data = self._get_test_data(pair=pair, timeframe=timeframe, API=API)
-        if not len(test_data):
+        safety_buffer = int(timeframe_to_timestamp_ms(timeframe) * 12)
+        test_data = self.get_test_data(pair=pair, timeframe=timeframe, API=API)
+        delta = int(test_data[-1][0] - test_data[0][0] - safety_buffer)
+        if delta <= 0:
             return None
-        delta = int(test_data[-1][0] - test_data[0][0] - SAFETY_BUFFER)
+
         first_valid_timestamp = test_data[0][0]
         local_since_timestamp = max(since_timestamp, first_valid_timestamp)
 
@@ -115,15 +121,15 @@ class _QueryHistory:
         data: tp.List[list] = []
         while True:
             try:
-                fresh_data = self._get_history_one_fragment(pair=pair,
-                                                            timeframe=timeframe,
-                                                            since=local_since_timestamp,
-                                                            API=API,
+                fresh_data = self._get_history_one_fragment(pair=pair, timeframe=timeframe,
+                                                            since=local_since_timestamp, API=API,
                                                             candle_limit=candle_limit)
                 data += fresh_data
                 local_since_timestamp += delta
-
-                if local_since_timestamp >= (end_timestamp + SAFETY_BUFFER):
+                print(local_since_timestamp)
+                print(delta)
+                print(end_timestamp)
+                if local_since_timestamp >= (end_timestamp + safety_buffer):
                     break
 
             except Exception as error:
@@ -149,13 +155,14 @@ class _QueryHistory:
 
         return hist_df_full
 
-    def _get_test_data(self, pair: str, timeframe: str, API: dict) -> pd.DataFrame:
+    def get_test_data(self, pair: str, timeframe: str, API: dict) -> pd.DataFrame:
         """Get test sample of data, mainly to determine first available timestamp and one query length"""
         test_data = self._get_history_one_fragment(pair=pair, timeframe=timeframe, since=0, API=API,
                                                    candle_limit=10000)
         return test_data
 
-    def _get_history_one_fragment(self, pair: str, timeframe: str, since: int, API: dict,
+    @staticmethod
+    def _get_history_one_fragment(pair: str, timeframe: str, since: int, API: dict,
                                   candle_limit: int) -> pd.DataFrame:
         """Get history fragment"""
         exchange_client = API["client"]
@@ -182,9 +189,8 @@ class _DFCleanAndCut:
     @staticmethod
     def cut_exact_df_dates_for_return(final_dataframe: pd.DataFrame, since_datetime: dt.datetime,
                                       end_datetime: dt.datetime) -> pd.DataFrame:
-        """Cut the dataframe to exactly match the desired since/end, small quirk here as
-         end_datetime can be precise to the second while the TIMEFRAME may be 1D - it
-          would never return correctly, mainly when the end is now"""
+        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise to
+         the second while the TIMEFRAME may be 1D - it would never return correctly, mainly when the end is now"""
         final_dataframe = final_dataframe.loc[since_datetime:min(final_dataframe.iloc[-1].name, end_datetime)]
 
         return final_dataframe
@@ -236,7 +242,7 @@ class _DataStoring:
                 return hist_df_final_cut
             else:
                 delegate_get_history = _QueryHistory()
-                test_data = delegate_get_history._get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
+                test_data = delegate_get_history.get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
                 first_valid_datetime = timestamp_ms_to_datetime(test_data[0][0])
                 if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
                         hist_df_full.iloc[0].name <= first_valid_datetime) and (
