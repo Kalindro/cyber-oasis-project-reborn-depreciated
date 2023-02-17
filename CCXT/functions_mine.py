@@ -1,5 +1,4 @@
 import concurrent.futures
-import typing as tp
 from functools import partial
 
 import pandas as pd
@@ -11,20 +10,18 @@ from CCXT.get_full_history import GetFullHistoryDF
 from general_funcs.utils import dataframe_is_not_none_and_has_elements
 
 
-def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, save_load_history: bool = False,
-                                    number_of_last_candles: tp.Optional[int] = None,
-                                    since: tp.Optional[str] = None,
-                                    end: tp.Optional[str] = None, **kwargs) -> dict[str: pd.DataFrame]:
+def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, **kwargs) -> list[pd.DataFrame]:
     """Get history of all pairs on list
-    args:
-        min_length: Default 24 in main function, change min length of data
+    kwargs:
+        save_load_history:
+        number_of_last_n_candles:
+        since:
+        end:
+        min_length:
     """
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")
-    delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe,
-                                       save_load_history=save_load_history,
-                                       API=API, number_of_last_candles=number_of_last_candles,
-                                       since=since, end=end, **kwargs)
+    delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe, API=API, **kwargs)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
@@ -72,6 +69,5 @@ def change_leverage_n_mode_for_all_exchange_pairs(leverage: int, isolated: bool,
     """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
-    change_leverage_n_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated,
-                                          API=API)
+    change_leverage_n_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated, API=API)
     logger.success("Finished changing leverage and margin mode on all")

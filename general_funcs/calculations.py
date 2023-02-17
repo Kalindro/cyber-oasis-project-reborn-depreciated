@@ -1,12 +1,9 @@
-from functools import partial
-
 import numpy as np
 import pandas as pd
 from pandas_ta.volatility import natr as NATR
 from scipy.stats import linregress
 
 from CCXT.functions_mine import get_full_history_for_pairs_list
-from CCXT.get_full_history import GetFullHistoryDF
 
 
 def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
@@ -21,13 +18,13 @@ def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
 
 
 def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, investment: int, timeframe: str,
-                                               number_of_last_candles: int, API: dict) -> None:
+                                               number_of_last_candles: int, API: dict, **kwargs) -> None:
     """Calculate beta neutral allocation for two pairs"""
-    pairs = {"pair_long": pair_long, "pair_short": pair_short, "benchmark": "BTC/USDT"}
-
-    hist_func_partial = partial(GetFullHistoryDF.main, timeframe=timeframe, API=API,
-                                number_of_last_candles=number_of_last_candles)
-    histories = {pair_side: hist_func_partial(pair=pair_name) for pair_side, pair_name in pairs.items()}
+    benchmark = "BTC/USDT"
+    pairs = [pair_long, pair_short, benchmark]
+    histories_list = get_full_history_for_pairs_list(pairs_list=list(pairs), timeframe=timeframe, API=API,
+                                                     number_of_last_candles=number_of_last_candles, **kwargs)
+    histories = {"pair_long": histories_list[0], "pair_short": histories_list[1], "benchmark": histories_list[2]}
 
     for pair_side, history_df in histories.items():
         history_df["returns"] = np.log(history_df["close"])
@@ -45,10 +42,11 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
 
 
 def calc_portfolio_parity(pairs_list: list[str], investment: int, period: int, timeframe: str,
-                          number_of_last_candles: int, API: dict) -> None:
+                          number_of_last_candles: int, API: dict, **kwargs) -> None:
     """Calculate parity allocation for list/portfolio"""
     pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=pairs_list, timeframe=timeframe,
-                                                            number_of_last_candles=number_of_last_candles, API=API)
+                                                            number_of_last_candles=number_of_last_candles, API=API,
+                                                            **kwargs)
     inv_vola_calculation = lambda history_df: 1 / NATR(high=history_df["high"], low=history_df["low"],
                                                        close=history_df["close"], length=period).tail(1)
     inv_vola_list = [inv_vola_calculation(pair_history) for pair_history in pairs_history_df_list]

@@ -79,7 +79,6 @@ class GetFullHistoryDF:
             if not dataframe_is_not_none_and_has_elements(hist_df_final):
                 logger.info(f"{pair} is broken or too short")
                 return None
-            print(min_length)
             if len(hist_df_final) < min_length:
                 logger.info(f"{pair} is shorter han min length {min_length}")
                 return None
