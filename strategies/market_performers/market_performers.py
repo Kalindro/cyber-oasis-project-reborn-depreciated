@@ -8,9 +8,9 @@ import pandas as pd
 from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
-from CCXT.CCXT_functions_base import get_pairs_prices
-from CCXT.CCXT_functions_mine import get_history_df_dict_pairs_list, select_exchange_mode, \
-    select_pairs_list_mode
+from CCXT.functions_base import get_pairs_prices
+from CCXT.functions_mine import get_history_df_dict_from_list, select_exchange_mode
+from CCXT.functions_pairs_list import select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 from general.utils import excel_save_formatted
 
@@ -74,10 +74,10 @@ class PerformanceRankAnalysis(_BaseSettings):
 
     def _calculate_performances_on_list(self) -> list[dict]:
         """Calculate performance on all pairs on provided list"""
-        pairs_history_df_list = get_history_df_dict_pairs_list(pairs_list=self.pairs_list,
-                                                               timeframe=self.TIMEFRAME,
-                                                               number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                               API=self.API)
+        pairs_history_df_list = get_history_df_dict_from_list(pairs_list=self.pairs_list,
+                                                              timeframe=self.TIMEFRAME,
+                                                              number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                              API=self.API)
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,

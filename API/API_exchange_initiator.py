@@ -19,18 +19,22 @@ def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_k
 class _CCXTExchangeSelect:
     """Class to create CCXT instance of selected exchange"""
 
-    def _binance_spot(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+    @staticmethod
+    def _binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
         return _create_exchange_instance("binance", public_key=public_key, secret_key=secret_key,
                                          options={"defaultType": "spot", "fetchMarkets": ["spot"]})
 
-    def _binance_futures(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+    @staticmethod
+    def _binance_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
         return _create_exchange_instance("binanceusdm", public_key, secret_key,
                                          options={"defaultType": "future", "fetchMarkets": ["linear"]})
 
-    def _kucoin_spot(self, public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
+    @staticmethod
+    def _kucoin_spot(public_key: str, secret_key: str, passphrase: str) -> ccxt.Exchange:
         return _create_exchange_instance("kucoin", public_key, secret_key, passphrase)
 
-    def _bybit_spot_futures(self, public_key: str, secret_key: str) -> ccxt.Exchange:
+    @staticmethod
+    def _bybit_spot_futures(public_key: str, secret_key: str) -> ccxt.Exchange:
         return _create_exchange_instance("bybit", public_key, secret_key)
 
 

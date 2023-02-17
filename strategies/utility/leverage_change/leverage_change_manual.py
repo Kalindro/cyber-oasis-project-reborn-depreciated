@@ -1,5 +1,5 @@
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.CCXT_functions_mine import change_leverage_and_mode_on_all_exchange_pairs
+from CCXT.functions_mine import change_leverage_and_mode_on_all_exchange_pairs
 from general.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 from scipy.stats import linregress
 
-from CCXT.CCXT_functions_mine import select_exchange_mode
+from CCXT.functions_mine import select_exchange_mode
 from CCXT.get_full_history import GetFullHistoryDF
 from general.log_config import ConfigureLoguru
 
@@ -31,8 +31,10 @@ class _BaseSettings:
 
 
 class PairsBalance(_BaseSettings):
+    """Main class with pairs balance calculations"""
 
     def beta_neutral(self):
+        """Calculate beta neutral allocation for two pairs"""
         pairs = {
             "long_pair": self.PAIR_LONG,
             "short_pair": self.PAIR_SHORT,

@@ -6,6 +6,7 @@ from loguru import logger
 
 
 class ConfigureLoguru:
+    """Main configuration of Loguru, select level"""
 
     def _basic_config(self, level: str, level_filter_only: tp.Optional[str] = None) -> logger:
         pd.set_option('display.max_rows', 0)

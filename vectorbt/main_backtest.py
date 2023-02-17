@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
-from CCXT.CCXT_functions_base import get_pairs_prices
-from CCXT.CCXT_functions_mine import get_history_df_dict_pairs_list, select_exchange_mode, \
-    select_pairs_list_mode
+from CCXT.functions_base import get_pairs_prices
+from CCXT.functions_mine import get_history_df_dict_from_list, select_exchange_mode
+from CCXT.functions_pairs_list import select_pairs_list_mode
 from general.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -68,13 +68,14 @@ class MainBacktest(_BaseSettings):
         #                                                 trace_kwargs=dict(marker=dict(color="deepskyblue")), fig=fig)
         # fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
         #                                              trace_kwargs=dict(marker=dict(color="orange")), fig=fig)
+        
         return fig
 
     def main(self):
-        all_coins_history_df_list = get_history_df_dict_pairs_list(pairs_list=self.pairs_list,
-                                                                   timeframe=self.TIMEFRAME,
-                                                                   save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                   since=self.since, end=self.end, API=self.API)
+        all_coins_history_df_list = get_history_df_dict_from_list(pairs_list=self.pairs_list,
+                                                                  timeframe=self.TIMEFRAME,
+                                                                  save_load_history=self.SAVE_LOAD_HISTORY,
+                                                                  since=self.since, end=self.end, API=self.API)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 
@@ -97,6 +98,7 @@ class MainBacktest(_BaseSettings):
 
         entries = trend == 1
         exits = trend == -1
+
         return entries, exits, keltner
 
     def keltner_print(self, keltner, fig):
@@ -106,6 +108,7 @@ class MainBacktest(_BaseSettings):
         fig = keltner.kcle.vbt.plot(
             trace_kwargs=dict(name="Lower Band", opacity=0.55, line=dict(color="darkslateblue")),
             add_trace_kwargs=dict(row=1, col=1), fig=fig)
+
         return fig
 
 

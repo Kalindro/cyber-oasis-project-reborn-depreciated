@@ -31,7 +31,8 @@ def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
             return True
 
 
-def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_cols_size, rounded_cols, rounded_cols_size,
+def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_cols_size, rounded_cols,
+                         rounded_cols_size,
                          perc_cols, perc_cols_size) -> None:
     count = 1
     while True:
