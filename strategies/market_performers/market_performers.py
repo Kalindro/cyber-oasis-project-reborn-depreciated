@@ -30,7 +30,7 @@ class _BaseSettings:
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     MIN_VOL_USD: float = 300_000
-    QUANTILE: float = 0.60
+    QUANTILE_DROP: float = 0.60
     DAYS_WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
 
     # Don't change
@@ -97,11 +97,11 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         fast_history = full_performance_df["avg_vol_fast"]
         slow_history = full_performance_df["avg_vol_slow"]
-        fast_history_quantile = fast_history.quantile(self.QUANTILE)
-        slow_history_quantile = slow_history.quantile(self.QUANTILE)
+        fast_history_quantile = fast_history.quantile(self.QUANTILE_DROP)
+        slow_history_quantile = slow_history.quantile(self.QUANTILE_DROP)
         full_performance_df = full_performance_df[
             (fast_history >= fast_history_quantile) & (slow_history >= slow_history_quantile)]
-        logger.info(f"Dropped bottom {self.QUANTILE * 100}% volume coins")
+        logger.info(f"Dropped bottom {self.QUANTILE_DROP * 100}% volume coins")
         full_performance_df.sort_values(by="vol_increase", ascending=False, inplace=True)
 
         return full_performance_df
