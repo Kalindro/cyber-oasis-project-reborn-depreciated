@@ -16,9 +16,9 @@ class _BaseSettings:
     :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
     """
     EXCHANGE_MODE: int = 1
-    PAIRS_MODE: int = 4
+    PAIRS_MODE: int = 2
     TIMEFRAME: str = "1h"
-    INVESTMENT: int = 2000
+    INVESTMENT: int = 1000
     NUMBER_OF_LAST_CANDLES: int = 170
     PERIOD: int = 20
 
@@ -29,9 +29,10 @@ class _BaseSettings:
 
 class PortfolioParity(_BaseSettings):
     def main(self):
-        calc_portfolio_parity(pairs_list=self.pairs_list, investment=self.INVESTMENT, period=self.PERIOD,
-                              timeframe=self.TIMEFRAME, number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                              API=self.API, min_lenght=50)
+        parity = calc_portfolio_parity(pairs_list=self.pairs_list, investment=self.INVESTMENT, period=self.PERIOD,
+                                       timeframe=self.TIMEFRAME, number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                       API=self.API, min_data_length=50)
+        print(parity)
 
 
 if __name__ == "__main__":

@@ -30,9 +30,13 @@ class BetaNeutralPairs(_BaseSettings):
     """Main class with pairs balance calculations"""
 
     def main(self):
-        calc_beta_neutral_allocation_for_two_pairs(pair_long=self.PAIR_LONG, pair_short=self.PAIR_SHORT,
-                                                   investment=self.INVESTMENT, timeframe=self.TIMEFRAME,
-                                                   number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API)
+        allocation_df = calc_beta_neutral_allocation_for_two_pairs(pair_long=self.PAIR_LONG,
+                                                                   pair_short=self.PAIR_SHORT,
+                                                                   investment=self.INVESTMENT,
+                                                                   timeframe=self.TIMEFRAME,
+                                                                   number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                   API=self.API)
+        print(allocation_df)
 
 
 if __name__ == "__main__":
