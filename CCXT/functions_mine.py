@@ -13,11 +13,11 @@ from general_funcs.utils import dataframe_is_not_none_and_has_elements
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, **kwargs) -> list[pd.DataFrame]:
     """Get history of all pairs on list
     kwargs:
-        save_load_history:
-        number_of_last_n_candles:
-        since:
-        end:
-        min_length:
+        save_load_history
+        number_of_last_n_candles
+        since
+        end
+        min_data_length
     """
     workers = 2
     logger.info("Getting history of all the coins on provided pairs list...")

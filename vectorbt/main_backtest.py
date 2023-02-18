@@ -39,6 +39,7 @@ class _BaseSettings:
     def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
+        self.min_data_length = 100
         self.validate_inputs()
 
     def validate_inputs(self) -> None:
@@ -71,7 +72,8 @@ class MainBacktest(_BaseSettings):
         all_coins_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
                                                                     timeframe=self.TIMEFRAME,
                                                                     save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                    since=self.since, end=self.end, API=self.API)
+                                                                    since=self.since, end=self.end, API=self.API,
+                                                                    min_data_length=self.min_data_length)
         price_df = pd.concat(all_coins_history_df_list, axis=1)
         entries, exits, keltner = self.keltner_strat(price_df=price_df)
 
@@ -109,4 +111,4 @@ class MainBacktest(_BaseSettings):
 
 
 if __name__ == "__main__":
-    _BaseSettings().main()
+    MainBacktest().main()

@@ -50,8 +50,15 @@ class GetFullHistoryDF:
              number_of_last_candles: tp.Optional[int] = None,
              since: tp.Optional[str] = None,
              end: tp.Optional[str] = None,
-             min_length: tp.Optional[int] = 24) -> tp.Union[pd.DataFrame, None]:
-        """Main function to get the desired history"""
+             min_data_length: tp.Optional[int] = 24) -> tp.Union[pd.DataFrame, None]:
+        """Main function to get the desired history
+        kwargs:
+            save_load_history
+            number_of_last_n_candles
+            since
+            end
+            min_data_length
+        """
 
         timeframe = timeframe.lower()
         since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
@@ -77,10 +84,10 @@ class GetFullHistoryDF:
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
 
             if not dataframe_is_not_none_and_has_elements(hist_df_final):
-                logger.info(f"{pair} is broken or too short")
+                logger.info(f"Skipping {pair}, broken or too short")
                 return None
-            if len(hist_df_final) < min_length:
-                logger.info(f"{pair} is shorter han min length {min_length}")
+            if len(hist_df_final) < min_data_length:
+                logger.info(f"Skipping {pair}, shorter than min length {min_data_length}")
                 return None
 
             if save_load_history:
