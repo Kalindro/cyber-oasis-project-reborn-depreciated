@@ -12,5 +12,5 @@ Most useful scripts are:
 - strategies.market_performers.market_performers.py
 - All scripts in strategies.manual_utility
 
-The user required input are exchange API keys, .env file in API folder should have structure as the example (
-env_template).
+The user required inputs are exchange API keys, .env file in API folder should have structure as the example
+(env_template).

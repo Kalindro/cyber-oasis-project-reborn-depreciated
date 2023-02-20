@@ -25,7 +25,6 @@ def momentum_ranking_for_pairs_list(pairs_history_df_list: list[pd.DataFrame], p
     momentum_dict = {}
     for pair_df in pairs_history_df_list:
         symbol = pair_df["symbol"].iloc[-1]
-        # calculate momentum over rolling window
         pair_df["momentum"] = pair_df["close"].rolling(period).apply(calculate_momentum)
         momentum_dict[symbol] = pair_df["momentum"].iloc[-1]
 
