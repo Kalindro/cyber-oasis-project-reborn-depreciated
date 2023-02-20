@@ -10,7 +10,7 @@ class ChatGPTDialog:
     def ask_question_wrapper(self, question):
         prev_text = ""
         print("Asked question")
-        print("ChatGPT:")
+        print("chatGPT:")
         for data in self.chatbot.ask(question):
             message = data["message"][len(prev_text):]
             print(message, end="", flush=True)
@@ -19,7 +19,7 @@ class ChatGPTDialog:
 
     def ask_question_API(self, question):
         print("Asked question")
-        print("ChatGPT:")
+        print("chatGPT:")
         response = self.openai.Completion.create(model="text-davinci-003", prompt=question, temperature=0,
                                                  max_tokens=60, top_p=1.0, frequency_penalty=0.5, presence_penalty=0.0)
         print(response["choices"][0]["text"])
@@ -27,5 +27,5 @@ class ChatGPTDialog:
 
 if __name__ == "__main__":
     tweet = "Sram sobie"
-    question = f"Decide if a Tweet's sentiment is positive, neutral, or negative and how impactful. /Tweet: {tweet}"
-    ChatGPTDialog().ask_question_API(question)
+    full_question = f"Decide whether a Tweet's sentiment is positive, neutral, or negative and how impactful. /Tweet: {tweet}"
+    ChatGPTDialog().ask_question_API(question=full_question)
