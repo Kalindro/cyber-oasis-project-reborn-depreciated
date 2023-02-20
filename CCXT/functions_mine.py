@@ -24,11 +24,11 @@ def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict,
     delegate_history_partial = partial(GetFullHistoryDF().main, timeframe=timeframe, API=API, **kwargs)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        all_coins_history = list(executor.map(delegate_history_partial, pairs_list))
-    all_coins_history = [df for df in all_coins_history if dataframe_is_not_none_and_has_elements(df)]
+        pairs_history_df_list = list(executor.map(delegate_history_partial, pairs_list))
+    pairs_history_df_list = [df for df in pairs_history_df_list if dataframe_is_not_none_and_has_elements(df)]
     logger.success("History of all the coins completed, returning")
 
-    return all_coins_history
+    return pairs_history_df_list
 
 
 def select_exchange_mode(exchange_mode) -> dict:

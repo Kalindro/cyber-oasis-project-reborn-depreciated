@@ -8,7 +8,7 @@ from CCXT.functions_base import get_pairs_with_precisions_status
 def remove_shit_from_pairs_list(pairs_list):
     """Remove bs pairs from ever list"""
     forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
-    forbidden_ending = ("UP", "DOWN")
+    forbidden_ending = ("UP", "DOWN", "BEAR", "BULL")
     def symbol_func(pair): return str(pair).split("/")[0]
     pairs_list = [str(pair) for pair in pairs_list if not (symbol_func(pair) in forbidden_symbols)]
     pairs_list = [str(pair) for pair in pairs_list if not symbol_func(pair).endswith(forbidden_ending)]

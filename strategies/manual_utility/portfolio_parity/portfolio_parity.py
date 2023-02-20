@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from CCXT.functions_mine import select_exchange_mode
+from CCXT.functions_mine import select_exchange_mode, get_full_history_for_pairs_list
 from CCXT.functions_pairs_list import select_pairs_list_mode
 from general_funcs.calculations import calc_portfolio_parity
 from general_funcs.log_config import ConfigureLoguru
@@ -25,13 +25,16 @@ class _BaseSettings:
     def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
+        self.pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
+                                                                     timeframe=self.TIMEFRAME,
+                                                                     number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                     API=self.API, min_data_length=50)
 
 
 class PortfolioParity(_BaseSettings):
     def main(self):
-        parity = calc_portfolio_parity(pairs_list=self.pairs_list, investment=self.INVESTMENT, period=self.PERIOD,
-                                       timeframe=self.TIMEFRAME, number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                       API=self.API, min_data_length=50)
+        parity = calc_portfolio_parity(pairs_history_df_list=self.pairs_history_df_list, investment=self.INVESTMENT,
+                                       period=self.PERIOD)
         print(parity)
 
 

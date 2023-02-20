@@ -88,10 +88,10 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         return performances_calculation_results
 
-    def _performances_list_to_clean_df(self, performance_calculation_map_results: list[dict]) -> pd.DataFrame:
+    def _performances_list_to_clean_df(self, performance_calculation_results: list[dict]) -> pd.DataFrame:
         """Process the list of performances and output in formatted dataframe"""
         full_performance_df = df()
-        for pair_results in performance_calculation_map_results:
+        for pair_results in performance_calculation_results:
             full_performance_df = pd.concat([df(pair_results), full_performance_df],
                                             ignore_index=True)
 
