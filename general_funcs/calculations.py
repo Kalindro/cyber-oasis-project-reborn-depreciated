@@ -18,12 +18,25 @@ def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
     # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
 
 
-def momentum_ranking_for_pairs_list(pairs_history_df_list: list[pd.DataFrame]):
+def momentum_ranking_for_pairs_list(pairs_history_df_list: list[pd.DataFrame], period):
     """Calculate momentum ranking for list of history dataframes"""
+    TOP = 0.2
+
+    momentum_dict = {}
     for pair_df in pairs_history_df_list:
-        momentums = stocks.copy(deep=True)
-        for ticker in tickers:
-            momentums[ticker] = stocks[ticker].rolling(90).apply(momentum, raw=False)
+        symbol = pair_df["symbol"].iloc[-1]
+        # calculate momentum over rolling window
+        pair_df["momentum"] = pair_df["close"].rolling(period).apply(calculate_momentum)
+        momentum_dict[symbol] = pair_df["momentum"].iloc[-1]
+
+    momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
+    sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
+
+    top_bottom_number = int(len(sorted_momentum) * TOP)
+    top_assets = sorted_momentum.index[:top_bottom_number].tolist()
+    bottom_assets = sorted_momentum.index[-top_bottom_number:].tolist()
+
+    return {f"Top {TOP * 100}% assets": top_assets, f"Bottom {TOP * 100}% assets": bottom_assets}
 
 
 def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int, investment: int = 1000,
@@ -52,17 +65,6 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int
 
     pairs_history_df_list_portfolio_parity = pairs_history_df_list
 
-    # allocation_df = []
-    # for pair_history_df in pairs_history_df_list:
-    #     pair_df = pd.DataFrame({
-    #         "pair": [pair_history_df["pair"].iloc[-1]],
-    #         "weight": [pair_history_df["weight"].iloc[-1]],
-    #         "weight_ccy": [pair_history_df["weight_ccy"].iloc[-1]],
-    #     })
-    #     allocation_df.append(pair_df)
-    #
-    # allocation_df = pd.concat(allocation_df).set_index("pair")
-
     return pairs_history_df_list_portfolio_parity
 
 
@@ -82,61 +84,19 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     benchmark_history_df = pairs_history_df_list[2]
     pairs_history_df_list = pairs_history_df_list[0:2]
 
-    benchmark_rolling_returns = benchmark_history_df['returns'].rolling(period)
-
     total_beta = 0
     for pair_df in pairs_history_df_list:
-        asset_rolling_returns = pair_df['returns'].rolling(period)
+        asset_rolling_returns = pair_df["returns"].rolling(period)
         beta = asset_rolling_returns.apply(
-            lambda x: linregress(x, benchmark_history_df.loc[x.index][-period:]['returns'])[0])
+            lambda x: linregress(x, benchmark_history_df.loc[x.index][-period:]["returns"])[0])
         pair_df["beta"] = beta
         total_beta += beta
 
     for pair_df in pairs_history_df_list:
         pair_df["allocation"] = round((total_beta - pair_df["beta"]) / total_beta, 4)
         pair_df["allocation_ccy"] = round((total_beta - pair_df["beta"]) / total_beta * investment, 0)
+        pair_df.drop(columns=["returns"])
 
     pairs_history_df_list_beta_neutral = pairs_history_df_list
 
     return pairs_history_df_list_beta_neutral
-
-
-def calc_beta_neutral_allocation_for_two_pairs2(pair_long: str, pair_short: str, timeframe: str,
-                                                number_of_last_candles: int, API: dict, period: int,
-                                                investment: int = 1000,
-                                                **kwargs) -> pd.DataFrame:
-    """Calculate beta neutral allocation for two pairs"""
-    benchmark = "BTC/USDT"
-    pairs = [pair_long, pair_short, benchmark]
-    pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=list(pairs), timeframe=timeframe, API=API,
-                                                            number_of_last_candles=number_of_last_candles, **kwargs)
-
-    for pair_df in pairs_history_df_list:
-        pair_df["returns"] = np.log(pair_df["close"])
-
-    benchmark_history_df = pairs_history_df_list[2]
-    pairs_history_df_list = pairs_history_df_list[0:2]
-
-    for pair_df in pairs_history_df_list:
-        pair_df["beta"] = linregress(x=benchmark_history_df["returns"], y=pair_df["returns"])[0]
-
-    total_beta = 0
-    for pair_df in pairs_history_df_list:
-        total_beta += pair_df["beta"]
-
-    for pair_df in pairs_history_df_list:
-        pair_df["allocation"] = round((total_beta - pair_df["beta"]) / total_beta, 4)
-        pair_df["allocation_ccy"] = round((total_beta - pair_df["beta"]) / total_beta * investment, 0)
-
-    allocation_df = []
-    for history_df in pairs_history_df_list:
-        pair_df = pd.DataFrame({
-            "pair": [history_df["pair"].iloc[-1]],
-            "allocation": [history_df["allocation"].iloc[-1]],
-            "allocation_ccy": [history_df["allocation_ccy"].iloc[-1]],
-        })
-        allocation_df.append(pair_df)
-
-    allocation_df = pd.concat(allocation_df).set_index("pair")
-
-    return allocation_df

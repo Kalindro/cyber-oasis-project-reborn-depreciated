@@ -21,7 +21,7 @@ class _BaseSettings:
     PAIR_BENCHMARK: str = "BTC/USDT"
     INVESTMENT: int = 1000
     PERIOD: int = 20
-    NUMBER_OF_LAST_CANDLES: int = 500
+    NUMBER_OF_LAST_CANDLES: int = 700
 
     def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
