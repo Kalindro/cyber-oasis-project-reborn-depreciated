@@ -1,6 +1,6 @@
 # CyberOasisProjectReborn
 
-My main repository containing all the functions, utilities, strategies that help me to trade & investing on crypto
+My main repository containing all the functions, utilities, strategies that help me to trade & invest on crypto
 markets.
 
 This project allowed me to self-develop my Python skills. I've started with minimal programing knowledge, where now I'm
