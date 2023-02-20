@@ -50,7 +50,7 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int
         pairs_history_df_list = [df for df in pairs_history_df_list if
                                  df["natr"].iloc[-1] < lower or df["natr"].iloc[-1] > upper]
 
-    pairs_history_df_list_parity = pairs_history_df_list
+    pairs_history_df_list_portfolio_parity = pairs_history_df_list
 
     # allocation_df = []
     # for pair_history_df in pairs_history_df_list:
@@ -63,13 +63,13 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int
     #
     # allocation_df = pd.concat(allocation_df).set_index("pair")
 
-    return pairs_history_df_list_parity
+    return pairs_history_df_list_portfolio_parity
 
 
 def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, timeframe: str,
                                                number_of_last_candles: int, API: dict, period: int,
                                                investment: int = 1000,
-                                               **kwargs) -> pd.DataFrame:
+                                               **kwargs) -> list[pd.DataFrame]:
     """Calculate beta neutral allocation for two pairs"""
     benchmark = "BTC/USDT"
     pairs = [pair_long, pair_short, benchmark]
@@ -82,16 +82,23 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     benchmark_history_df = pairs_history_df_list[2]
     pairs_history_df_list = pairs_history_df_list[0:2]
 
+    benchmark_rolling_returns = benchmark_history_df['returns'].rolling(period)
+
     total_beta = 0
     for pair_df in pairs_history_df_list:
-        beta = pair_df["returns"].rolling(period).apply(
-            lambda x: linregress(x, benchmark_history_df["returns"].iloc[-len(x):])[0])
+        asset_rolling_returns = pair_df['returns'].rolling(period)
+        beta = asset_rolling_returns.apply(
+            lambda x: linregress(x, benchmark_history_df.loc[x.index][-period:]['returns'])[0])
         pair_df["beta"] = beta
         total_beta += beta
 
     for pair_df in pairs_history_df_list:
         pair_df["allocation"] = round((total_beta - pair_df["beta"]) / total_beta, 4)
         pair_df["allocation_ccy"] = round((total_beta - pair_df["beta"]) / total_beta * investment, 0)
+
+    pairs_history_df_list_beta_neutral = pairs_history_df_list
+
+    return pairs_history_df_list_beta_neutral
 
 
 def calc_beta_neutral_allocation_for_two_pairs2(pair_long: str, pair_short: str, timeframe: str,
