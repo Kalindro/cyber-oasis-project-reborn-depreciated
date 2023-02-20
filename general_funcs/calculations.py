@@ -82,6 +82,34 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     benchmark_history_df = pairs_history_df_list[2]
     pairs_history_df_list = pairs_history_df_list[0:2]
 
+    total_beta = 0
+    for pair_df in pairs_history_df_list:
+        beta = pair_df["returns"].rolling(period).apply(
+            lambda x: linregress(x, benchmark_history_df["returns"].iloc[-len(x):])[0])
+        pair_df["beta"] = beta
+        total_beta += beta
+
+    for pair_df in pairs_history_df_list:
+        pair_df["allocation"] = round((total_beta - pair_df["beta"]) / total_beta, 4)
+        pair_df["allocation_ccy"] = round((total_beta - pair_df["beta"]) / total_beta * investment, 0)
+
+
+def calc_beta_neutral_allocation_for_two_pairs2(pair_long: str, pair_short: str, timeframe: str,
+                                                number_of_last_candles: int, API: dict, period: int,
+                                                investment: int = 1000,
+                                                **kwargs) -> pd.DataFrame:
+    """Calculate beta neutral allocation for two pairs"""
+    benchmark = "BTC/USDT"
+    pairs = [pair_long, pair_short, benchmark]
+    pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=list(pairs), timeframe=timeframe, API=API,
+                                                            number_of_last_candles=number_of_last_candles, **kwargs)
+
+    for pair_df in pairs_history_df_list:
+        pair_df["returns"] = np.log(pair_df["close"])
+
+    benchmark_history_df = pairs_history_df_list[2]
+    pairs_history_df_list = pairs_history_df_list[0:2]
+
     for pair_df in pairs_history_df_list:
         pair_df["beta"] = linregress(x=benchmark_history_df["returns"], y=pair_df["returns"])[0]
 

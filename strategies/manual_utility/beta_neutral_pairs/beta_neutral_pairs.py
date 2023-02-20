@@ -20,7 +20,7 @@ class _BaseSettings:
     PAIR_SHORT: str = "BTC/USDT"
     PAIR_BENCHMARK: str = "BTC/USDT"
     INVESTMENT: int = 1000
-    PERIOD: int = 200
+    PERIOD: int = 20
     NUMBER_OF_LAST_CANDLES: int = 500
 
     def __post_init__(self):
