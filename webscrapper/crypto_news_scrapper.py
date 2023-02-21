@@ -1,9 +1,11 @@
-from selenium import webdriver
-from bs4 import BeautifulSoup
-import pandas as pd
-from fake_useragent import UserAgent
+import time
 from dataclasses import dataclass
+
+import pandas as pd
+from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 from pandas import DataFrame as df
+from selenium import webdriver
 
 
 @dataclass
@@ -39,10 +41,16 @@ class CryptoNewsScrapper:
         driver = webdriver.Chrome(options=chrome_options)
 
         driver.get(site_url)
-        driver.implicitly_wait(100)
+        wait_time = 0
+        while True:
+            if wait_time >= 10:
+                break
+            if driver.execute_script("return document.readyState") == "complete":
+                break
+            time.sleep(1)
+            wait_time += 1
         html = driver.page_source
         driver.quit()
-
         soup = BeautifulSoup(html, "html.parser")
 
         return soup
