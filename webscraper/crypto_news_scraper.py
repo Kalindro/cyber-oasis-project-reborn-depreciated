@@ -24,9 +24,10 @@ class CryptoNewsScraper:
             soup = self._get_soup(driver=my_driver, site_url=self.SITE_URL)
             articles_dataframe = self._tree_of_alpha_scraper(soup=soup)
 
-            print(articles_dataframe)
             perf_stop = perf_counter()
             print(f"Time to execute: {perf_stop - perf_start:.2f}")
+
+            yield articles_dataframe
 
     @staticmethod
     def _tree_of_alpha_scraper(soup: BeautifulSoup) -> pd.DataFrame:
@@ -67,6 +68,7 @@ class CryptoNewsScraper:
 
 if __name__ == "__main__":
     while True:
-        x = CryptoNewsScraper().main()
-        print("Dataframe:")
-        print(x.to_string())
+        scrap_stream = CryptoNewsScraper().main()
+        for data in scrap_stream:
+            print("Dataframe:")
+            print(data.to_string())
