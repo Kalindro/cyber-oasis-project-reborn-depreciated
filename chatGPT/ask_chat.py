@@ -1,24 +1,28 @@
-from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
 from dataclasses import dataclass
+
+from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
 
 
 @dataclass
 class ChatGPTDialog:
     API_mode = 1
 
-    def ask_question_wrapper(self, question: str) -> str:
+    def main(self, question: str) -> str:
+        response = self._ask_question_API(question) if self.API_mode == 1 else self._ask_question_wrapper(question)
+        print(response)
+
+        return response
+
+    def _ask_question_wrapper(self, question: str) -> str:
         chatbot = initiate_chatGPT_wrapper()
         print("Asked question")
         print("chatGPT:")
-        print(chatbot.ask(question))
-
         for data in chatbot.ask(question):
-            print(data)
             response = data["message"]
 
         return response
 
-    def ask_question_API(self, question: str) -> str:
+    def _ask_question_API(self, question: str) -> str:
         openai = initiate_chatGPT_API()
         print("Asked question")
         print("chatGPT:")
@@ -26,12 +30,6 @@ class ChatGPTDialog:
                                             top_p=1.0, frequency_penalty=0.5, presence_penalty=0.0)
 
         return response["choices"][0]["text"].lstrip()
-
-    def main(self, question: str) -> str:
-        response = self.ask_question_API(question) if self.API_mode == 1 else self.ask_question_wrapper(question)
-
-        print(response)
-        return response
 
 
 if __name__ == "__main__":

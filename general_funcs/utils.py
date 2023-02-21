@@ -2,14 +2,13 @@ import datetime as dt
 import math
 import time
 
-import dateutil.parser
 import pandas as pd
 from loguru import logger
 from pandas import ExcelWriter
 
 
 def date_string_to_datetime(date_string) -> dt.datetime:
-    date_datetime = dateutil.parser.parse(date_string)
+    date_datetime = pd.to_datetime(date_string)
     return date_datetime
 
 
@@ -19,7 +18,7 @@ def datetime_to_timestamp_ms(date_datetime) -> int:
 
 
 def timestamp_ms_to_datetime(timestamp_ms) -> dt.datetime:
-    date_datetime = dt.datetime.fromtimestamp(timestamp_ms / 1000.0)
+    date_datetime = pd.to_datetime(timestamp_ms / 1000.0)
     return date_datetime
 
 
