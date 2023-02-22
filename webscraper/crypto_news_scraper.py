@@ -1,3 +1,5 @@
+import random
+import time
 from dataclasses import dataclass
 from time import perf_counter
 
@@ -25,13 +27,31 @@ class CryptoNewsScraper:
             articles_dataframe = self._tree_of_alpha_scraper(soup=soup)
 
             perf_stop = perf_counter()
-            print(f"Time to execute: {perf_stop - perf_start:.2f}")
+            execution_time = perf_stop - perf_start
 
             yield articles_dataframe
+
+            sleep_time = random.uniform(1, 2) - execution_time
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     @staticmethod
     def _tree_of_alpha_scraper(soup: BeautifulSoup) -> pd.DataFrame:
         articles = soup.find_all("div", class_="contentWrapper")
+
+        articles_dataframe = df()
+        for article in articles:
+            message = article.find("h2", class_="contentTitle").text.strip()
+            timestamp = article.find("div", class_="originTime").text.strip()
+            article_data = {"timestamp": [pd.to_datetime(timestamp.replace("CET", ""))], "message": [message]}
+            article_df = df(article_data)
+
+            if existing_articles is not None:
+                is_duplicate = (existing_articles["message"] == message).any()
+                if is_duplicate:
+                    continue
+
+            articles_dataframe = pd.concat([articles_dataframe, article_df], ignore_index=True)
 
         articles_dataframe = df()
         for article in articles:

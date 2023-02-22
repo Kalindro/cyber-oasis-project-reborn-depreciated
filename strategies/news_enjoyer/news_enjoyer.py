@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 
+import pandas as pd
+
 from CCXT.functions_mine import select_exchange_mode
 from chatGPT.ask_chat import ChatGPTDialog
+from general_funcs.log_config import ConfigureLoguru
 from webscraper.crypto_news_scraper import CryptoNewsScraper
+
+logger = ConfigureLoguru().info_level()
 
 
 @dataclass
@@ -25,15 +30,19 @@ class _BaseSettings:
 
 class NewsEnjoyer:
     def main(self):
-        stream = CryptoNewsScraper().main()
-
-        for news in stream:
-            for index, row in news.iterrows():
-                single_news = row["message"]
-                print(f"News: {single_news}")
-                question = f"Tell me if this news is positive, neutral or negative {single_news}"
+        logger.info("News enjoyer started...")
+        articles_dataframe_stream = CryptoNewsScraper().main()
+        latest_datetime = pd.to_datetime("01.01.2100")
+        for articles_dataframe in articles_dataframe_stream:
+            fresh_row = articles_dataframe.iloc[0]
+            fresh_datetime = fresh_row["timestamp"]
+            fresh_news = fresh_row["message"]
+            if fresh_datetime > latest_datetime:
+                print(f"New news: {fresh_news}")
+                question = f"Tell me if this news is positive, neutral or negative {fresh_news}"
                 chat_response = ChatGPTDialog().main(question=question)
                 print(chat_response)
+            latest_datetime = articles_dataframe["timestamp"].max()
 
 
 if __name__ == "__main__":
