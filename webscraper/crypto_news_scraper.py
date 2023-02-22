@@ -41,25 +41,13 @@ class CryptoNewsScraper:
 
         articles_dataframe = df()
         for article in articles:
-            message = article.find("h2", class_="contentTitle").text.strip()
-            timestamp = article.find("div", class_="originTime").text.strip()
-            article_data = {"timestamp": [pd.to_datetime(timestamp.replace("CET", ""))], "message": [message]}
-            article_df = df(article_data)
-
-            if existing_articles is not None:
-                is_duplicate = (existing_articles["message"] == message).any()
-                if is_duplicate:
-                    continue
-
-            articles_dataframe = pd.concat([articles_dataframe, article_df], ignore_index=True)
-
-        articles_dataframe = df()
-        for article in articles:
-            message = article.find("h2", class_="contentTitle").text.strip()
-            timestamp = article.find("div", class_="originTime").text.strip()
-            article_data = {"timestamp": [pd.to_datetime(timestamp.replace("CET", ""))], "message": [message]}
-            article_df = df(article_data)
-            articles_dataframe = pd.concat([articles_dataframe, article_df], ignore_index=True)
+            message = article.find("h2", class_="contentTitle").text.strip().upper()
+            if message.endswith("..."):
+                message = message.rstrip('.').rstrip()
+            timestamp = article.find("div", class_="originTime").text.strip().replace("CET", "")
+            article_data = {"message": [message]}
+            article_df = df(article_data, index=[pd.to_datetime(timestamp)])
+            articles_dataframe = pd.concat([articles_dataframe, article_df], ignore_index=False)
 
         return articles_dataframe
 

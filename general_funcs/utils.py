@@ -24,7 +24,7 @@ def timestamp_ms_to_datetime(timestamp_ms) -> dt.datetime:
 
 def dataframe_is_not_none_and_has_elements(dataframe: pd.DataFrame) -> bool:
     if (dataframe is not None) and (not dataframe.empty):
-        if len(dataframe) >= 2:
+        if len(dataframe) >= 1:
             return True
 
 
