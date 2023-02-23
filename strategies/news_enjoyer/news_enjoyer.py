@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 
-import pandas as pd
-from general_funcs.utils import dataframe_is_not_none_and_has_elements
-
 from CCXT.functions_mine import select_exchange_mode
 from chatGPT.ask_chat import ChatGPTDialog
 from general_funcs.log_config import ConfigureLoguru
+from general_funcs.utils import dataframe_is_not_none_and_has_elements
 from webscraper.crypto_news_scraper import CryptoNewsScraper
 
 logger = ConfigureLoguru().info_level()
@@ -20,6 +18,8 @@ class _BaseSettings:
     """
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
+    GUIDING_QUESTION = """This is crypto market news. Tell me in one word if this will affect price 
+    positivity neutrally or negatively"""
 
     # Don't change
     TIMEFRAME: str = "1h"
@@ -27,41 +27,37 @@ class _BaseSettings:
 
     def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
+        self.seen_messages = set()
 
 
-class NewsEnjoyer:
+class NewsEnjoyer(_BaseSettings):
     def main(self):
         logger.info("News enjoyer started...")
         articles_dataframe_stream = CryptoNewsScraper().main()
 
         last_dataframe = None
-        seen_messages = set()
-        for articles_dataframe in articles_dataframe_stream:
-            if last_dataframe is not None:
-                new_rows = articles_dataframe.loc[~articles_dataframe.index.isin(last_dataframe.index)]
-                if dataframe_is_not_none_and_has_elements(new_rows):
-                    for index, row in new_rows.iterrows():
-                        fresh_news = row["message"]
-                        if fresh_news not in seen_messages:
-                            seen_messages.add(fresh_news)
-                            print(f"\nNew news: {fresh_news}")
-                            question = f"Tell me if this news is positive, neutral or negative {fresh_news}"
-                            chat_response = ChatGPTDialog().main(question=question)
-                            print(chat_response)
-            last_dataframe = articles_dataframe
+        for new_articles_dataframe in articles_dataframe_stream:
+            new_rows = self._get_new_rows(last_dataframe, new_articles_dataframe)
+            unseen_articles = self._get_unseen_messages(new_rows)
+            for article in unseen_articles:
+                self._process_new_news(message=article)
+            last_dataframe = new_articles_dataframe
 
-        # latest_datetime = pd.to_datetime("01.01.2100")
-        # for articles_dataframe in articles_dataframe_stream:
-        #     fresh_row = articles_dataframe.iloc[0]
-        #     fresh_datetime = fresh_row["timestamp"]
-        #     fresh_news = fresh_row["message"]
-        #
-        #     if fresh_datetime > latest_datetime:
-        #         print(f"New news: {fresh_news}")
-        #         question = f"Tell me if this news is positive, neutral or negative {fresh_news}"
-        #         chat_response = ChatGPTDialog().main(question=question)
-        #         print(chat_response)
-        #     latest_datetime = articles_dataframe["timestamp"].max()
+    @staticmethod
+    def _get_new_rows(last_dataframe, current_dataframe):
+        if last_dataframe is None:
+            return None
+        else:
+            return current_dataframe.loc[~current_dataframe.index.isin(last_dataframe.index)]
+
+    def _get_unseen_messages(self, rows):
+        return [row["message"] for index, row in rows.iterrows() if row["message"] not in self.seen_messages]
+
+    def _process_new_news(self, message):
+        print(f"New news: {message}")
+        question = f"{self.GUIDING_QUESTION}: {message}"
+        chat_response = ChatGPTDialog().main(question=question)
+        print(f"chatGPT:\n {chat_response}")
 
 
 if __name__ == "__main__":

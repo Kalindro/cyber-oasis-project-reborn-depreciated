@@ -12,6 +12,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from general_funcs.log_config import ConfigureLoguru
+from general_funcs.utils import clean_string_from_spaces_and_links
+
+logger = ConfigureLoguru().info_level()
+
 
 @dataclass
 class CryptoNewsScraper:
@@ -43,7 +48,11 @@ class CryptoNewsScraper:
         for article in articles:
             message = article.find("h2", class_="contentTitle").text.strip().upper()
             if message.endswith("..."):
-                message = message.rstrip('.').rstrip()
+                message = message[:-3].rstrip()
+            if message.endswith(","):
+                message = message[:-1].rstrip()
+            message = clean_string_from_spaces_and_links(message)
+
             timestamp = article.find("div", class_="originTime").text.strip().replace("CET", "")
             article_data = {"message": [message]}
             article_df = df(article_data, index=[pd.to_datetime(timestamp)])

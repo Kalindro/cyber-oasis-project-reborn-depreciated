@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
+from general_funcs.utils import clean_string_from_spaces_and_links
 
 
 @dataclass
@@ -15,7 +16,6 @@ class ChatGPTDialog:
     @staticmethod
     def _ask_question_wrapper(question: str) -> str:
         chatbot = initiate_chatGPT_wrapper()
-        print("chatGPT:")
         for data in chatbot.ask(question):
             response = data["message"]
 
@@ -24,11 +24,10 @@ class ChatGPTDialog:
     @staticmethod
     def _ask_question_API(question: str) -> str:
         openai = initiate_chatGPT_API()
-        print("chatGPT:")
         response = openai.Completion.create(model="text-davinci-003", prompt=question, temperature=0, max_tokens=60,
                                             top_p=1.0, frequency_penalty=0.5, presence_penalty=0.0)
 
-        return response["choices"][0]["text"].lstrip()
+        return clean_string_from_spaces_and_links(response["choices"][0]["text"])
 
 
 if __name__ == "__main__":

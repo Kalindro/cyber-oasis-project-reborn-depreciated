@@ -1,10 +1,21 @@
 import datetime as dt
 import math
+import re
 import time
 
 import pandas as pd
 from loguru import logger
 from pandas import ExcelWriter
+
+
+def clean_string_from_spaces_and_links(message):
+    # Remove links
+    message = re.sub(r'(http|https|ftp)://[a-zA-Z0-9\\./]+', '', message)
+    # Remove multiple spaces
+    message = re.sub(r'\s\s+', ' ', message)
+    # Remove leading and trailing spaces
+    message = message.strip()
+    return message
 
 
 def date_string_to_datetime(date_string) -> dt.datetime:
