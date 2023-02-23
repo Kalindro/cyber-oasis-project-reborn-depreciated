@@ -5,9 +5,9 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.functions_pairs_list import get_pairs_list_ALL
-from CCXT.get_full_history import GetFullHistoryDF
-from general_funcs.utils import dataframe_is_not_none_and_has_elements
+from ext_librariers.CCXT.functions_pairs_list import get_pairs_list_ALL
+from ext_librariers.CCXT.get_full_history import GetFullHistoryDF
+from general_funcs.utils import dataframe_is_not_none_and_not_empty
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, **kwargs) -> list[pd.DataFrame]:
@@ -25,7 +25,7 @@ def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict,
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         pairs_history_df_list = list(executor.map(delegate_history_partial, pairs_list))
-    pairs_history_df_list = [df for df in pairs_history_df_list if dataframe_is_not_none_and_has_elements(df)]
+    pairs_history_df_list = [df for df in pairs_history_df_list if dataframe_is_not_none_and_not_empty(df)]
     logger.success("History of all the coins completed, returning")
 
     return pairs_history_df_list

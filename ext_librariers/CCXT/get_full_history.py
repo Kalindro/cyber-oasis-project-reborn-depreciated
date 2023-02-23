@@ -9,7 +9,7 @@ import pandas as pd
 from loguru import logger
 
 from general_funcs.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
-                                 timestamp_ms_to_datetime, dataframe_is_not_none_and_has_elements)
+                                 timestamp_ms_to_datetime, dataframe_is_not_none_and_not_empty)
 
 
 class GetFullHistoryDF:
@@ -74,7 +74,7 @@ class GetFullHistoryDF:
                 delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=exchange,
                                                      end_datetime=end_datetime, since_datetime=since_datetime)
                 hist_df_full = delegate_data_storing.load_dataframe_and_pre_check(API=API)
-                if dataframe_is_not_none_and_has_elements(hist_df_full):
+                if dataframe_is_not_none_and_not_empty(hist_df_full):
                     return hist_df_full
 
             hist_df_full = delegate_query_history.get_history_range(pair=pair, timeframe=timeframe,
@@ -83,7 +83,7 @@ class GetFullHistoryDF:
                                                                     API=API)
             hist_df_final = delegate_df_clean_cut.history_df_cleaning(hist_df_full, pair)
 
-            if not dataframe_is_not_none_and_has_elements(hist_df_final):
+            if not dataframe_is_not_none_and_not_empty(hist_df_final):
                 logger.info(f"Skipping {pair}, broken or too short")
                 return None
             if len(hist_df_final) < min_data_length:
@@ -181,7 +181,7 @@ class _DFCleanAndCut:
     @staticmethod
     def history_df_cleaning(hist_dataframe: pd.DataFrame, pair: str) -> tp.Union[pd.DataFrame, None]:
         """Setting index, dropping duplicates, cleaning dataframe"""
-        if dataframe_is_not_none_and_has_elements(hist_dataframe):
+        if dataframe_is_not_none_and_not_empty(hist_dataframe):
             hist_dataframe.dropna(inplace=True)
             hist_dataframe = hist_dataframe[~hist_dataframe.index.duplicated(keep="last")]
             hist_dataframe.insert(len(hist_dataframe.columns), "pair",
@@ -238,7 +238,7 @@ class _DataStoring:
         cut_delegate = _DFCleanAndCut()
         hist_df_full = self.parse_dataframe_from_pickle()
 
-        if dataframe_is_not_none_and_has_elements(hist_df_full):
+        if dataframe_is_not_none_and_not_empty(hist_df_full):
             if (hist_df_full.iloc[-1].name >= self.end_datetime) and (
                     hist_df_full.iloc[0].name <= self.since_datetime):
                 logger.info(f"Saved data for {self.pair} is sufficient, returning")
