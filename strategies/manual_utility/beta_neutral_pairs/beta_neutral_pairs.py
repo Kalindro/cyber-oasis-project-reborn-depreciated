@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ext_librariers.CCXT.functions_mine import select_exchange_mode
+from ext_projects.CCXT.functions_mine import select_exchange_mode
 from general_funcs.calculations import calc_beta_neutral_allocation_for_two_pairs
 from general_funcs.log_config import ConfigureLoguru
 

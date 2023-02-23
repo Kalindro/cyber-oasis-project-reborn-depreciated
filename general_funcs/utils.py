@@ -11,6 +11,8 @@ from pandas import ExcelWriter
 def clean_string_from_spaces_and_links(message):
     # Remove links
     message = re.sub(r'(http|https|ftp)://[a-zA-Z0-9\\./]+', '', message)
+    # Remove UNICODE
+    message = re.sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", message)
     # Remove multiple spaces
     message = re.sub(r'\s\s+', ' ', message)
     # Remove leading and trailing spaces
@@ -40,8 +42,7 @@ def dataframe_is_not_none_and_not_empty(dataframe: pd.DataFrame) -> bool:
 
 
 def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_cols_size, rounded_cols,
-                         rounded_cols_size,
-                         perc_cols, perc_cols_size) -> None:
+                         rounded_cols_size,                         perc_cols, perc_cols_size) -> None:
     count = 1
     while True:
         try:

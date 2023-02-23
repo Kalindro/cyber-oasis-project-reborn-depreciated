@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from ext_librariers.CCXT.functions_mine import select_exchange_mode, get_full_history_for_pairs_list
-from ext_librariers.CCXT.functions_pairs_list import select_pairs_list_mode
+from ext_projects.CCXT.functions_mine import select_exchange_mode, get_full_history_for_pairs_list
+from ext_projects.CCXT.functions_pairs_list import select_pairs_list_mode
 from general_funcs.calculations import calc_portfolio_parity
 from general_funcs.log_config import ConfigureLoguru
 

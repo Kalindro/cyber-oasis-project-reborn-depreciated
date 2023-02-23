@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
-from ext_librariers.CCXT.functions_mine import get_full_history_for_pairs_list, select_exchange_mode
-from ext_librariers.CCXT.functions_pairs_list import select_pairs_list_mode
+from ext_projects.CCXT.functions_mine import get_full_history_for_pairs_list, select_exchange_mode
+from ext_projects.CCXT.functions_pairs_list import select_pairs_list_mode
 from general_funcs.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

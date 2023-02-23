@@ -3,7 +3,7 @@ import pandas as pd
 from pandas_ta.volatility import natr as NATR
 from scipy.stats import linregress
 
-from ext_librariers.CCXT.functions_mine import get_full_history_for_pairs_list
+from ext_projects.CCXT.functions_mine import get_full_history_for_pairs_list
 
 
 def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:

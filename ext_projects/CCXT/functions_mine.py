@@ -5,8 +5,8 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from ext_librariers.CCXT.functions_pairs_list import get_pairs_list_ALL
-from ext_librariers.CCXT.get_full_history import GetFullHistoryDF
+from ext_projects.CCXT.functions_pairs_list import get_pairs_list_ALL
+from ext_projects.CCXT.get_full_history import GetFullHistoryDF
 from general_funcs.utils import dataframe_is_not_none_and_not_empty
 
 

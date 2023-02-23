@@ -2,7 +2,7 @@ from functools import partial
 
 from loguru import logger
 
-from ext_librariers.CCXT.functions_base import get_pairs_with_precisions_status
+from ext_projects.CCXT.functions_base import get_pairs_with_precisions_status
 
 
 def remove_shit_from_pairs_list(pairs_list):

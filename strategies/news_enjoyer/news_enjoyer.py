@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from ext_librariers.CCXT.functions_mine import select_exchange_mode
-from ext_librariers.chatGPT.ask_chat import ChatGPTDialog
+from ext_projects.CCXT.functions_mine import select_exchange_mode
+from ext_projects.chatGPT.ask_chat import ChatGPTDialog
 from general_funcs.log_config import ConfigureLoguru
 from general_funcs.utils import dataframe_is_not_none_and_not_empty
 from webscraper.crypto_news_scraper import CryptoNewsScraper
@@ -37,24 +37,28 @@ class NewsEnjoyer(_BaseSettings):
 
         last_dataframe = None
         for articles_dataframe in articles_dataframe_stream:
-            if not dataframe_is_not_none_and_not_empty(articles_dataframe):
-                logger.warning("Soup incident")
-            fresh_rows = self._get_non_duplicated_rows(last_dataframe, articles_dataframe)
-            if dataframe_is_not_none_and_not_empty(fresh_rows):
-                unseen_messages = self._get_unseen_messages(fresh_rows)
+            self._check_if_soup_works(articles_dataframe)
+            new_rows = self._get_new_rows(last_dataframe=last_dataframe, new_dataframe=articles_dataframe)
+            if dataframe_is_not_none_and_not_empty(new_rows):
+                unseen_messages = self._get_unseen_messages(new_rows)
                 for message in unseen_messages:
                     self._process_new_news(message=message)
             last_dataframe = articles_dataframe
 
-    @staticmethod
-    def _get_non_duplicated_rows(last_dataframe, new_dataframe):
+    def _get_new_rows(self, last_dataframe, new_dataframe):
         if last_dataframe is None:
+            [self.old_messages.update(row["message"]) for _, row in new_dataframe.iterrows()]
             return None
         else:
             return new_dataframe.loc[~new_dataframe.index.isin(last_dataframe.index)]
 
+    @staticmethod
+    def _check_if_soup_works(articles_dataframe):
+        if not dataframe_is_not_none_and_not_empty(articles_dataframe):
+            logger.warning("Soup incident")
+
     def _get_unseen_messages(self, fresh_rows):
-        return [row["message"] for index, row in fresh_rows.iterrows() if row["message"] not in self.old_messages]
+        return [row["message"] for _, row in fresh_rows.iterrows() if row["message"] not in self.old_messages]
 
     def _process_new_news(self, message):
         print(f"New news: {message}")
