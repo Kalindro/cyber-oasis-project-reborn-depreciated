@@ -1,4 +1,7 @@
+import typing as tp
 from dataclasses import dataclass
+
+import pandas as pd
 
 from ext_projects.CCXT.functions_mine import select_exchange_mode
 from ext_projects.chatGPT.ask_chat import ChatGPTDialog
@@ -31,7 +34,10 @@ class _BaseSettings:
 
 
 class NewsEnjoyer(_BaseSettings):
+    """Acquire and process news"""
+
     def main(self):
+        """Main starting functon"""
         logger.info("News enjoyer started...")
         articles_dataframe_stream = CryptoNewsScraper().main()
 
@@ -43,29 +49,34 @@ class NewsEnjoyer(_BaseSettings):
                 unseen_messages = self._get_unseen_messages(new_rows)
                 for message in unseen_messages:
                     self._process_new_news(message=message)
+                    self.old_messages.add(message)
+                    # print(self.old_messages)
             last_dataframe = articles_dataframe
 
-    def _get_new_rows(self, last_dataframe, new_dataframe):
+    def _get_new_rows(self, last_dataframe: pd.DataFrame, new_dataframe: pd.DataFrame) -> tp.Union[None, pd.DataFrame]:
+        """Return only new rows (unique rows between old and new df)"""
         if last_dataframe is None:
-            [self.old_messages.update(row["message"]) for _, row in new_dataframe.iterrows()]
+            [self.old_messages.add(row["message"]) for _, row in new_dataframe.iterrows()]
             return None
         else:
             return new_dataframe.loc[~new_dataframe.index.isin(last_dataframe.index)]
 
     @staticmethod
-    def _check_if_soup_works(articles_dataframe):
+    def _check_if_soup_works(articles_dataframe: pd.DataFrame) -> None:
+        """Just a check if scrapper not banned"""
         if not dataframe_is_not_none_and_not_empty(articles_dataframe):
             logger.warning("Soup incident")
 
-    def _get_unseen_messages(self, fresh_rows):
+    def _get_unseen_messages(self, fresh_rows: pd.DataFrame) -> tp.Union[None, list]:
+        """Return message only if message wasn't seen before"""
         return [row["message"] for _, row in fresh_rows.iterrows() if row["message"] not in self.old_messages]
 
-    def _process_new_news(self, message):
-        print(f"New news: {message}")
+    def _process_new_news(self, message: str) -> None:
+        """Steps to take when there is a new news"""
+        logger.success(f"New news: {message}")
         question = f"{self.GUIDING_QUESTION}: {message}"
         chat_response = ChatGPTDialog().main(question=question)
-        print(f"chatGPT:\n{chat_response}\n")
-        self.old_messages.update(message)
+        logger.success(f"chatGPT:{chat_response}")
 
 
 if __name__ == "__main__":
