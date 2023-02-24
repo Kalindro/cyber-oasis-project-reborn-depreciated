@@ -36,7 +36,7 @@ class _BaseSettings:
     PERIOD: int = 20
     DEVIATION: int = 2
 
-    def __post_init__(self):
+    def __init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.min_data_length = 100

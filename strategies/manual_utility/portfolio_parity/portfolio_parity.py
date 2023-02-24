@@ -22,7 +22,7 @@ class _BaseSettings:
     NUMBER_OF_LAST_CANDLES: int = 170
     PERIOD: int = 20
 
-    def __post_init__(self):
+    def __init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,

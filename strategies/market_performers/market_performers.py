@@ -37,7 +37,7 @@ class _BaseSettings:
     TIMEFRAME: str = "1h"
     NUMBER_OF_LAST_CANDLES: int = 1000
 
-    def __post_init__(self):
+    def __init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
