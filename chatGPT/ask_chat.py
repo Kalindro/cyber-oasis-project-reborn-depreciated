@@ -28,9 +28,3 @@ class ChatGPTDialog:
                                             top_p=1.0, frequency_penalty=0.5, presence_penalty=0.0)
 
         return clean_string_from_spaces_and_links(response["choices"][0]["text"])
-
-
-if __name__ == "__main__":
-    tweet = "Visitors Can Sell Bitcoin in Dubai for Cash in 2023 at SBID Crypto OTC - NFC"
-    full_question = f"Decide if this is positive, neutral or negative news. Tweet: {tweet}"
-    ChatGPTDialog().main(question=full_question)

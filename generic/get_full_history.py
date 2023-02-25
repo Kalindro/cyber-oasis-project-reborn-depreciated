@@ -6,12 +6,13 @@ import typing as tp
 from pathlib import Path
 
 import pandas as pd
+
 from utils.log_config import ConfigureLoguru
-
-
 from utils.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                          timestamp_ms_to_datetime, dataframe_is_not_none_and_not_empty)
+
 logger = ConfigureLoguru().info_level()
+
 
 class GetFullHistoryDF:
     """Main logic class to receive desired range of clean, usable history dataframe"""
