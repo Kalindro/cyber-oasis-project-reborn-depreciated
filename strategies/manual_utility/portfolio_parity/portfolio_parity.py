@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from generic.mine_functions import get_full_history_for_pairs_list
+from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from generic.select_mode import select_exchange_mode, select_pairs_list_mode
-from generic.calculations import calc_portfolio_parity
+from generic.funcs_for_pairs_histories import calc_portfolio_parity
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

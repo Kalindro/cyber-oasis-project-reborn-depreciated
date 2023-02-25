@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
-from generic.mine_functions import get_full_history_for_pairs_list
+from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from generic.select_mode import select_exchange_mode, select_pairs_list_mode
 from utils.log_config import ConfigureLoguru
 

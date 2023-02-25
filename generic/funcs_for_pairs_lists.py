@@ -5,8 +5,8 @@ import pandas as pd
 from loguru import logger
 
 from CCXT.base_functions import change_leverage_and_mode_one_pair
-from generic.get_pairs_list import get_pairs_list_ALL
 from generic.get_full_history import GetFullHistoryDF
+from generic.get_pairs_list import get_pairs_list_ALL
 from utils.utils import dataframe_is_not_none_and_not_empty
 
 

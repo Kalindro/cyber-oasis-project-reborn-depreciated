@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from generic.select_mode import select_exchange_mode
-from generic.calculations import calc_beta_neutral_allocation_for_two_pairs
+from generic.funcs_for_pairs_histories import calc_beta_neutral_allocation_for_two_pairs
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

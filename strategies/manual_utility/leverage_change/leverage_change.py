@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from generic.mine_functions import change_leverage_and_mode_for_whole_exchange
+from generic.funcs_for_pairs_lists import change_leverage_and_mode_for_whole_exchange
 from generic.select_mode import select_exchange_mode
 from utils.log_config import ConfigureLoguru
 
