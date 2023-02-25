@@ -1,5 +1,3 @@
-from functools import partial
-
 from loguru import logger
 
 from CCXT.funcs_base import get_pairs_with_precisions_status
@@ -65,17 +63,3 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     logger.debug("Pairs list completed, returning")
 
     return pairs_list
-
-
-def select_pairs_list_mode(pairs_mode, API) -> list[str]:
-    """Depending on the PAIRS_MODE, return correct pairs list"""
-    pairs_list = {1: partial(get_pairs_list_test_single),
-                  2: partial(get_pairs_list_test_multi),
-                  3: partial(get_pairs_list_BTC, API),
-                  4: partial(get_pairs_list_USDT, API),
-                  }
-    pairs_list = pairs_list.get(pairs_mode)
-    if pairs_list is None:
-        raise ValueError("Invalid mode: " + str(pairs_mode))
-
-    return pairs_list()

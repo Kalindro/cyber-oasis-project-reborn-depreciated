@@ -100,3 +100,13 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     pairs_history_df_list_beta_neutral = pairs_history_df_list
 
     return pairs_history_df_list_beta_neutral
+
+
+def drop_bottom_quantile_vol(pairs_history_df_list: list[pd.DataFrame], quantile: float):
+    mean_volumes = [pair_history["volume"].mean() for pair_history in pairs_history_df_list]
+    threshold = np.quantile(mean_volumes, 0.25)
+    pairs_history_df_list_quantiled = [pair_dataframe for index, pair_dataframe in enumerate(pairs_history_df_list) if
+                                       mean_volumes[index] > threshold]
+    logger.success(f"Dropped bottom {quantile * 100}% volume coins")
+
+    return pairs_history_df_list_quantiled

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from CCXT.funcs_mine import select_exchange_mode
+from CCXT.funcs_select_mode import select_exchange_mode
 from utils.calculations import calc_beta_neutral_allocation_for_two_pairs
 from utils.log_config import ConfigureLoguru
 

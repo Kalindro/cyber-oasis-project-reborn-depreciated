@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from CCXT.funcs_mine import change_leverage_n_mode_for_all_exchange_pairs, select_exchange_mode
+from CCXT.funcs_mine import change_leverage_and_mode_for_whole_exchange
+from CCXT.funcs_select_mode import select_exchange_mode
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -25,7 +26,7 @@ class LeverageChange(_BaseSettings):
     """Used to manually change leverage and margin mode on all pairs on the exchange"""
 
     def main(self):
-        change_leverage_n_mode_for_all_exchange_pairs(leverage=self.LEVERAGE, isolated=self.ISOLATED, API=self.API)
+        change_leverage_and_mode_for_whole_exchange(leverage=self.LEVERAGE, isolated=self.ISOLATED, API=self.API)
 
 
 if __name__ == "__main__":
