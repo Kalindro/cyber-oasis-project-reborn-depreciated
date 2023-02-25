@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
-from general_funcs.utils import clean_string_from_spaces_and_links
+from utils.utils import clean_string_from_spaces_and_links
 
 
 @dataclass

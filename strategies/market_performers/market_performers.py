@@ -8,11 +8,11 @@ import pandas as pd
 from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
-from ext_projects.CCXT.functions_base import get_pairs_prices
-from ext_projects.CCXT.functions_mine import get_full_history_for_pairs_list, select_exchange_mode
-from ext_projects.CCXT.functions_pairs_list import select_pairs_list_mode
-from general_funcs.log_config import ConfigureLoguru
-from general_funcs.utils import excel_save_formatted
+from CCXT.funcs_base import get_pairs_prices
+from CCXT.funcs_mine import get_full_history_for_pairs_list, select_exchange_mode
+from CCXT.funcs_get_pairs_list import select_pairs_list_mode
+from utils.log_config import ConfigureLoguru
+from utils.utils import excel_save_formatted
 
 logger = ConfigureLoguru().info_level()
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from ext_projects.CCXT.functions_mine import change_leverage_n_mode_for_all_exchange_pairs, select_exchange_mode
-from general_funcs.log_config import ConfigureLoguru
+from CCXT.funcs_mine import change_leverage_n_mode_for_all_exchange_pairs, select_exchange_mode
+from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 

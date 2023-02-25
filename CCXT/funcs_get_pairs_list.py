@@ -2,10 +2,10 @@ from functools import partial
 
 from loguru import logger
 
-from ext_projects.CCXT.functions_base import get_pairs_with_precisions_status
+from CCXT.funcs_base import get_pairs_with_precisions_status
 
 
-def remove_shit_from_pairs_list(pairs_list):
+def _remove_shit_from_pairs_list(pairs_list):
     """Remove bs pairs from ever list"""
     forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
     forbidden_ending = ("UP", "DOWN", "BEAR", "BULL")
@@ -21,7 +21,7 @@ def _get_pairs_list_base(API: dict):
     pairs_precisions_status = get_pairs_with_precisions_status(API)
     pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
     pairs_list_original = list(pairs_precisions_status.index)
-    pairs_list_original = remove_shit_from_pairs_list(pairs_list=pairs_list_original)
+    pairs_list_original = _remove_shit_from_pairs_list(pairs_list=pairs_list_original)
 
     return pairs_list_original
 

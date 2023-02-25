@@ -6,9 +6,9 @@ import pandas as pd
 from loguru import logger
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from ext_projects.CCXT.functions_pairs_list import get_pairs_list_ALL
-from ext_projects.CCXT.get_full_history import GetFullHistoryDF
-from general_funcs.utils import dataframe_is_not_none_and_not_empty
+from CCXT.funcs_get_pairs_list import get_pairs_list_ALL
+from CCXT.get_full_history import GetFullHistoryDF
+from utils.utils import dataframe_is_not_none_and_not_empty
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, min_dat_length: int = None,

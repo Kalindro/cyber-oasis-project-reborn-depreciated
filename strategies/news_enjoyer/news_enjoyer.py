@@ -4,10 +4,10 @@ from dataclasses import dataclass
 import pandas as pd
 from pandas import DataFrame as df
 
-from ext_projects.CCXT.functions_mine import select_exchange_mode
-from ext_projects.chatGPT.ask_chat import ChatGPTDialog
-from general_funcs.log_config import ConfigureLoguru
-from general_funcs.utils import dataframe_is_not_none_and_not_empty
+from CCXT.funcs_mine import select_exchange_mode
+from chatGPT.ask_chat import ChatGPTDialog
+from utils.log_config import ConfigureLoguru
+from utils.utils import dataframe_is_not_none_and_not_empty
 from webscraper.crypto_news_scraper import CryptoNewsScraper
 
 logger = ConfigureLoguru().info_level()

@@ -12,8 +12,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from general_funcs.log_config import ConfigureLoguru
-from general_funcs.utils import clean_string_from_spaces_and_links
+from utils.log_config import ConfigureLoguru
+from utils.utils import clean_string_from_spaces_and_links
 
 logger = ConfigureLoguru().info_level()
 

@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
+from loguru import logger
 from pandas_ta.volatility import natr as NATR
 from scipy.stats import linregress
 
-from ext_projects.CCXT.functions_mine import get_full_history_for_pairs_list
-from general_funcs.log_config import ConfigureLoguru
-
-logger = ConfigureLoguru().info_level()
+from CCXT.funcs_mine import get_full_history_for_pairs_list
 
 
 def calculate_momentum(price_closes: pd.DataFrame) -> float:
