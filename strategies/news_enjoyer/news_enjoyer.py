@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from generic.select_mode import select_exchange_mode
-from chatGPT.ask_chat import ChatGPTDialog
+from chatGPT.ask_chat import ask_question_API
 from utils.log_config import ConfigureLoguru
 from utils.utils import dataframe_is_not_none_and_not_empty
 from webscraper.crypto_news_scraper import CryptoNewsScraper
@@ -76,7 +76,7 @@ class NewsEnjoyer(_BaseSettings):
         """Steps to take when there is a new news"""
         logger.info(f"New news: {message}")
         question = f"{self.GUIDING_QUESTION}: {message}"
-        chat_response = ChatGPTDialog().main(question=question)
+        chat_response = ask_question_API(question=question)
         logger.success(f"chatGPT: {chat_response}")
 
         return chat_response
