@@ -4,12 +4,14 @@ from pandas_ta.volatility import natr as NATR
 from scipy.stats import linregress
 
 from ext_projects.CCXT.functions_mine import get_full_history_for_pairs_list
+from general_funcs.log_config import ConfigureLoguru
+
+logger = ConfigureLoguru().info_level()
 
 
-def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
+def calculate_momentum(price_closes: pd.DataFrame) -> float:
     """Calculating momentum from close"""
-    closes = pair_history_dataframe["close"]
-    returns = np.log(closes)
+    returns = np.log(price_closes)
     x = np.arange(len(returns))
     slope, _, rvalue, _, _ = linregress(x, returns)
     momentum = slope * 100
@@ -18,9 +20,9 @@ def calculate_momentum(pair_history_dataframe: pd.DataFrame) -> float:
     # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
 
 
-def momentum_ranking_for_pairs_list(pairs_history_df_list: list[pd.DataFrame], period):
+def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], period: int, top_decimal: float):
     """Calculate momentum ranking for list of history dataframes"""
-    TOP = 0.2
+    logger.info("Calculating momentum ranking for pairs histories")
 
     momentum_dict = {}
     for pair_df in pairs_history_df_list:
@@ -31,18 +33,19 @@ def momentum_ranking_for_pairs_list(pairs_history_df_list: list[pd.DataFrame], p
     momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
     sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
 
-    top_bottom_number = int(len(sorted_momentum) * TOP)
-    top_assets = sorted_momentum.index[:top_bottom_number].tolist()
-    bottom_assets = sorted_momentum.index[-top_bottom_number:].tolist()
+    top_bottom_number = int(len(sorted_momentum) * top_decimal)
+    top_coins = sorted_momentum.index[:top_bottom_number].tolist()
+    bottom_coins = sorted_momentum.index[-top_bottom_number:].tolist()
 
-    return {f"Top {TOP * 100}% assets": top_assets, f"Bottom {TOP * 100}% assets": bottom_assets}
+    return top_coins, bottom_coins
 
 
 def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int, investment: int = 1000,
                           winsor_trim: bool = False) -> list[pd.DataFrame]:
     """Calculate parity allocation for list of history dataframes"""
-    TRIM = 0.1
+    logger.info("Calculating portfolio parity for pairs histories")
 
+    TRIM = 0.1
     total_inv_vola = 0
     for pair_df in pairs_history_df_list:
         pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=period)

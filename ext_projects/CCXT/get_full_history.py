@@ -6,11 +6,12 @@ import typing as tp
 from pathlib import Path
 
 import pandas as pd
-from loguru import logger
+from general_funcs.log_config import ConfigureLoguru
+
 
 from general_funcs.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                                  timestamp_ms_to_datetime, dataframe_is_not_none_and_not_empty)
-
+logger = ConfigureLoguru().info_level()
 
 class GetFullHistoryDF:
     """Main logic class to receive desired range of clean, usable history dataframe"""
@@ -49,15 +50,13 @@ class GetFullHistoryDF:
              save_load_history: bool = False,
              number_of_last_candles: tp.Optional[int] = None,
              since: tp.Optional[str] = None,
-             end: tp.Optional[str] = None,
-             min_data_length: tp.Optional[int] = 24) -> tp.Union[pd.DataFrame, None]:
+             end: tp.Optional[str] = None) -> tp.Union[pd.DataFrame, None]:
         """Main function to get the desired history
         kwargs:
             save_load_history
             number_of_last_n_candles
             since
             end
-            min_data_length
         """
 
         timeframe = timeframe.lower()
@@ -85,9 +84,6 @@ class GetFullHistoryDF:
 
             if not dataframe_is_not_none_and_not_empty(hist_df_final):
                 logger.info(f"Skipping {pair}, broken or too short")
-                return None
-            if len(hist_df_final) < min_data_length:
-                logger.info(f"Skipping {pair}, shorter than min length {min_data_length}")
                 return None
 
             if save_load_history:
