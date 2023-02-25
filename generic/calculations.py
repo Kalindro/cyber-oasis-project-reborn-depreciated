@@ -4,7 +4,7 @@ from loguru import logger
 from pandas_ta.volatility import natr as NATR
 from scipy.stats import linregress
 
-from CCXT.funcs_mine import get_full_history_for_pairs_list
+from generic.mine_functions import get_full_history_for_pairs_list
 
 
 def calculate_momentum(price_closes: pd.DataFrame) -> float:

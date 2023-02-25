@@ -1,6 +1,6 @@
 from loguru import logger
 
-from CCXT.funcs_base import get_pairs_with_precisions_status
+from CCXT.base_functions import get_pairs_with_precisions_status
 
 
 def _remove_shit_from_pairs_list(pairs_list):

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pandas as pd
 from pandas import DataFrame as df
 
-from CCXT.funcs_select_mode import select_exchange_mode
+from generic.select_mode import select_exchange_mode
 from chatGPT.ask_chat import ChatGPTDialog
 from utils.log_config import ConfigureLoguru
 from utils.utils import dataframe_is_not_none_and_not_empty

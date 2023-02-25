@@ -39,4 +39,20 @@ def get_pairs_prices(API: dict) -> pd.DataFrame:
     return pairs_prices_df
 
 
+def change_leverage_and_mode_one_pair(pair: str, leverage: int, isolated: bool, API: dict) -> None:
+    exchange_client = API["client"]
+    mmode = "ISOLATED" if isolated else "CROSS"
 
+    logger.info(f"Changing leverage and margin for {pair}")
+    if "bybit" in API["name"].lower():
+        try:
+            exchange_client.set_margin_mode(marginMode=mmode, symbol=pair, params={"leverage": leverage})
+        except Exception as err:
+            if "not modified" in str(err):
+                pass
+            else:
+                print(err)
+    else:
+        exchange_client.set_leverage(leverage=leverage, symbol=pair)
+        exchange_client.set_margin_mode(marginMode=mmode, symbol=pair)
+        logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")

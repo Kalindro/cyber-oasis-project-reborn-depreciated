@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from CCXT.funcs_mine import get_full_history_for_pairs_list
-from CCXT.funcs_select_mode import select_exchange_mode, select_pairs_list_mode
-from utils.calculations import momentum_ranking_for_pairs_histories
+from generic.mine_functions import get_full_history_for_pairs_list
+from generic.select_mode import select_exchange_mode, select_pairs_list_mode
+from generic.calculations import momentum_ranking_for_pairs_histories
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -34,7 +34,7 @@ class LongShortMomBasket(_BaseSettings):
     def main(self):
         pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
                                                                 number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                min_dat_length=self.MIN_DATA_LENGTH, API=self.API)
+                                                                min_data_length=self.MIN_DATA_LENGTH, API=self.API)
         top_coins, bottom_coins = momentum_ranking_for_pairs_histories(pairs_history_df_list=pairs_history_df_list,
                                                                        period=self.PERIOD,
                                                                        top_decimal=self.TOP_DECIMAL)

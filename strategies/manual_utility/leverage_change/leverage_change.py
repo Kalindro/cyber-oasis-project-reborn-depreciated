@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from CCXT.funcs_mine import change_leverage_and_mode_for_whole_exchange
-from CCXT.funcs_select_mode import select_exchange_mode
+from generic.mine_functions import change_leverage_and_mode_for_whole_exchange
+from generic.select_mode import select_exchange_mode
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

@@ -1,7 +1,7 @@
 from functools import partial
 
 from API.API_exchange_initiator import ExchangeAPISelect
-from CCXT.funcs_get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
+from generic.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
     get_pairs_list_USDT
 
 

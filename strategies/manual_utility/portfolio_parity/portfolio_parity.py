@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from CCXT.funcs_mine import get_full_history_for_pairs_list
-from CCXT.funcs_select_mode import select_exchange_mode, select_pairs_list_mode
-from utils.calculations import calc_portfolio_parity
+from generic.mine_functions import get_full_history_for_pairs_list
+from generic.select_mode import select_exchange_mode, select_pairs_list_mode
+from generic.calculations import calc_portfolio_parity
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

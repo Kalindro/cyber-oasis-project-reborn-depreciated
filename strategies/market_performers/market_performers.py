@@ -8,9 +8,9 @@ import pandas as pd
 from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
-from CCXT.funcs_base import get_pairs_prices
-from CCXT.funcs_mine import get_full_history_for_pairs_list
-from CCXT.funcs_select_mode import select_exchange_mode, select_pairs_list_mode
+from CCXT.base_functions import get_pairs_prices
+from generic.mine_functions import get_full_history_for_pairs_list
+from generic.select_mode import select_exchange_mode, select_pairs_list_mode
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted
 
