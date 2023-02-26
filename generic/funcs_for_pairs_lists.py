@@ -5,13 +5,14 @@ import pandas as pd
 from loguru import logger
 
 from CCXT.base_functions import change_leverage_and_mode_one_pair
+from generic.funcs_for_pairs_histories import drop_bottom_quantile_vol
 from generic.get_full_history import GetFullHistoryDF
 from generic.get_pairs_list import get_pairs_list_ALL
 from utils.utils import dataframe_is_not_none_and_not_empty
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, min_data_length: int = None,
-                                    min_volume: int = None, **kwargs) -> list[pd.DataFrame]:
+                                    vol_quantile: int = None, **kwargs) -> list[pd.DataFrame]:
     """Get history of all pairs on list
     kwargs:
         save_load_history
@@ -29,8 +30,9 @@ def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict,
 
     if min_data_length:
         pairs_history_df_list = [df for df in pairs_history_df_list if len(df) < min_data_length]
-    if min_volume:
-        raise AssertionError("Not implemented yet")
+    if vol_quantile:
+        pairs_history_df_list = drop_bottom_quantile_vol(pairs_history_df_list=pairs_history_df_list,
+                                                         quantile=vol_quantile)
 
     logger.success("History of all the coins completed, returning")
 
