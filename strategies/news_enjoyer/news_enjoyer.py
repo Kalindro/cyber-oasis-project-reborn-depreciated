@@ -2,12 +2,13 @@ import typing as tp
 from dataclasses import dataclass
 
 import pandas as pd
+from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
-from generic.select_mode import select_exchange_mode
 from chatGPT.ask_chat import ask_question_API
+from generic.select_mode import select_exchange_mode
 from utils.log_config import ConfigureLoguru
-from utils.utils import dataframe_is_not_none_and_not_empty
+from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted
 from webscraper.crypto_news_scraper import CryptoNewsScraper
 
 logger = ConfigureLoguru().info_level()
@@ -29,7 +30,7 @@ class _BaseSettings:
     TIMEFRAME: str = "1h"
     NUMBER_OF_LAST_CANDLES: int = 1000
 
-    def __init__(self):
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.old_rows = df()
 
@@ -40,22 +41,28 @@ class NewsEnjoyer(_BaseSettings):
     def main(self):
         """Main starting functon"""
         logger.info("News enjoyer started...")
-        articles_dataframe_stream = CryptoNewsScraper().main()
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(self._save_dataframe, "interval", minutes=5)
+        scheduler.start()
 
+        articles_dataframe_stream = CryptoNewsScraper().main()
         last_dataframe = None
         for articles_dataframe in articles_dataframe_stream:
             self._check_if_soup_works(articles_dataframe)
             new_rows = self._get_new_rows(last_dataframe=last_dataframe, new_dataframe=articles_dataframe)
             if dataframe_is_not_none_and_not_empty(new_rows):
                 unseen_rows = self._get_unseen_rows(new_rows)
-                unseen_rows["sentiment"] = self._process_new_news(message=unseen_rows["message"])
-                self.old_rows = pd.concat([self.old_rows, unseen_rows])
+                if dataframe_is_not_none_and_not_empty(unseen_rows):
+                    unseen_rows["sentiment"] = self._process_new_news(message=unseen_rows["message"])
+                    self.old_rows = pd.concat([self.old_rows, unseen_rows])
+
             last_dataframe = articles_dataframe
 
     def _get_new_rows(self, last_dataframe: pd.DataFrame, new_dataframe: pd.DataFrame) -> tp.Union[None, pd.DataFrame]:
         """Return only new rows (unique rows between old and new df)"""
         if last_dataframe is None:
             self.old_rows = new_dataframe
+            self.old_rows["sentiment"] = "NA"
             return None
         else:
             return new_dataframe.loc[~new_dataframe["message"].isin(last_dataframe["message"])]
@@ -80,6 +87,10 @@ class NewsEnjoyer(_BaseSettings):
         logger.success(f"chatGPT: {chat_response}")
 
         return chat_response
+
+    def _save_dataframe(self) -> None:
+        excel_save_formatted(dataframe=self.old_rows, filename="old_news.xlsx", global_cols_size=20, str_cols="B:B",
+                             str_cols_size=155)
 
 
 if __name__ == "__main__":

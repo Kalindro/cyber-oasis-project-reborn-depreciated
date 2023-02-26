@@ -8,22 +8,22 @@ from loguru import logger
 from pandas import ExcelWriter
 
 
-def clean_string(message):
-    message = clean(message, no_urls=True, replace_with_url="")
+def clean_string(message: str) -> str:
+    message = clean(message, no_urls=True, replace_with_url="", no_emoji=True)
     return message
 
 
-def date_string_to_datetime(date_string) -> dt.datetime:
+def date_string_to_datetime(date_string: str) -> dt.datetime:
     date_datetime = pd.to_datetime(date_string)
     return date_datetime
 
 
-def datetime_to_timestamp_ms(date_datetime) -> int:
+def datetime_to_timestamp_ms(date_datetime: dt.datetime) -> int:
     date_timestamp = int(time.mktime(date_datetime.timetuple()) * 1000)
     return date_timestamp
 
 
-def timestamp_ms_to_datetime(timestamp_ms) -> dt.datetime:
+def timestamp_ms_to_datetime(timestamp_ms: int) -> dt.datetime:
     date_datetime = pd.to_datetime(timestamp_ms / 1000.0)
     return date_datetime
 
@@ -34,8 +34,17 @@ def dataframe_is_not_none_and_not_empty(dataframe: pd.DataFrame) -> bool:
             return True
 
 
-def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_cols_size, rounded_cols,
-                         rounded_cols_size, perc_cols, perc_cols_size) -> None:
+def excel_save_formatted(dataframe: pd.DataFrame, filename: str,
+                         global_cols_size: int = None,
+                         cash_cols: str = None,
+                         cash_cols_size: int = None,
+                         rounded_cols: str = None,
+                         rounded_cols_size: int = None,
+                         perc_cols: str = None,
+                         perc_cols_size: int = None,
+                         str_cols: str = None,
+                         str_cols_size: int = None) -> None:
+    """Save dataframe as formatted excel"""
     count = 1
     while True:
         try:
@@ -53,12 +62,14 @@ def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_
                     cash_formatting = workbook.add_format({"num_format": "$#,##0"})
                     rounded_formatting = workbook.add_format({"num_format": "0.00"})
                     perc_formatting = workbook.add_format({"num_format": "0.00%"})
+                    str_formatting = workbook.add_format(None)
                     worksheet.set_row(0, cell_format=header_format)
                     worksheet.set_column("A:AAA", global_cols_size, None)
 
                     columns = [(cash_cols, cash_cols_size, cash_formatting),
                                (rounded_cols, rounded_cols_size, rounded_formatting),
-                               (perc_cols, perc_cols_size, perc_formatting)]
+                               (perc_cols, perc_cols_size, perc_formatting),
+                               (str_cols, str_cols_size, str_formatting)]
 
                     for cols, cols_size, formatting in columns:
                         if cols is not None:
@@ -74,7 +85,8 @@ def excel_save_formatted(dataframe, filename, global_cols_size, cash_cols, cash_
                 raise e
 
 
-def timeframe_to_timestamp_ms(timeframe) -> int:
+def timeframe_to_timestamp_ms(timeframe: str) -> int:
+    """Convert timeframe string to timestamp in milliseconds"""
     timeframe = timeframe.lower()
     if timeframe == "1m" or timeframe == "1min":
         timestamp_ms = 60000
@@ -100,9 +112,9 @@ def timeframe_to_timestamp_ms(timeframe) -> int:
     return int(timestamp_ms)
 
 
-def round_down(x) -> float:
+def round_down(x: float) -> float:
     return math.trunc(x * 4) / 4
 
 
-def round_up(x) -> float:
+def round_up(x: float) -> float:
     return math.ceil(x * 4) / 4

@@ -29,7 +29,7 @@ class ConfigureLoguru:
         logger.add(sink="errors.log", level="ERROR", format=formatted_format)
         return logger
 
-    def _log_level_filter(self, record):
+    def _log_level_filter(self, record: dict) -> bool:
         return record["level"].name == self.level_filter_only
 
     def info_level(self):

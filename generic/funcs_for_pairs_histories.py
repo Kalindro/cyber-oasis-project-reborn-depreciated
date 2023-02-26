@@ -7,38 +7,36 @@ from scipy.stats import linregress
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 
 
-def _calculate_momentum(price_closes: pd.DataFrame) -> float:
-    """Calculating momentum from close"""
-    returns = np.log(price_closes)
-    x = np.arange(len(returns))
-    slope, _, rvalue, _, _ = linregress(x, returns)
-    momentum = slope * 100
-
-    return momentum * (rvalue ** 2)
-    # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
-
-
-def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], period: int, top_decimal: float):
+def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
+                                         top_decimal: float = None, top_number: int = None):
     """Calculate momentum ranking for list of history dataframes"""
-    logger.info("Calculating momentum ranking for pairs histories")
+    if top_number and top_decimal:
+        raise AssertionError("You can only provide either top decimal or top number")
 
+    logger.info("Calculating momentum ranking for pairs histories")
     momentum_dict = {}
     for pair_df in pairs_history_df_list:
-        symbol = pair_df["symbol"].iloc[-1]
-        pair_df["momentum"] = pair_df["close"].rolling(period).apply(_calculate_momentum)
-        momentum_dict[symbol] = pair_df["momentum"].iloc[-1]
+        pair = pair_df["pair"].iloc[-1]
+        pair_df["momentum"] = pair_df["close"].rolling(momentum_period).apply(_calculate_momentum)
+        momentum_dict[pair] = pair_df["momentum"].iloc[-1]
 
     momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
     sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
 
-    top_bottom_number = int(len(sorted_momentum) * top_decimal)
+    if top_decimal:
+        top_bottom_number = int(len(sorted_momentum) * top_decimal)
+    elif top_number:
+        top_bottom_number = top_number
     top_coins = sorted_momentum.index[:top_bottom_number].tolist()
     bottom_coins = sorted_momentum.index[-top_bottom_number:].tolist()
+    top_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
+                                 pair_df["pair"].iloc[-1] in top_coins]
+    bottom_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
+                                    pair_df["pair"].iloc[-1] in bottom_coins]
+    return top_coins_history_df_list, bottom_coins_history_df_list
 
-    return top_coins, bottom_coins
 
-
-def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int, investment: int = 1000,
+def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period: int, investment: int = 1000,
                           winsor_trim: bool = False) -> list[pd.DataFrame]:
     """Calculate parity allocation for list of history dataframes"""
     logger.info("Calculating portfolio parity for pairs histories")
@@ -46,7 +44,7 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int
     TRIM = 0.1
     total_inv_vola = 0
     for pair_df in pairs_history_df_list:
-        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=period)
+        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
         inv_vola = 1 / pair_df["natr"]
         pair_df["inv_vola"] = inv_vola
         total_inv_vola += inv_vola
@@ -68,18 +66,8 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], period: int
     return pairs_history_df_list_portfolio_parity
 
 
-def drop_bottom_quantile_vol(pairs_history_df_list: list[pd.DataFrame], quantile: float):
-    mean_volumes = [pair_history["volume"].mean() for pair_history in pairs_history_df_list]
-    threshold = np.quantile(mean_volumes, 0.25)
-    pairs_history_df_list_quantiled = [pair_dataframe for index, pair_dataframe in enumerate(pairs_history_df_list) if
-                                       mean_volumes[index] > threshold]
-    logger.success(f"Dropped bottom {quantile * 100}% volume coins")
-
-    return pairs_history_df_list_quantiled
-
-
 def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, timeframe: str,
-                                               number_of_last_candles: int, API: dict, period: int,
+                                               number_of_last_candles: int, API: dict, beta_period: int,
                                                investment: int = 1000,
                                                **kwargs) -> list[pd.DataFrame]:
     """Calculate beta neutral allocation for two pairs"""
@@ -96,9 +84,9 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
 
     total_beta = 0
     for pair_df in pairs_history_df_list:
-        asset_rolling_returns = pair_df["returns"].rolling(period)
+        asset_rolling_returns = pair_df["returns"].rolling(beta_period)
         beta = asset_rolling_returns.apply(
-            lambda x: linregress(x, benchmark_history_df.loc[x.index][-period:]["returns"])[0])
+            lambda x: linregress(x, benchmark_history_df.loc[x.index][-beta_period:]["returns"])[0])
         pair_df["beta"] = beta
         total_beta += beta
 
@@ -110,3 +98,14 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     pairs_history_df_list_beta_neutral = pairs_history_df_list
 
     return pairs_history_df_list_beta_neutral
+
+
+def _calculate_momentum(price_closes: pd.DataFrame) -> float:
+    """Calculating momentum from close"""
+    returns = np.log(price_closes)
+    x = np.arange(len(returns))
+    slope, _, rvalue, _, _ = linregress(x, returns)
+    momentum = slope * 100
+
+    return momentum * (rvalue ** 2)
+    # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)

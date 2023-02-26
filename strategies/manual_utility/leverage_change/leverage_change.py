@@ -18,7 +18,7 @@ class _BaseSettings:
     LEVERAGE = 3
     ISOLATED = True
 
-    def __init__(self):
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
 
 

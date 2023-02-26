@@ -37,7 +37,7 @@ class _BaseSettings:
     TIMEFRAME: str = "1h"
     NUMBER_OF_LAST_CANDLES: int = 1000
 
-    def __init__(self):
+    def __post_init__(self):
         self.API = select_exchange_mode(self.EXCHANGE_MODE)
         self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
@@ -65,8 +65,8 @@ class PerformanceRankAnalysis(_BaseSettings):
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
 
             excel_save_formatted(full_performance_df, filename="performance.xlsx", global_cols_size=13,
-                                 cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", rounded_cols_size=None,
-                                 perc_cols="G:N", perc_cols_size=16)
+                                 cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", perc_cols="G:N",
+                                 perc_cols_size=16)
             logger.success("Saved excel, all done")
 
         except Exception as err:
