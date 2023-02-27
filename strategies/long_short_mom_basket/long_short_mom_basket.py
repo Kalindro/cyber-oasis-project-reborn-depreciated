@@ -53,6 +53,5 @@ class LongShortMomBasket(_BaseSettings):
                                  bottom_coins_parity}
 
 
-
 if __name__ == "__main__":
     LongShortMomBasket().main()
