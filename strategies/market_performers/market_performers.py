@@ -1,7 +1,6 @@
 import statistics
 import traceback
 import typing as tp
-from dataclasses import dataclass, field
 from functools import partial
 
 import pandas as pd
@@ -20,22 +19,20 @@ logger = ConfigureLoguru().info_level()
 # TODO Wyjebac okna dni po których nie bede filtrował z koncowego dict, dodać sektory do coinów (chuj wie jak),
 #  dodac medium vol,
 
-@dataclass
 class _BaseSettings(FundamentalSettings):
-    EXCHANGE_MODE: int = 1
-    PAIRS_MODE: int = 4
-    MIN_VOL_USD: float = 300_000
-    QUANTILE_DROP: float = 0.60
-    DAYS_WINDOWS: list[int] = field(default_factory=lambda: [1, 2, 3, 7, 14, 31])
+    def __init__(self):
+        super().__init__()
+        self.EXCHANGE_MODE: int = 1
+        self.PAIRS_MODE: int = 4
 
-    # Don't change
-    TIMEFRAME: str = "1h"
-    NUMBER_OF_LAST_CANDLES: int = 1000
-
-    def __post_init__(self):
-        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
-        self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
+        self.VOL_QUANTILE_DROP = 0.60
+        self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
         self.min_data_length = max(self.DAYS_WINDOWS) * 24
+        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
+        self.MIN_VOL_USD = 300_000
+        self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
 
 
 class PerformanceRankAnalysis(_BaseSettings):

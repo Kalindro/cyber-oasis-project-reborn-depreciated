@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from generic.funcs_for_pairs_histories import calc_beta_neutral_allocation_for_two_pairs
 from generic.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
@@ -7,17 +5,20 @@ from utils.log_config import ConfigureLoguru
 logger = ConfigureLoguru().info_level()
 
 
-@dataclass
 class _BaseSettings(FundamentalSettings):
-    EXCHANGE_MODE: int = 1
-    TIMEFRAME: str = "1h"
-    PAIR_LONG: str = "RNDR/USDT"
-    PAIR_SHORT: str = "BTC/USDT"
-    PAIR_BENCHMARK: str = "BTC/USDT"
-    INVESTMENT: int = 1000
-    NUMBER_OF_LAST_CANDLES: int = 700
+    def __init__(self):
+        super().__init__()
+        self.EXCHANGE_MODE: int = 1
 
-    PERIODS = dict(BETA=20)
+        self.PERIODS = dict(BETA=20,
+                            )
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
+
+        self.INVESTMENT = 1000
+        self.PAIR_LONG: str = "RNDR/USDT"
+        self.PAIR_SHORT: str = "BTC/USDT"
+        self.PAIR_BENCHMARK: str = "BTC/USDT"
 
 
 class BetaNeutralPairs(_BaseSettings):
@@ -29,8 +30,7 @@ class BetaNeutralPairs(_BaseSettings):
                                                                    timeframe=self.TIMEFRAME,
                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
                                                                    beta_period=self.BETA_PERIOD,
-                                                                   investment=self.INVESTMENT,
-                                                                   API=self.API)
+                                                                   investment=self.INVESTMENT, API=self.API)
         print(allocation_df)
 
 

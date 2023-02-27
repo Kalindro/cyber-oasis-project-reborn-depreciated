@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from generic.funcs_for_pairs_histories import calc_portfolio_parity
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from generic.select_mode import FundamentalSettings
@@ -8,15 +6,18 @@ from utils.log_config import ConfigureLoguru
 logger = ConfigureLoguru().info_level()
 
 
-@dataclass
 class _BaseSettings(FundamentalSettings):
-    EXCHANGE_MODE: int = 1
-    PAIRS_MODE: int = 2
-    TIMEFRAME: str = "1h"
-    INVESTMENT: int = 1000
-    NUMBER_OF_LAST_CANDLES: int = 170
+    def __init__(self):
+        super().__init__()
+        self.EXCHANGE_MODE: int = 1
+        self.PAIRS_MODE: int = 2
 
-    PERIODS = dict(NATR=20)
+        self.PERIODS = dict(NATR=20
+                            )
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
+
+        self.INVESTMENT = 1000
 
 
 class PortfolioParity(_BaseSettings):

@@ -12,16 +12,17 @@ class _BaseSettings(FundamentalSettings):
         super().__init__()
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
-        self.SETTINGS = dict(MIN_VOLUME=10,
-                             MIN_DATA_LENGTH=10,
-                             VOL_QUANTILE_DROP=0.35,
-                             TOP_NUMBER=20, )
+
         self.PERIODS = dict(MOMENTUM=168,
                             NATR=128,
                             )
-        self.HISTORY = dict(TIMEFRAME="1h",
-                            NUMBER_OF_LAST_CANDLES=1000,
-                            )
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
+
+        self.MIN_VOLUME = 10
+        self.MIN_DATA_LENGTH = 10
+        self.VOL_QUANTILE_DROP = 0.35
+        self.TOP_NUMBER = 20
 
 
 class LongShortMomBasket(_BaseSettings):

@@ -1,5 +1,4 @@
 import typing as tp
-from dataclasses import dataclass
 
 import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -14,17 +13,18 @@ from webscraper.crypto_news_scraper import CryptoNewsScraper
 logger = ConfigureLoguru().info_level()
 
 
-@dataclass
 class _BaseSettings(FundamentalSettings):
-    EXCHANGE_MODE: int = 1
-    PAIRS_MODE: int = 4
-    GUIDING_QUESTION = """This is crypto market news. Tell me in one word if this will affect price 
-    positive, neutral or negative"""
+    def __init__(self):
+        super().__init__()
+        self.EXCHANGE_MODE: int = 1
+        self.PAIRS_MODE: int = 4
 
-    # Don't change
-    TIMEFRAME: str = "1h"
-    NUMBER_OF_LAST_CANDLES: int = 1000
-    old_rows = df()
+        self.TIMEFRAME = "1h"
+        self.NUMBER_OF_LAST_CANDLES = 1000
+
+        self.GUIDING_QUESTION = """This is crypto market news. Tell me in one word if this will affect price 
+        positive, neutral or negative"""
+        self.old_rows = df()
 
 
 class NewsEnjoyer(_BaseSettings):
