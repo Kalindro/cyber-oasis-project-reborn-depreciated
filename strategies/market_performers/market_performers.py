@@ -29,10 +29,16 @@ class _BaseSettings(FundamentalSettings):
         self.NUMBER_OF_LAST_CANDLES = 1000
         self.VOL_QUANTILE_DROP = 0.60
         self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
-        self.min_data_length = max(self.DAYS_WINDOWS) * 24
-        self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.MIN_VOL_USD = 300_000
-        self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
+
+    @property
+    def MIN_VOL_BTC(self):
+        BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
+        return self.MIN_VOL_USD / BTC_price
+
+    @property
+    def min_data_length(self):
+        return max(self.DAYS_WINDOWS) * 24
 
 
 class PerformanceRankAnalysis(_BaseSettings):
