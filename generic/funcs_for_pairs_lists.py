@@ -12,7 +12,7 @@ from utils.utils import dataframe_is_not_none_and_not_empty
 
 
 def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, min_data_length: int = None,
-                                    vol_quantile: float = None, **kwargs) -> list[pd.DataFrame]:
+                                    vol_quantile_drop: float = None, **kwargs) -> list[pd.DataFrame]:
     """Get history of all pairs on list
     kwargs:
         save_load_history
@@ -30,9 +30,9 @@ def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict,
 
     if min_data_length:
         pairs_history_df_list = [df for df in pairs_history_df_list if len(df) > min_data_length]
-    if vol_quantile:
+    if vol_quantile_drop:
         pairs_history_df_list = _drop_bottom_quantile_vol(pairs_history_df_list=pairs_history_df_list,
-                                                          quantile=vol_quantile)
+                                                          quantile=vol_quantile_drop)
 
     logger.success("History of all the coins completed, returning")
 

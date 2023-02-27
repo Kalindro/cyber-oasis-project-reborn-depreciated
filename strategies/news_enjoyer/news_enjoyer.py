@@ -6,7 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
 from chatGPT.ask_chat import ask_question_API
-from generic.select_mode import select_exchange_mode
+from generic.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted
 from webscraper.crypto_news_scraper import CryptoNewsScraper
@@ -15,12 +15,7 @@ logger = ConfigureLoguru().info_level()
 
 
 @dataclass
-class _BaseSettings:
-    """
-    Modes available:
-    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-    """
+class _BaseSettings(FundamentalSettings):
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     GUIDING_QUESTION = """This is crypto market news. Tell me in one word if this will affect price 
@@ -29,10 +24,7 @@ class _BaseSettings:
     # Don't change
     TIMEFRAME: str = "1h"
     NUMBER_OF_LAST_CANDLES: int = 1000
-
-    def __post_init__(self):
-        self.API = select_exchange_mode(self.EXCHANGE_MODE)
-        self.old_rows = df()
+    old_rows = df()
 
 
 class NewsEnjoyer(_BaseSettings):

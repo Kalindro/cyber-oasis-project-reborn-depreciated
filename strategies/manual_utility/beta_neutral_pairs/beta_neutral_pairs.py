@@ -1,30 +1,23 @@
 from dataclasses import dataclass
 
 from generic.funcs_for_pairs_histories import calc_beta_neutral_allocation_for_two_pairs
-from generic.select_mode import select_exchange_mode
+from generic.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
 
 @dataclass
-class _BaseSettings:
-    """
-    Modes available:
-    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-    """
+class _BaseSettings(FundamentalSettings):
     EXCHANGE_MODE: int = 1
     TIMEFRAME: str = "1h"
     PAIR_LONG: str = "RNDR/USDT"
     PAIR_SHORT: str = "BTC/USDT"
     PAIR_BENCHMARK: str = "BTC/USDT"
     INVESTMENT: int = 1000
-    BETA_PERIOD: int = 20
     NUMBER_OF_LAST_CANDLES: int = 700
 
-    def __post_init__(self):
-        self.API = select_exchange_mode(self.EXCHANGE_MODE)
+    PERIODS = dict(BETA=20)
 
 
 class BetaNeutralPairs(_BaseSettings):

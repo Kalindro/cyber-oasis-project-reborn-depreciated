@@ -10,7 +10,7 @@ from pandas_ta.volatility import natr as NATR
 
 from CCXT.base_functions import get_pairs_prices
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
-from generic.select_mode import select_exchange_mode, select_pairs_list_mode
+from generic.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted
 
@@ -21,12 +21,7 @@ logger = ConfigureLoguru().info_level()
 #  dodac medium vol,
 
 @dataclass
-class _BaseSettings:
-    """
-    Modes available:
-    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-    """
+class _BaseSettings(FundamentalSettings):
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     MIN_VOL_USD: float = 300_000
@@ -38,8 +33,6 @@ class _BaseSettings:
     NUMBER_OF_LAST_CANDLES: int = 1000
 
     def __post_init__(self):
-        self.API = select_exchange_mode(self.EXCHANGE_MODE)
-        self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         self.MIN_VOL_BTC = self.MIN_VOL_USD / self.BTC_price
         self.min_data_length = max(self.DAYS_WINDOWS) * 24

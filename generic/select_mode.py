@@ -1,8 +1,26 @@
+import typing as tp
 from functools import partial
 
 from API.API_exchange_initiator import ExchangeAPISelect
 from generic.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
     get_pairs_list_USDT
+
+
+class FundamentalSettings:
+    """
+    Modes available:
+    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
+    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
+    """
+
+    def __init__(self):
+        self.EXCHANGE_MODE: tp.Union[int, None] = None
+        self.PAIRS_MODE: tp.Union[int, None] = None
+
+        if self.EXCHANGE_MODE:
+            self.API = select_exchange_mode(self.EXCHANGE_MODE)
+        if self.PAIRS_MODE:
+            self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
 
 
 def select_exchange_mode(exchange_mode) -> dict:

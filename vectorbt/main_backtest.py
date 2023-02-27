@@ -5,7 +5,7 @@ import pandas as pd
 import vectorbt as vbt
 
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
-from generic.select_mode import select_exchange_mode, select_pairs_list_mode
+from generic.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -19,12 +19,7 @@ vbt.settings.portfolio['fees'] = 0.0025
 
 
 @dataclass
-class _BaseSettings:
-    """
-    Modes available:
-    :EXCHANGE_MODE: 1 - Binance Spot; 2 - Binance Futures; 3 - Kucoin Spot
-    :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
-    """
+class _BaseSettings(FundamentalSettings):
     EXCHANGE_MODE: int = 1
     PAIRS_MODE: int = 4
     SAVE_LOAD_HISTORY: bool = True
@@ -37,8 +32,6 @@ class _BaseSettings:
     DEVIATION: int = 2
 
     def __init__(self):
-        self.API = select_exchange_mode(self.EXCHANGE_MODE)
-        self.pairs_list = select_pairs_list_mode(self.PAIRS_MODE, self.API)
         self.min_data_length = 100
         self.validate_inputs()
 

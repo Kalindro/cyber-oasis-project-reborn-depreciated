@@ -1,6 +1,7 @@
 from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
 from utils.utils import clean_string
 
+
 def ask_question_wrapper(question: str) -> str:
     chatbot = initiate_chatGPT_wrapper()
     for data in chatbot.ask(question):
