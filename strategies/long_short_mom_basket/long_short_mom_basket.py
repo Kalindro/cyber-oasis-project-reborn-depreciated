@@ -43,7 +43,6 @@ class LongShortMomBasket(_BaseSettings):
             pairs_history_df_list=pairs_history_df_list,
             momentum_period=self.MOMENTUM_PERIOD,
             top_number=self.TOP_NUMBER)
-
         top_coins_parity = calc_portfolio_parity(pairs_history_df_list=top_coins_history, NATR_period=self.NATR_PERIOD,
                                                  winsor_trim=True)
         bottom_coins_parity = calc_portfolio_parity(pairs_history_df_list=bottom_coins_history,
@@ -52,8 +51,7 @@ class LongShortMomBasket(_BaseSettings):
                               top_coins_parity}
         allocation_bottom_now = {pair_history["pair"][-1]: pair_history["weight_ccy"][-1] for pair_history in
                                  bottom_coins_parity}
-        print(allocation_top_now)
-        print(len(allocation_top_now))
+
 
 
 if __name__ == "__main__":

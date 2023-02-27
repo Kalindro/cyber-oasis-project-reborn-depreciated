@@ -8,8 +8,9 @@ able to create tools that have real use.
 
 Most useful scripts are:
 
-- GetFullHistoryDF().main in CCXT.get_full_history.py
+- GetFullHistoryDF().main in generic.get_full_history.py
 - strategies.market_performers.market_performers.py
+- strategies.long_short_mom_basket.long_short_mom_basket.py
 - All scripts in strategies.manual_utility
 
 The user required inputs are exchange API keys, .env file in API folder should have structure as the example

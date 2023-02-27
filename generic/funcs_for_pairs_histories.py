@@ -36,6 +36,17 @@ def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFram
     return top_coins_history_df_list, bottom_coins_history_df_list
 
 
+def _calculate_momentum(price_closes: pd.DataFrame) -> float:
+    """Calculating momentum from close"""
+    returns = np.log(price_closes)
+    x = np.arange(len(returns))
+    slope, _, rvalue, _, _ = linregress(x, returns)
+    momentum = slope * 100
+
+    return momentum * (rvalue ** 2)
+    # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
+
+
 def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period: int, investment: int = 1000,
                           winsor_trim: bool = False) -> list[pd.DataFrame]:
     """Calculate parity allocation for list of history dataframes"""
@@ -50,8 +61,8 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period
         total_inv_vola += inv_vola
 
     for pair_df in pairs_history_df_list:
-        pair_df["weight"] = pair_df["inv_vola"] / total_inv_vola
-        pair_df["weight_ccy"] = pair_df["weight"] * investment
+        pair_df["weight"] = round(pair_df["inv_vola"] / total_inv_vola, 4)
+        pair_df["weight_ccy"] = round(pair_df["weight"] * investment, 0)
         pair_df.drop(columns=["natr", "inv_vola"])
 
     if winsor_trim:
@@ -59,7 +70,7 @@ def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period
         lower = pd.Series(natr_values).quantile(TRIM)
         upper = pd.Series(natr_values).quantile(1 - TRIM)
         pairs_history_df_list = [df for df in pairs_history_df_list if
-                                 df["natr"].iloc[-1] < lower or df["natr"].iloc[-1] > upper]
+                                 df["natr"].iloc[-1] > lower or df["natr"].iloc[-1] < upper]
 
     pairs_history_df_list_portfolio_parity = pairs_history_df_list
 
@@ -98,14 +109,3 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     pairs_history_df_list_beta_neutral = pairs_history_df_list
 
     return pairs_history_df_list_beta_neutral
-
-
-def _calculate_momentum(price_closes: pd.DataFrame) -> float:
-    """Calculating momentum from close"""
-    returns = np.log(price_closes)
-    x = np.arange(len(returns))
-    slope, _, rvalue, _, _ = linregress(x, returns)
-    momentum = slope * 100
-
-    return momentum * (rvalue ** 2)
-    # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)

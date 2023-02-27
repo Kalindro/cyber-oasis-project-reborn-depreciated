@@ -39,6 +39,16 @@ def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict,
     return pairs_history_df_list
 
 
+def _drop_bottom_quantile_vol(pairs_history_df_list: list[pd.DataFrame], quantile: float):
+    mean_volumes = [pair_history["volume"].mean() for pair_history in pairs_history_df_list]
+    threshold = np.quantile(mean_volumes, 0.25)
+    pairs_history_df_list_quantiled = [pair_dataframe for index, pair_dataframe in enumerate(pairs_history_df_list) if
+                                       mean_volumes[index] > threshold]
+    logger.success(f"Dropped bottom {quantile * 100}% volume coins")
+
+    return pairs_history_df_list_quantiled
+
+
 def change_leverage_and_mode_for_whole_exchange(leverage: int, isolated: bool, API: dict) -> None:
     """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
@@ -51,13 +61,3 @@ def change_leverage_and_mode_for_pairs_list(leverage: int, pairs_list: list, iso
     """Change leverage and margin mode on all pairs on list"""
     for pair in pairs_list:
         change_leverage_and_mode_one_pair(pair=pair, leverage=leverage, isolated=isolated, API=API)
-
-
-def _drop_bottom_quantile_vol(pairs_history_df_list: list[pd.DataFrame], quantile: float):
-    mean_volumes = [pair_history["volume"].mean() for pair_history in pairs_history_df_list]
-    threshold = np.quantile(mean_volumes, 0.25)
-    pairs_history_df_list_quantiled = [pair_dataframe for index, pair_dataframe in enumerate(pairs_history_df_list) if
-                                       mean_volumes[index] > threshold]
-    logger.success(f"Dropped bottom {quantile * 100}% volume coins")
-
-    return pairs_history_df_list_quantiled
