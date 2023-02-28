@@ -20,19 +20,23 @@ vbt.settings.portfolio['fees'] = 0.0025
 
 @dataclass
 class _BaseSettings(FundamentalSettings):
-    EXCHANGE_MODE: int = 1
-    PAIRS_MODE: int = 4
-    SAVE_LOAD_HISTORY: bool = True
-    PLOTTING: bool = True
-
-    TIMEFRAME: str = "1h"
-    since: str = "01.01.2022"
-    end: str = "31.12.2022"
-    PERIOD: int = 20
-    DEVIATION: int = 2
-
     def __init__(self):
-        self.min_data_length = 100
+        self.EXCHANGE_MODE: int = 1
+        self.PAIRS_MODE: int = 4
+        super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
+
+        self.PERIODS = dict(KELTNER=168,
+                            DEVIATION=128,
+                            )
+        self.SAVE_LOAD_HISTORY: bool = True
+        self.PLOTTING: bool = True
+
+        self.TIMEFRAME: str = "1h"
+        self.since: str = "01.01.2022"
+        self.end: str = "31.12.2022"
+
+        self.MIN_VOLUME = 10
+        self.MIN_DATA_LENGTH = 10
         self.validate_inputs()
 
     def validate_inputs(self) -> None:

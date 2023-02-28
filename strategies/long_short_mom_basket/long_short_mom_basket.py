@@ -33,18 +33,17 @@ class LongShortMomBasket(_BaseSettings):
                                                                 vol_quantile_drop=self.VOL_QUANTILE_DROP, API=self.API)
         top_coins_history, bottom_coins_history = momentum_ranking_for_pairs_histories(
             pairs_history_df_list=pairs_history_df_list,
-            momentum_period=self.PERIODS,
+            momentum_period=self.PERIODS["MOMENTUM"],
             top_number=self.TOP_NUMBER)
-        top_coins_parity = calc_portfolio_parity(pairs_history_df_list=top_coins_history, NATR_period=self.NATR_PERIOD,
+        top_coins_parity = calc_portfolio_parity(pairs_history_df_list=top_coins_history,
+                                                 NATR_period=self.PERIODS["NATR"],
                                                  winsor_trim=True)
         bottom_coins_parity = calc_portfolio_parity(pairs_history_df_list=bottom_coins_history,
-                                                    NATR_period=self.NATR_PERIOD, winsor_trim=True)
+                                                    NATR_period=self.PERIODS["NATR"], winsor_trim=True)
         allocation_top_now = {pair_history["pair"][-1]: pair_history["weight_ccy"][-1] for pair_history in
                               top_coins_parity}
         allocation_bottom_now = {pair_history["pair"][-1]: pair_history["weight_ccy"][-1] for pair_history in
                                  bottom_coins_parity}
-
-        # print(f"Bottom: {allocation_bottom_now}")
 
 
 if __name__ == "__main__":

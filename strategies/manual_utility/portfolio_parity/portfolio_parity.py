@@ -27,7 +27,7 @@ class PortfolioParity(_BaseSettings):
                                                                 number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
                                                                 API=self.API, min_data_length=50)
         parity = calc_portfolio_parity(pairs_history_df_list=pairs_history_df_list, investment=self.INVESTMENT,
-                                       NATR_period=self.NATR_period)
+                                       NATR_period=self.PERIODS["NATR"])
         print(parity)
 
 

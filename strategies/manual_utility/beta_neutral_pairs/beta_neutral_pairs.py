@@ -29,7 +29,7 @@ class BetaNeutralPairs(_BaseSettings):
                                                                    pair_short=self.PAIR_SHORT,
                                                                    timeframe=self.TIMEFRAME,
                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                   beta_period=self.BETA_PERIOD,
+                                                                   beta_period=self.PERIODS["BETA"],
                                                                    investment=self.INVESTMENT, API=self.API)
         print(allocation_df)
 

@@ -50,6 +50,12 @@ class NewsEnjoyer(_BaseSettings):
 
             last_dataframe = articles_dataframe
 
+    @staticmethod
+    def _check_if_soup_works(articles_dataframe: pd.DataFrame) -> None:
+        """Just a check if scrapper not banned"""
+        if not dataframe_is_not_none_and_not_empty(articles_dataframe):
+            logger.warning("Soup incident")
+
     def _get_new_rows(self, last_dataframe: pd.DataFrame, new_dataframe: pd.DataFrame) -> tp.Union[None, pd.DataFrame]:
         """Return only new rows (unique rows between old and new df)"""
         if last_dataframe is None:
@@ -58,12 +64,6 @@ class NewsEnjoyer(_BaseSettings):
             return None
         else:
             return new_dataframe.loc[~new_dataframe["message"].isin(last_dataframe["message"])]
-
-    @staticmethod
-    def _check_if_soup_works(articles_dataframe: pd.DataFrame) -> None:
-        """Just a check if scrapper not banned"""
-        if not dataframe_is_not_none_and_not_empty(articles_dataframe):
-            logger.warning("Soup incident")
 
     def _get_unseen_rows(self, fresh_rows: pd.DataFrame) -> pd.DataFrame:
         """Return rows only if message wasn't seen before"""
