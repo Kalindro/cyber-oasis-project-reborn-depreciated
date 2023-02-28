@@ -6,6 +6,7 @@ import vectorbt as vbt
 
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from generic.select_mode import FundamentalSettings
+from utils import plot_base
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -49,6 +50,18 @@ class _BaseSettings(FundamentalSettings):
 class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
+    def main(self):
+        price_df = self._get_history()
+        entries, exits, keltner = self.keltner_strat(price_df=price_df)
+        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
+                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
+
+        print(pf.stats())
+        if self.PLOTTING:
+            fig = plot_base(portfolio=pf, price_df=price_df)
+            fig = self.keltner_print(keltner=keltner, fig=fig)
+            fig.show()
+
     def _get_history(self):
         all_coins_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
                                                                     timeframe=self.TIMEFRAME,
@@ -58,34 +71,6 @@ class MainBacktest(_BaseSettings):
         price_df = pd.concat(all_coins_history_df_list, axis=1)
 
         return price_df
-
-    def main(self):
-        entries, exits, keltner = self.keltner_strat(price_df=price_df)
-        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
-                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
-        print(pf.stats())
-        if self.PLOTTING:
-            fig = self._plot_base(portfolio=pf, price_df=price_df)
-            fig = self.keltner_print(keltner=keltner, fig=fig)
-            fig.show()
-
-    @staticmethod
-    def _plot_base(portfolio, price_df):
-        pf = portfolio
-        fig = pf.plot(subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))
-                                 ), "value", "trades", "cum_returns", "drawdowns", "cash"])
-        fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
-                                     ohlc_add_trace_kwargs=dict(row=1, col=1), xaxis=dict(rangeslider_visible=False),
-                                     fig=fig)
-        fig = pf.orders.plot(add_trace_kwargs=dict(row=1, col=1), buy_trace_kwargs=dict(marker=dict(color="blue")),
-                             sell_trace_kwargs=dict(marker=dict(color="black")),
-                             close_trace_kwargs=dict(opacity=0, line=dict(color="black")), fig=fig)
-        # fig = entries.vbt.signals.plot_as_entry_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
-        #                                                 trace_kwargs=dict(marker=dict(color="deepskyblue")), fig=fig)
-        # fig = exits.vbt.signals.plot_as_exit_markers(price_df["close"], add_trace_kwargs=dict(row=1, col=1),
-        #                                              trace_kwargs=dict(marker=dict(color="orange")), fig=fig)
-
-        return fig
 
 
 if __name__ == "__main__":
