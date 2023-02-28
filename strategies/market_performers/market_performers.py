@@ -21,9 +21,9 @@ logger = ConfigureLoguru().info_level()
 
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
-        super().__init__()
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
+        super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
         self.NUMBER_OF_LAST_CANDLES = 1000
@@ -93,11 +93,11 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         fast_history = full_performance_df["avg_vol_fast"]
         slow_history = full_performance_df["avg_vol_slow"]
-        fast_history_quantile = fast_history.quantile(self.QUANTILE_DROP)
-        slow_history_quantile = slow_history.quantile(self.QUANTILE_DROP)
+        fast_history_quantile = fast_history.quantile(self.VOL_QUANTILE_DROP)
+        slow_history_quantile = slow_history.quantile(self.VOL_QUANTILE_DROP)
         full_performance_df = full_performance_df[
             (fast_history >= fast_history_quantile) & (slow_history >= slow_history_quantile)]
-        logger.success(f"Dropped bottom {self.QUANTILE_DROP * 100}% volume coins")
+        logger.success(f"Dropped bottom {self.VOL_QUANTILE_DROP * 100}% volume coins")
         full_performance_df.sort_values(by="vol_increase", ascending=False, inplace=True)
 
         return full_performance_df

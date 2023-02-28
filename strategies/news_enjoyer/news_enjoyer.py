@@ -15,9 +15,9 @@ logger = ConfigureLoguru().info_level()
 
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
-        super().__init__()
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
+        super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
         self.NUMBER_OF_LAST_CANDLES = 1000

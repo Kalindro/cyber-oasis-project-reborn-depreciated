@@ -16,3 +16,13 @@
 2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
 2023-02-17 20:28:34 | ERROR    | Error on main full history, object of type 'int' has no len() | main | get_full_history.py:94
 2023-02-17 20:33:48 | ERROR    | Error on main market performance, 'avg_vol_fast' | main | market_performers.py:73
+2023-02-28 07:59:02 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 07:59:41 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:13:32 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:18:20 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:68
+2023-02-28 08:26:42 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:26:54 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:28:21 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:29:15 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:29:24 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
+2023-02-28 08:38:02 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'QUANTILE_DROP' | main | market_performers.py:69

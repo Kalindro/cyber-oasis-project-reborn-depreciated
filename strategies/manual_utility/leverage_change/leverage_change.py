@@ -7,8 +7,8 @@ logger = ConfigureLoguru().info_level()
 
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
-        super().__init__()
         self.EXCHANGE_MODE: int = 1
+        super().__init__(exchange_mode=self.EXCHANGE_MODE)
 
         self.LEVERAGE = 3
         self.ISOLATED = True

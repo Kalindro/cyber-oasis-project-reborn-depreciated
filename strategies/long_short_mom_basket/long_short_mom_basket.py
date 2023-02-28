@@ -9,9 +9,9 @@ logger = ConfigureLoguru().info_level()
 
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
-        super().__init__()
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
+        super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.PERIODS = dict(MOMENTUM=168,
                             NATR=128,
