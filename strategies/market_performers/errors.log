@@ -26,3 +26,453 @@
 2023-02-28 08:29:15 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
 2023-02-28 08:29:24 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'pairs_list' | main | market_performers.py:69
 2023-02-28 08:38:02 | ERROR    | Error on main market performance, 'PerformanceRankAnalysis' object has no attribute 'QUANTILE_DROP' | main | market_performers.py:69
+2023-03-01 08:59:56 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:57 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:58 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 08:59:59 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:00 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:01 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:02 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:03 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:04 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:05 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:06 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:07 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:08 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:09 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:10 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:11 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:12 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:13 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:14 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:15 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:16 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:17 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:18 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:19 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:20 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:21 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:22 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:23 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:29 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657630273} | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657630537} | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657630559} | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657630730} | main | get_full_history.py:98
+2023-03-01 09:00:30 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657630922} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631111} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631118} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631301} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631331} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631493} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631522} | main | get_full_history.py:98
+2023-03-01 09:00:31 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657631689} | main | get_full_history.py:98
+2023-03-01 09:00:32 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657632082} | main | get_full_history.py:98
+2023-03-01 09:00:32 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657632229} | main | get_full_history.py:98
+2023-03-01 09:00:32 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657632630} | main | get_full_history.py:98
+2023-03-01 09:00:32 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657632774} | main | get_full_history.py:98
+2023-03-01 09:00:33 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657633327} | main | get_full_history.py:98
+2023-03-01 09:00:33 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657633358} | main | get_full_history.py:98
+2023-03-01 09:00:33 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657633516} | main | get_full_history.py:98
+2023-03-01 09:00:33 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657633713} | main | get_full_history.py:98
+2023-03-01 09:00:34 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657634090} | main | get_full_history.py:98
+2023-03-01 09:00:34 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657634258} | main | get_full_history.py:98
+2023-03-01 09:00:34 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657634803} | main | get_full_history.py:98
+2023-03-01 09:00:34 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657634811} | main | get_full_history.py:98
+2023-03-01 09:00:34 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657634996} | main | get_full_history.py:98
+2023-03-01 09:00:35 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657635537} | main | get_full_history.py:98
+2023-03-01 09:00:35 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657635545} | main | get_full_history.py:98
+2023-03-01 09:00:35 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657635725} | main | get_full_history.py:98
+2023-03-01 09:00:35 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657635754} | main | get_full_history.py:98
+2023-03-01 09:00:35 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657635913} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636107} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636468} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636655} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636658} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636847} | main | get_full_history.py:98
+2023-03-01 09:00:36 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657636878} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637388} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637576} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637599} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637767} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637786} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637961} | main | get_full_history.py:98
+2023-03-01 09:00:37 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657637986} | main | get_full_history.py:98
+2023-03-01 09:00:38 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657638185} | main | get_full_history.py:98
+2023-03-01 09:00:38 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657638502} | main | get_full_history.py:98
+2023-03-01 09:00:38 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657638694} | main | get_full_history.py:98
+2023-03-01 09:00:38 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657638884} | main | get_full_history.py:98
+2023-03-01 09:00:38 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657638907} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639428} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639446} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639619} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639810} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639999} | main | get_full_history.py:98
+2023-03-01 09:00:39 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657639999} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640218} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640408} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640544} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640598} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640732} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640795} | main | get_full_history.py:98
+2023-03-01 09:00:40 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657640930} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641484} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641506} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641677} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641703} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641877} | main | get_full_history.py:98
+2023-03-01 09:00:41 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657641911} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642070} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642101} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642261} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642291} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642450} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642642} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657642833} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643000} | main | get_full_history.py:98
+2023-03-01 09:00:42 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643027} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643188} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643223} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643386} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643415} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643572} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643605} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643762} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643799} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643954} | main | get_full_history.py:98
+2023-03-01 09:00:43 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657643989} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644145} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644351} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644530} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644541} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644721} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644740} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644910} | main | get_full_history.py:98
+2023-03-01 09:00:44 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657644943} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645103} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645293} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645483} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645490} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645675} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645702} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645864} | main | get_full_history.py:98
+2023-03-01 09:00:45 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657645896} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646084} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646273} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646411} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646463} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646602} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646653} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646792} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646840} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657646983} | main | get_full_history.py:98
+2023-03-01 09:00:46 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647029} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647174} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647219} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647364} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647411} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647567} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647600} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647757} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647788} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647955} | main | get_full_history.py:98
+2023-03-01 09:00:47 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657647975} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648173} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648366} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648486} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648560} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648676} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648745} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648869} | main | get_full_history.py:98
+2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648936} | main | get_full_history.py:98
+2023-03-01 09:00:49 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657649059} | main | get_full_history.py:98
+2023-03-01 09:00:49 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657649126} | main | get_full_history.py:98

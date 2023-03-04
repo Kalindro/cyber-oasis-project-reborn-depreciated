@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 import vectorbt as vbt
 
 from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from generic.select_mode import FundamentalSettings
-from utils import plot_base
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -52,14 +50,11 @@ class MainBacktest(_BaseSettings):
 
     def main(self):
         price_df = self._get_history()
-        entries, exits, keltner = self.keltner_strat(price_df=price_df)
-        pf = vbt.Portfolio.from_signals(open=price_df["open"], close=price_df["close"], high=price_df["high"],
-                                        low=price_df["low"], size=np.inf, entries=entries, exits=exits)
+        pf = strategy()
 
         print(pf.stats())
         if self.PLOTTING:
-            fig = plot_base(portfolio=pf, price_df=price_df)
-            fig = self.keltner_print(keltner=keltner, fig=fig)
+            fig = self._plot_base(portfolio=pf, price_df=price_df)
             fig.show()
 
     def _get_history(self):
@@ -71,6 +66,19 @@ class MainBacktest(_BaseSettings):
         price_df = pd.concat(all_coins_history_df_list, axis=1)
 
         return price_df
+
+    def _plot_base(self, portfolio, price_df):
+        pf = portfolio
+        fig = pf.plot(subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))
+                                 ), "value", "trades", "cum_returns", "drawdowns", "cash"])
+        fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
+                                     ohlc_add_trace_kwargs=dict(row=1, col=1), xaxis=dict(rangeslider_visible=False),
+                                     fig=fig)
+        fig = pf.orders.plot(add_trace_kwargs=dict(row=1, col=1), buy_trace_kwargs=dict(marker=dict(color="blue")),
+                             sell_trace_kwargs=dict(marker=dict(color="black")),
+                             close_trace_kwargs=dict(opacity=0, line=dict(color="black")), fig=fig)
+
+        return fig
 
 
 if __name__ == "__main__":
