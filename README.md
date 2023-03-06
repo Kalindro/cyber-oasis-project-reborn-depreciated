@@ -1,6 +1,7 @@
 # CyberOasisProjectReborn
 
 My main repository containing all the functions, utilities, strategies that help me to navigate on crypto markets.
+Please note it's a repo I constantly work on, a lot of functions are WIP and the structure changes almost daily.
 
 Most useful scripts are:
 
