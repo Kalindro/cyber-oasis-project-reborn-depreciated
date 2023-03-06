@@ -1,5 +1,5 @@
-from generic.funcs_for_pairs_histories import calc_beta_neutral_allocation_for_two_pairs
-from generic.select_mode import FundamentalSettings
+from prime_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
+from prime_functions.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

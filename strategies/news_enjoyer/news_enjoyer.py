@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
 from chatGPT.ask_chat import ask_question_API
-from generic.select_mode import FundamentalSettings
+from prime_functions.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted
 from webscraper.crypto_news_scraper import CryptoNewsScraper

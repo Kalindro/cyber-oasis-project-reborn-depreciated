@@ -1,5 +1,5 @@
-from generic.funcs_for_pairs_lists import change_leverage_and_mode_for_whole_exchange
-from generic.select_mode import FundamentalSettings
+from prime_functions.funcs_for_pairs_lists import change_leverage_and_mode_for_whole_exchange
+from prime_functions.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

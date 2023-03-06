@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import pandas as pd
 import vectorbt as vbt
 
-from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
-from generic.select_mode import FundamentalSettings
+from prime_functions.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from prime_functions.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -16,6 +16,7 @@ vbt.settings.set_theme("seaborn")
 vbt.settings.portfolio['init_cash'] = 1000
 vbt.settings.portfolio['fees'] = 0.0025
 vbt.settings.portfolio['slippage'] = 0
+vbt.settings.portfolio.stats['incl_unrealized'] = True
 
 
 @dataclass
@@ -50,24 +51,28 @@ class MainBacktest(_BaseSettings):
 
     def main(self):
         price_df = self._get_history()
-        pf = strategy()
+        pf = self._momentum_strategy()
 
         print(pf.stats())
         if self.PLOTTING:
             fig = self._plot_base(portfolio=pf, price_df=price_df)
             fig.show()
 
+    def _momentum_strategy(self):
+        pass
+
     def _get_history(self):
-        all_coins_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
+        pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
                                                                     timeframe=self.TIMEFRAME,
                                                                     save_load_history=self.SAVE_LOAD_HISTORY,
                                                                     since=self.since, end=self.end, API=self.API,
                                                                     min_data_length=self.MIN_DATA_LENGTH)
-        price_df = pd.concat(all_coins_history_df_list, axis=1)
+        # price_df = pd.concat(pairs_history_df_list, axis=1)
 
-        return price_df
+        return pairs_history_df_list
 
-    def _plot_base(self, portfolio, price_df):
+    @staticmethod
+    def _plot_base(portfolio, price_df):
         pf = portfolio
         fig = pf.plot(subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))
                                  ), "value", "trades", "cum_returns", "drawdowns", "cash"])

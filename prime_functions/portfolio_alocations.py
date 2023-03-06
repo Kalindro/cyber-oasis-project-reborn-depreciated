@@ -1,50 +1,10 @@
 import numpy as np
 import pandas as pd
 from loguru import logger
-from pandas_ta.volatility import natr as NATR
+from pandas_ta import natr as NATR
 from scipy.stats import linregress
 
-from generic.funcs_for_pairs_lists import get_full_history_for_pairs_list
-
-
-def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
-                                         top_decimal: float = None, top_number: int = None):
-    """Calculate momentum ranking for list of history dataframes"""
-    if top_number and top_decimal:
-        raise AssertionError("You can only provide either top decimal or top number")
-
-    logger.info("Calculating momentum ranking for pairs histories")
-    momentum_dict = {}
-    for pair_df in pairs_history_df_list:
-        pair = pair_df["pair"].iloc[-1]
-        pair_df["momentum"] = pair_df["close"].rolling(momentum_period).apply(_calculate_momentum)
-        momentum_dict[pair] = pair_df["momentum"].iloc[-1]
-
-    momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
-    sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
-
-    if top_decimal:
-        top_bottom_number = int(len(sorted_momentum) * top_decimal)
-    elif top_number:
-        top_bottom_number = top_number
-    top_coins = sorted_momentum.index[:top_bottom_number].tolist()
-    bottom_coins = sorted_momentum.index[-top_bottom_number:].tolist()
-    top_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
-                                 pair_df["pair"].iloc[-1] in top_coins]
-    bottom_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
-                                    pair_df["pair"].iloc[-1] in bottom_coins]
-    return top_coins_history_df_list, bottom_coins_history_df_list
-
-
-def _calculate_momentum(price_closes: pd.DataFrame) -> float:
-    """Calculating momentum from close"""
-    returns = np.log(price_closes)
-    x = np.arange(len(returns))
-    slope, _, rvalue, _, _ = linregress(x, returns)
-    momentum = slope * 100
-
-    return momentum * (rvalue ** 2)
-    # return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
+from prime_functions.funcs_for_pairs_lists import get_full_history_for_pairs_list
 
 
 def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period: int, investment: int = 1000,

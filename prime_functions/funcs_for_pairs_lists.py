@@ -6,12 +6,12 @@ import pandas as pd
 from loguru import logger
 
 from CCXT.base_functions import change_leverage_and_mode_one_pair
-from generic.get_full_history import GetFullHistoryDF
-from generic.get_pairs_list import get_pairs_list_ALL
+from prime_functions.get_full_history import GetFullHistoryDF
+from prime_functions.get_pairs_list import get_pairs_list_ALL
 from utils.utils import dataframe_is_not_none_and_not_empty
 
 
-def get_full_history_for_pairs_list(pairs_list: list, timeframe: str, API: dict, min_data_length: int = None,
+def get_full_history_for_pairs_list(pairs_list: list[str], timeframe: str, API: dict, min_data_length: int = None,
                                     vol_quantile_drop: float = None, **kwargs) -> list[pd.DataFrame]:
     """Get history of all pairs on list
     kwargs:

@@ -1,7 +1,7 @@
 from functools import partial
 import typing as tp
 from API.API_exchange_initiator import ExchangeAPISelect
-from generic.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
+from prime_functions.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
     get_pairs_list_USDT
 
 
