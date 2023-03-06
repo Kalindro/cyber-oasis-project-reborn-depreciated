@@ -44,7 +44,7 @@ def excel_save_formatted(dataframe: pd.DataFrame, filename: str,
                          perc_cols_size: int = None,
                          str_cols: str = None,
                          str_cols_size: int = None) -> None:
-    """Save dataframe as formatted excel"""
+    """Save dataframe as formatted  excel"""
     count = 1
     while True:
         try:
