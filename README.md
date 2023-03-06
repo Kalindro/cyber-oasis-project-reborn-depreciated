@@ -2,9 +2,6 @@
 
 My main repository containing all the functions, utilities, strategies that help me to navigate on crypto markets.
 
-This project allowed me to self-develop my Python skills. I've started with minimal programing knowledge, where now I'm
-able to create tools that have some use.
-
 Most useful scripts are:
 
 - GetFullHistoryDF().main in generic.get_full_history.py - Allows to query desired pair OHLCV history (timeframe, desired history range, last N candles, save/load option)

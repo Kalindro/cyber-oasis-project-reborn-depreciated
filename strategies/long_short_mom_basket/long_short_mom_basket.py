@@ -1,5 +1,5 @@
 from prime_functions.portfolio_alocations import calc_portfolio_parity
-from prime_functions.momentums import momentum_ranking_for_pairs_histories
+from prime_functions.momentums import momentum_calculation_for_pairs_histories
 from prime_functions.funcs_for_pairs_lists import get_full_history_for_pairs_list
 from prime_functions.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
@@ -31,7 +31,7 @@ class LongShortMomBasket(_BaseSettings):
                                                                 number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
                                                                 min_data_length=self.MIN_DATA_LENGTH,
                                                                 vol_quantile_drop=self.VOL_QUANTILE_DROP, API=self.API)
-        top_coins_history, bottom_coins_history = momentum_ranking_for_pairs_histories(
+        top_coins_history, bottom_coins_history = momentum_calculation_for_pairs_histories(
             pairs_history_df_list=pairs_history_df_list,
             momentum_period=self.PERIODS["MOMENTUM"],
             top_number=self.TOP_NUMBER)

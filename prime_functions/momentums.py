@@ -8,7 +8,7 @@ from prime_functions.portfolio_alocations import calc_portfolio_parity
 
 def momentum_ranking_with_parity(pairs_history_df_list: list[pd.DataFrame], momentum_period: int, NATR_period: int,
                                  top_decimal: float = None, top_number: int = None, winsor_trim: bool = False):
-    x = momentum_ranking_for_pairs_histories()
+    x = momentum_calculation_for_pairs_histories()
     d = calc_portfolio_parity()
 
     momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
@@ -27,18 +27,15 @@ def momentum_ranking_with_parity(pairs_history_df_list: list[pd.DataFrame], mome
     return top_coins_history_df_list, bottom_coins_history_df_list
 
 
-def momentum_ranking_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
-                                         top_decimal: float = None, top_number: int = None):
+def momentum_calculation_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
+                                             top_decimal: float = None, top_number: int = None):
     """Calculate momentum ranking for list of history dataframes"""
     if top_number and top_decimal:
         raise AssertionError("You can only provide either top decimal or top number")
 
     logger.info("Calculating momentum ranking for pairs histories")
-    momentum_dict = {}
     for pair_df in pairs_history_df_list:
-        pair = pair_df["pair"].iloc[-1]
         pair_df["momentum"] = pair_df["close"].rolling(momentum_period).apply(_calculate_momentum)
-        momentum_dict[pair] = pair_df["momentum"].iloc[-1]
 
     pairs_history_df_list_momentum = pairs_history_df_list
 
