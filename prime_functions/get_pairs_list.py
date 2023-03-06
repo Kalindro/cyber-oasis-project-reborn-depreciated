@@ -10,7 +10,7 @@ def get_pairs_list_test_single() -> list[str]:
 
 def get_pairs_list_test_multi() -> list[str]:
     """Get test pairs list"""
-    return ["ACH/USDT", "BTC/USDT", "ETH/USDT"]
+    return ["ACH/USDT", "BTC/USDT", "ETH/USDT", "BNB/USDT", "LTC/USDT", "NEO/USDT"]
 
 
 def get_pairs_list_BTC(API: dict) -> list[str]:

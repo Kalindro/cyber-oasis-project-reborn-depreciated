@@ -3,13 +3,32 @@ import pandas as pd
 from loguru import logger
 from scipy.stats import linregress
 
-from prime_functions.portfolio_alocations import calc_portfolio_parity
-
 
 def momentum_ranking_with_parity(pairs_history_df_list: list[pd.DataFrame], momentum_period: int, NATR_period: int,
                                  top_decimal: float = None, top_number: int = None, winsor_trim: bool = False):
-    x = momentum_calculation_for_pairs_histories()
-    d = calc_portfolio_parity()
+    # df_list = momentum_calculation_for_pairs_histories(pairs_history_df_list=pairs_history_df_list,
+    #                                                    momentum_period=momentum_period, top_decimal=top_decimal,
+    #                                                    top_number=top_number)
+
+    # momentum_cols = [df['momentum'] for df in df_list]
+    # df = pd.concat(momentum_cols, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
+    #
+    # def get_percentiles(row):
+    #     top_20_pct = row.quantile(0.8)
+    #     bottom_20_pct = row.quantile(0.2)
+    #     return pd.Series([top_20_pct, bottom_20_pct])
+    #
+    # df[["top_pct", "bottom_pct"]] = df.apply(get_percentiles, axis=1)
+    #
+    # new_df = pd.DataFrame(index=df.index, columns=df.columns)
+    #
+    # print(df)
+
+    momentum_dict = {}
+    for pair_df in pairs_history_df_list:
+        symbol = pair_df["symbol"].iloc[-1]
+        pair_df["momentum"] = pair_df["close"].rolling(momentum_period).apply(_calculate_momentum)
+        momentum_dict[symbol] = pair_df["momentum"].iloc[-1]
 
     momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
     sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
