@@ -55,4 +55,4 @@ def change_leverage_and_mode_one_pair(pair: str, leverage: int, isolated: bool, 
     else:
         exchange_client.set_leverage(leverage=leverage, symbol=pair)
         exchange_client.set_margin_mode(marginMode=mmode, symbol=pair)
-        logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode} ")
+        logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")
