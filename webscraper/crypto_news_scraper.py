@@ -20,7 +20,7 @@ logger = ConfigureLoguru().info_level()
 
 @dataclass
 class CryptoNewsScraper:
-    SITE_URL: str = "https://news.treeofalpha.com/"
+    SITE_URL: str = "https://news.treeofalpha.com"
 
     def main(self) -> pd.DataFrame:
         my_driver = self._initiate_driver()
