@@ -2,48 +2,32 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 from scipy.stats import linregress
-
+from pandas_ta import natr as NATR
 
 def momentum_ranking_with_parity(pairs_history_df_list: list[pd.DataFrame], momentum_period: int, NATR_period: int,
                                  top_decimal: float = None, top_number: int = None, winsor_trim: bool = False):
-    # df_list = momentum_calculation_for_pairs_histories(pairs_history_df_list=pairs_history_df_list,
-    #                                                    momentum_period=momentum_period, top_decimal=top_decimal,
-    #                                                    top_number=top_number)
+    df_list = momentum_calculation_for_pairs_histories(pairs_history_df_list=pairs_history_df_list,
+                                                       momentum_period=momentum_period, top_decimal=top_decimal,
+                                                       top_number=top_number)
 
-    # momentum_cols = [df['momentum'] for df in df_list]
-    # df = pd.concat(momentum_cols, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
-    #
-    # def get_percentiles(row):
-    #     top_20_pct = row.quantile(0.8)
-    #     bottom_20_pct = row.quantile(0.2)
-    #     return pd.Series([top_20_pct, bottom_20_pct])
-    #
-    # df[["top_pct", "bottom_pct"]] = df.apply(get_percentiles, axis=1)
-    #
-    # new_df = pd.DataFrame(index=df.index, columns=df.columns)
-    #
-    # print(df)
+    for pair_df in df_list:
+        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
+        pair_df["inv_vola"] = 1 / pair_df["natr"]
 
-    momentum_dict = {}
-    for pair_df in pairs_history_df_list:
-        symbol = pair_df["symbol"].iloc[-1]
-        pair_df["momentum"] = pair_df["close"].rolling(momentum_period).apply(_calculate_momentum)
-        momentum_dict[symbol] = pair_df["momentum"].iloc[-1]
+    momentum_cols = [df["momentum"] for df in df_list]
+    momentum_df = pd.concat(momentum_cols, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
+    ranked_df = momentum_df.rank(axis=1, method='max', ascending=False)
 
-    momentum_df = pd.DataFrame.from_dict(momentum_dict, orient="index", columns=["momentum"])
-    sorted_momentum = momentum_df.sort_values("momentum", ascending=False)
+    for pair_df in df_list:
+        pair = pair_df["pair"].iloc[0]
+        pair_df["rank"] = ranked_df[pair]
 
-    if top_decimal:
-        top_bottom_number = int(len(sorted_momentum) * top_decimal)
-    elif top_number:
-        top_bottom_number = top_number
-    top_coins = sorted_momentum.index[:top_bottom_number].tolist()
-    bottom_coins = sorted_momentum.index[-top_bottom_number:].tolist()
-    top_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
-                                 pair_df["pair"].iloc[-1] in top_coins]
-    bottom_coins_history_df_list = [pair_df for pair_df in pairs_history_df_list if
-                                    pair_df["pair"].iloc[-1] in bottom_coins]
-    return top_coins_history_df_list, bottom_coins_history_df_list
+    inv_vola_columns = [df["inv_vola"] for df in df_list]
+    inv_vola_df = pd.concat(inv_vola_columns, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
+
+    allocation_df = inv_vola_df.apply(lambda x: x/x.sum(), axis=1)
+
+    print(allocation_df)
 
 
 def momentum_calculation_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
