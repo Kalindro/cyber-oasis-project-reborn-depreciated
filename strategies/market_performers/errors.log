@@ -476,3 +476,40 @@
 2023-03-01 09:00:48 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657648936} | main | get_full_history.py:98
 2023-03-01 09:00:49 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657649059} | main | get_full_history.py:98
 2023-03-01 09:00:49 | ERROR    | Error on main full history, bybit {"retCode":10001,"retMsg":"Time params invalid","result":{},"retExtInfo":{},"time":1677657649126} | main | get_full_history.py:98
+2023-03-08 21:38:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:24 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:25 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:26 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:27 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98

@@ -1,33 +1,37 @@
 import numpy as np
 import pandas as pd
 from loguru import logger
-from scipy.stats import linregress
 from pandas_ta import natr as NATR
+from scipy.stats import linregress
+
 
 def momentum_ranking_with_parity(pairs_history_df_list: list[pd.DataFrame], momentum_period: int, NATR_period: int,
                                  top_decimal: float = None, top_number: int = None, winsor_trim: bool = False):
     df_list = momentum_calculation_for_pairs_histories(pairs_history_df_list=pairs_history_df_list,
                                                        momentum_period=momentum_period, top_decimal=top_decimal,
                                                        top_number=top_number)
-
     for pair_df in df_list:
-        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
-        pair_df["inv_vola"] = 1 / pair_df["natr"]
+        natr = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
+        pair_df["inv_vola"] = 1 / natr.fillna(0)
 
-    momentum_cols = [df["momentum"] for df in df_list]
-    momentum_df = pd.concat(momentum_cols, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
-    ranked_df = momentum_df.rank(axis=1, method='max', ascending=False)
+    # Step 2: Rank the pairs based on momentum
+    pair_names = [df["pair"].iloc[0] for df in df_list]
+    momentum_df = pd.concat([df["momentum"] for df in df_list], axis=1, keys=pair_names)
+    ranked_df = momentum_df.rank(axis=1, method="max", ascending=False)
 
-    for pair_df in df_list:
-        pair = pair_df["pair"].iloc[0]
-        pair_df["rank"] = ranked_df[pair]
+    # Step 3: Calculate the weighted average of inverse volatility for the top 2 ranked pairs
+    inv_vola_df = pd.concat([df["inv_vola"] for df in df_list], axis=1, keys=pair_names)
+    top_pairs = ranked_df <= 2
+    sum_inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=0).sum(axis=1)
+    inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=np.nan)
+    inv_vola_top_pairs = inv_vola_top_pairs.div(sum_inv_vola_top_pairs, axis=0)
+    inv_vola_top_pairs = inv_vola_top_pairs.fillna(0)
 
-    inv_vola_columns = [df["inv_vola"] for df in df_list]
-    inv_vola_df = pd.concat(inv_vola_columns, axis=1, keys=[df["pair"].iloc[0] for df in df_list])
+    # Step 4: Normalize the weighted average of inverse volatility
+    inv_vola_df = inv_vola_top_pairs.divide(inv_vola_top_pairs.sum(axis=1), axis=0)
+    inv_vola_df = inv_vola_df.fillna(0)
 
-    allocation_df = inv_vola_df.apply(lambda x: x/x.sum(), axis=1)
-
-    print(allocation_df)
+    return inv_vola_df
 
 
 def momentum_calculation_for_pairs_histories(pairs_history_df_list: list[pd.DataFrame], momentum_period: int,
