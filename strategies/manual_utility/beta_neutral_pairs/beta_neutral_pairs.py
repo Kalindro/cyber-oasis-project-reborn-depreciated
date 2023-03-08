@@ -1,5 +1,5 @@
 from prime_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
-from prime_functions.select_mode import FundamentalSettings
+from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

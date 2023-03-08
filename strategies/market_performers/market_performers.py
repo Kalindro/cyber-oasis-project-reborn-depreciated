@@ -7,9 +7,9 @@ import pandas as pd
 from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
-from CCXT.base_functions import get_pairs_prices
-from prime_functions.funcs_for_pairs_lists import get_full_history_for_pairs_list
-from prime_functions.select_mode import FundamentalSettings
+from exchange.base_functions import get_pairs_prices
+from exchange.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted
 

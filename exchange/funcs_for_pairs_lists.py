@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from CCXT.base_functions import change_leverage_and_mode_one_pair
-from prime_functions.get_full_history import GetFullHistoryDF
-from prime_functions.get_pairs_list import get_pairs_list_ALL
+from exchange.base_functions import change_leverage_and_mode_one_pair
+from exchange.get_full_history import GetFullHistoryDF
+from exchange.get_pairs_list import get_pairs_list_ALL
 from utils.utils import dataframe_is_not_none_and_not_empty
 
 
