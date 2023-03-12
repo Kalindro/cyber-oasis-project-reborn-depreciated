@@ -24,7 +24,7 @@ class GetFullHistoryDF:
                          API: dict,
                          min_data_length: int = None,
                          vol_quantile_drop: float = None,
-                         **kwargs) -> list[pd.DataFrame]:
+                         **kwargs) -> dict[str, pd.DataFrame]:
         """Get history of all pairs on list
         kwargs:
             save_load_history
@@ -38,29 +38,35 @@ class GetFullHistoryDF:
                                            API=API, **kwargs)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as executor:
-            pairs_history_df_list = list(executor.map(delegate_history_partial, pairs_list))
-        pairs_history_df_list = [df for df in pairs_history_df_list if dataframe_is_not_none_and_not_empty(df)]
+            pairs_history_df_dict = dict(zip(pairs_list, executor.map(delegate_history_partial, pairs_list)))
+
+        pairs_history_df_dict = {pair: pair_history_df for pair, pair_history_df in pairs_history_df_dict.items() if
+                                 dataframe_is_not_none_and_not_empty(pair_history_df)}
 
         if min_data_length:
-            pairs_history_df_list = [df for df in pairs_history_df_list if len(df) > min_data_length]
+            pairs_history_df_dict = {pair: pair_history_df for pair, pair_history_df in pairs_history_df_dict.items()
+                                     if
+                                     len(pair_history_df) > min_data_length}
         if vol_quantile_drop:
-            pairs_history_df_list = self._drop_bottom_quantile_vol(pairs_history_df_list=pairs_history_df_list,
+            pairs_history_df_dict = self._drop_bottom_quantile_vol(pairs_history_df_dict=pairs_history_df_dict,
                                                                    quantile=vol_quantile_drop)
 
         logger.success("History of all the coins completed, returning")
 
-        return pairs_history_df_list
+        return pairs_history_df_dict
 
     @staticmethod
-    def _drop_bottom_quantile_vol(pairs_history_df_list: list[pd.DataFrame], quantile: float):
-        mean_volumes = [pair_history["volume"].mean() for pair_history in pairs_history_df_list]
-        threshold = np.quantile(mean_volumes, 0.25)
-        pairs_history_df_list_quantiled = [pair_dataframe for index, pair_dataframe in enumerate(pairs_history_df_list)
-                                           if
-                                           mean_volumes[index] > threshold]
+    def _drop_bottom_quantile_vol(pairs_history_df_dict: dict[str, pd.DataFrame], quantile: float) -> \
+            dict[str, pd.DataFrame]:
+        mean_volumes = {pair: pair_history_df["volume"].mean() for pair, pair_history_df in
+                        pairs_history_df_dict.items()}
+        threshold = np.quantile(list(mean_volumes.values()), 0.25)
+        pairs_history_dict_quantiled = {pair: pair_history_df for pair, pair_history_df in
+                                        pairs_history_df_dict.items()
+                                        if mean_volumes[pair] > threshold}
         logger.success(f"Dropped bottom {quantile * 100}% volume coins")
 
-        return pairs_history_df_list_quantiled
+        return pairs_history_dict_quantiled
 
     def _get_desired_history_for_pair(self,
                                       pair: str,
