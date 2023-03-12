@@ -44,7 +44,7 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     return pairs_list
 
 
-def _remove_shit_from_pairs_list(pairs_list):
+def _remove_shit_from_pairs_list(pairs_list: list[str]):
     """Remove bs pairs from ever list"""
     forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
     forbidden_ending = ("UP", "DOWN", "BEAR", "BULL")

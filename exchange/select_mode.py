@@ -18,7 +18,7 @@ class FundamentalSettings:
             self.pairs_list = select_pairs_list_mode(pairs_mode, self.API)
 
 
-def select_exchange_mode(exchange_mode) -> dict:
+def select_exchange_mode(exchange_mode: int) -> dict:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     exchanges_dict = {1: ExchangeAPISelect().binance_spot_read_only,
                       2: ExchangeAPISelect().binance_futures_read_only,
@@ -32,7 +32,7 @@ def select_exchange_mode(exchange_mode) -> dict:
     return exchange()
 
 
-def select_pairs_list_mode(pairs_mode, API) -> list[str]:
+def select_pairs_list_mode(pairs_mode: int, API: dict) -> list[str]:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     pairs_list = {1: partial(get_pairs_list_test_single),
                   2: partial(get_pairs_list_test_multi),
