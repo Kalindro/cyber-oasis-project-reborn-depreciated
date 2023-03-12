@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import vectorbt as vbt
 
-from exchange.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from exchange.get_full_history import get_full_history_for_pairs_list
 from prime_functions.momentums import momentum_ranking_with_parity
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru

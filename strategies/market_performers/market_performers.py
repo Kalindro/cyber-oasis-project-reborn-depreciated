@@ -8,7 +8,7 @@ from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
 from exchange.base_functions import get_pairs_prices
-from exchange.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from exchange.get_full_history import get_full_history_for_pairs_list
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted

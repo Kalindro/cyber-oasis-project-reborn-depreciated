@@ -4,7 +4,7 @@ from loguru import logger
 from pandas_ta import natr as NATR
 from scipy.stats import linregress
 
-from exchange.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from exchange.get_full_history import get_full_history_for_pairs_list
 
 
 def calc_portfolio_parity(pairs_history_df_list: list[pd.DataFrame], NATR_period: int, investment: int = 1000,

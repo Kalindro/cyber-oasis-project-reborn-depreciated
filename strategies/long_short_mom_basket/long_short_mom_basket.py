@@ -1,6 +1,6 @@
 from prime_functions.portfolio_alocations import calc_portfolio_parity
 from prime_functions.momentums import momentum_calculation_for_pairs_histories
-from exchange.funcs_for_pairs_lists import get_full_history_for_pairs_list
+from exchange.get_full_history import get_full_history_for_pairs_list
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
