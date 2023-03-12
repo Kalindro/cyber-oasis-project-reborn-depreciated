@@ -17,32 +17,6 @@ logger = ConfigureLoguru().info_level()
 class GetFullHistoryDF:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
-    @staticmethod
-    def validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
-                       end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
-        """Validate if correct arguments are passed"""
-        timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
-        if not (number_of_last_candles or since):
-            raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if number_of_last_candles and (since or end):
-            raise ValueError("You cannot provide since/end date together with last n candles parameter")
-
-        if number_of_last_candles:
-            since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
-                    number_of_last_candles * timeframe_in_timestamp)
-            since_datetime = timestamp_ms_to_datetime(since_timestamp)
-        if since:
-            since_datetime = date_string_to_datetime(since)
-            since_timestamp = datetime_to_timestamp_ms(since_datetime)
-        if end:
-            end_datetime = date_string_to_datetime(end)
-            end_timestamp = datetime_to_timestamp_ms(end_datetime)
-        else:
-            end_datetime = dt.datetime.now()
-            end_timestamp = datetime_to_timestamp_ms(end_datetime)
-
-        return since_timestamp, end_timestamp, since_datetime, end_datetime
-
     @classmethod
     def main(cls,
              pair: str,
@@ -61,9 +35,9 @@ class GetFullHistoryDF:
         """
 
         timeframe = timeframe.lower()
-        since_timestamp, end_timestamp, since_datetime, end_datetime = cls.validate_dates(timeframe,
-                                                                                          number_of_last_candles,
-                                                                                          since, end)
+        since_timestamp, end_timestamp, since_datetime, end_datetime = cls._validate_dates(timeframe,
+                                                                                           number_of_last_candles,
+                                                                                           since, end)
         try:
             logger.info(f"Getting {pair} history")
             exchange = API["exchange"]
@@ -97,6 +71,32 @@ class GetFullHistoryDF:
         except Exception as err:
             logger.error(f"Error on main full history, {err}")
             print(traceback.format_exc())
+
+    @staticmethod
+    def _validate_dates(timeframe: str, number_of_last_candles: tp.Optional[int], since: tp.Optional[str],
+                        end: tp.Optional[str]) -> tp.Tuple[int, int, dt.datetime, dt.datetime]:
+        """Validate if correct arguments are passed"""
+        timeframe_in_timestamp = timeframe_to_timestamp_ms(timeframe.lower())
+        if not (number_of_last_candles or since):
+            raise ValueError("Please provide either starting date or number of last n candles to provide")
+        if number_of_last_candles and (since or end):
+            raise ValueError("You cannot provide since/end date together with last n candles parameter")
+
+        if number_of_last_candles:
+            since_timestamp = datetime_to_timestamp_ms(dt.datetime.now()) - (
+                    number_of_last_candles * timeframe_in_timestamp)
+            since_datetime = timestamp_ms_to_datetime(since_timestamp)
+        if since:
+            since_datetime = date_string_to_datetime(since)
+            since_timestamp = datetime_to_timestamp_ms(since_datetime)
+        if end:
+            end_datetime = date_string_to_datetime(end)
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+        else:
+            end_datetime = dt.datetime.now()
+            end_timestamp = datetime_to_timestamp_ms(end_datetime)
+
+        return since_timestamp, end_timestamp, since_datetime, end_datetime
 
 
 class _QueryHistory:
