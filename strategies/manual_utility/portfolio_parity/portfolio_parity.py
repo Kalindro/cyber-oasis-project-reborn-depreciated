@@ -1,6 +1,6 @@
-from prime_functions.portfolio_alocations import calc_portfolio_parity
-from exchange.get_full_history import get_full_history_for_pairs_list
+from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
+from general_functions.portfolio_alocations import calc_portfolio_parity
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -22,11 +22,12 @@ class _BaseSettings(FundamentalSettings):
 
 class PortfolioParity(_BaseSettings):
     def main(self):
-        pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
-                                                                timeframe=self.TIMEFRAME,
-                                                                number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                API=self.API, min_data_length=50)
-        parity = calc_portfolio_parity(pairs_history_df_list=pairs_history_df_list, investment=self.INVESTMENT,
+        """Calculate parity for pairs list"""
+        pairs_history_df_dict = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                    API=self.API, min_data_length=50)
+        parity = calc_portfolio_parity(pairs_history_df_dict=pairs_history_df_dict, investment=self.INVESTMENT,
                                        NATR_period=self.PERIODS["NATR"])
         print(parity)
 

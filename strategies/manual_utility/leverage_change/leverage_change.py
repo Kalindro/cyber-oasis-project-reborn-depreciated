@@ -1,4 +1,4 @@
-from exchange.funcs_for_pairs_lists import change_leverage_and_mode_for_whole_exchange
+from exchange.leverage_change import change_leverage_and_mode_for_whole_exchange
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 

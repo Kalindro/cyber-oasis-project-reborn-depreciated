@@ -7,8 +7,8 @@ from scipy.stats import linregress
 from exchange.get_history import GetFullHistoryDF
 
 
-def calc_portfolio_parity(pairs_history_df_dict: dict[str, pd.DataFrame], NATR_period: int, investment: int = 1000,
-                          winsor_trim: bool = False) -> dict[str, pd.DataFrame]:
+def calc_portfolio_parity(pairs_history_df_dict: dict[str: pd.DataFrame], NATR_period: int, investment: int = 1000,
+                          winsor_trim: bool = False) -> dict[str: pd.DataFrame]:
     """Calculate parity allocation for list of history dataframes"""
     logger.info("Calculating portfolio parity for pairs histories")
 
@@ -37,12 +37,11 @@ def calc_portfolio_parity(pairs_history_df_dict: dict[str, pd.DataFrame], NATR_p
     return pairs_history_df_dict_portfolio_parity
 
 
-def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, timeframe: str,
+def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, benchmark: str, timeframe: str,
                                                number_of_last_candles: int, API: dict, beta_period: int,
                                                investment: int = 1000,
-                                               **kwargs) -> dict[str, pd.DataFrame]:
+                                               **kwargs) -> dict[str: pd.DataFrame]:
     """Calculate beta neutral allocation for two pairs"""
-    benchmark = "BTC/USDT"
     pairs = [pair_long, pair_short]
     all_pairs = pairs + [benchmark]
     pairs_history_df_dict = GetFullHistoryDF.get_full_history(pairs_list=all_pairs, timeframe=timeframe, API=API,

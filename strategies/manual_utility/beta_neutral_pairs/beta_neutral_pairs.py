@@ -1,4 +1,4 @@
-from prime_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
+from general_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 
@@ -22,11 +22,12 @@ class _BaseSettings(FundamentalSettings):
 
 
 class BetaNeutralPairs(_BaseSettings):
-    """Main class with pairs balance calculations"""
+    """Calculate beta neutral allocation for two pairs"""
 
     def main(self):
         allocation_df = calc_beta_neutral_allocation_for_two_pairs(pair_long=self.PAIR_LONG,
                                                                    pair_short=self.PAIR_SHORT,
+                                                                   benchmark=self.PAIR_BENCHMARK,
                                                                    timeframe=self.TIMEFRAME,
                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
                                                                    beta_period=self.PERIODS["BETA"],

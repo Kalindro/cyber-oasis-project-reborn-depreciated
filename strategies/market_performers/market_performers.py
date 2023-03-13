@@ -8,7 +8,7 @@ from pandas import DataFrame as df
 from pandas_ta.volatility import natr as NATR
 
 from exchange.base_functions import get_pairs_prices
-from exchange.get_full_history import get_full_history_for_pairs_list
+from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted
@@ -71,16 +71,17 @@ class PerformanceRankAnalysis(_BaseSettings):
 
     def _calculate_performances_on_list(self) -> list[dict]:
         """Calculate performance on all pairs on provided list"""
-        pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
-                                                                number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                API=self.API, min_data_length=self.min_data_length)
+        pairs_history_df_dict = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                                    API=self.API, min_data_length=self.min_data_length)
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
                                                    days_windows=self.DAYS_WINDOWS, min_vol_usd=self.MIN_VOL_USD,
                                                    min_vol_btc=self.MIN_VOL_BTC)
         performances_calculation_results = [partial_performance_calculations(pair_history) for pair_history in
-                                            pairs_history_df_list]
+                                            pairs_history_df_dict.values()]
 
         return performances_calculation_results
 

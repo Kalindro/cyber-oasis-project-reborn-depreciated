@@ -24,7 +24,7 @@ class GetFullHistoryDF:
                          API: dict,
                          min_data_length: int = None,
                          vol_quantile_drop: float = None,
-                         **kwargs) -> dict[str, pd.DataFrame]:
+                         **kwargs) -> dict[str: pd.DataFrame]:
         """Get history of all pairs on list
         kwargs:
             save_load_history
@@ -56,8 +56,8 @@ class GetFullHistoryDF:
         return pairs_history_df_dict
 
     @staticmethod
-    def _drop_bottom_quantile_vol(pairs_history_df_dict: dict[str, pd.DataFrame], quantile: float) -> \
-            dict[str, pd.DataFrame]:
+    def _drop_bottom_quantile_vol(pairs_history_df_dict: dict[str: pd.DataFrame], quantile: float) -> \
+            dict[str: pd.DataFrame]:
         mean_volumes = {pair: history_df["volume"].mean() for pair, history_df in pairs_history_df_dict.items()}
         threshold = np.quantile(list(mean_volumes.values()), 0.25)
         pairs_history_dict_quantiled = {pair: history_df for pair, history_df in pairs_history_df_dict.items() if
