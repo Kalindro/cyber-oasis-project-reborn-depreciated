@@ -47,7 +47,7 @@ class ExchangeAPISelect(_CCXTExchangeSelect):
         exchange = "binance_spot"
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
-        API = {"full_name": name, "exchange": exchange,
+        API = {"name": name, "exchange": exchange,
                "client": self._binance_spot(public_key, secret_key)}
         return API
 

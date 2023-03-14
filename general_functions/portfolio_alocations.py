@@ -44,8 +44,9 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
     """Calculate beta neutral allocation for two pairs"""
     pairs = [pair_long, pair_short]
     all_pairs = pairs + [benchmark]
-    pairs_history_df_dict = GetFullHistoryDF.get_full_history(pairs_list=all_pairs, timeframe=timeframe, API=API,
-                                                              number_of_last_candles=number_of_last_candles, **kwargs)
+    pairs_history_df_dict = GetFullHistoryDF().get_full_history(pairs_list=all_pairs, timeframe=timeframe, API=API,
+                                                                number_of_last_candles=number_of_last_candles,
+                                                                **kwargs)
 
     for pair_df in pairs_history_df_dict.values():
         pair_df["returns"] = np.log(pair_df["close"])
@@ -66,6 +67,6 @@ def calc_beta_neutral_allocation_for_two_pairs(pair_long: str, pair_short: str, 
         pair_df["allocation_ccy"] = round((total_beta - pair_df["beta"]) / total_beta * investment, 0)
         pair_df.drop(columns=["returns"])
 
-    pairs_history_df_list_beta_neutral = pairs_history_df_dict
+    pairs_history_df_dict_beta_neutral = pairs_history_df_dict
 
-    return pairs_history_df_list_beta_neutral
+    return pairs_history_df_dict_beta_neutral

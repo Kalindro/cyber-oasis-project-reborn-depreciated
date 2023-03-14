@@ -14,7 +14,7 @@ def clean_string(message: str) -> str:
 
 
 def date_string_to_datetime(date_string: str) -> dt.datetime:
-    date_datetime = pd.to_datetime(date_string)
+    date_datetime = pd.to_datetime(date_string, dayfirst=True)
     return date_datetime
 
 
@@ -24,7 +24,7 @@ def datetime_to_timestamp_ms(date_datetime: dt.datetime) -> int:
 
 
 def timestamp_ms_to_datetime(timestamp_ms: int) -> dt.datetime:
-    date_datetime = pd.to_datetime(timestamp_ms / 1000.0)
+    date_datetime = pd.to_datetime(timestamp_ms / 1000.0, dayfirst=True)
     return date_datetime
 
 

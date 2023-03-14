@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 import vectorbt as vbt
 
-from exchange.get_full_history import get_full_history_for_pairs_list
-from prime_functions.momentums import momentum_ranking_with_parity
+from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
+from general_functions.momentums import momentum_ranking_with_parity
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -50,6 +50,9 @@ class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
     def main(self):
+        data = self._get_history()
+        vbt_data = vbt.Data.from_data(data=data, download_kwargs={})
+        print(vbt_data.concat())
         pf = self.momentum_strat()
 
         print(pf.stats())
@@ -64,14 +67,13 @@ class MainBacktest(_BaseSettings):
         prices = {pair_df["pair"].iloc[-1]: pair_df for pair_df in sasa}
         allocations = momentum_ranking_with_parity(momentum_period=self.PERIODS["MOMENTUM"],
                                                    NATR_period=self.PERIODS["NATR"],
-                                                   pairs_history_df_list=sasa)
+                                                   pairs_history_df_dict=sasa)
 
         cash = 10000
 
         size = allocations * cash
 
         orders = size.diff().fillna(0)
-        print(orders)
 
         portfolio = vbt.Portfolio.from_orders(orders, price=prices)
 
@@ -80,11 +82,12 @@ class MainBacktest(_BaseSettings):
         return portfolio
 
     def _get_history(self):
-        pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list,
-                                                                timeframe=self.TIMEFRAME,
-                                                                save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                since=self.since, end=self.end, API=self.API,
-                                                                min_data_length=self.MIN_DATA_LENGTH)
+        pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
+                                                                    timeframe=self.TIMEFRAME,
+                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
+                                                                    since=self.since, end=self.end,
+                                                                    API=self.API,
+                                                                    min_data_length=self.MIN_DATA_LENGTH)
         # price_df = pd.concat(pairs_history_df_list, axis=1)
 
         return pairs_history_df_list
