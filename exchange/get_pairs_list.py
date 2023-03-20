@@ -5,7 +5,7 @@ from exchange.base_functions import get_pairs_with_precisions_status
 
 def get_pairs_list_test_single() -> list[str]:
     """Get test pairs list"""
-    return ["GNS/USDT"]
+    return ["BTC/USDT"]
 
 
 def get_pairs_list_test_multi() -> list[str]:

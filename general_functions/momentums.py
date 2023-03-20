@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from loguru import logger
-from pandas_ta import natr as NATR
 from scipy.stats import linregress
+from talib import NATR
 
 
 def momentum_ranking_with_parity(pairs_history_df_dict: dict[str: pd.DataFrame], momentum_period: int,
@@ -12,7 +12,7 @@ def momentum_ranking_with_parity(pairs_history_df_dict: dict[str: pd.DataFrame],
                                                                         momentum_period=momentum_period,
                                                                         top_decimal=top_decimal, top_number=top_number)
     for pair_df in pairs_history_df_dict_momentum.values():
-        natr = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
+        natr = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], timeperiod=NATR_period)
         pair_df["inv_vola"] = 1 / natr.fillna(0)
 
     # Step 2: Rank the pairs based on momentum

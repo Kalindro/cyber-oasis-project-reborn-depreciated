@@ -5,7 +5,7 @@ from functools import partial
 
 import pandas as pd
 from pandas import DataFrame as df
-from pandas_ta.volatility import natr as NATR
+from talib import NATR
 
 from exchange.base_functions import get_pairs_prices
 from exchange.get_history import GetFullHistoryDF
@@ -131,7 +131,7 @@ class _PerformanceCalculation:
             return
 
         coin_NATR = NATR(close=fast_history["close"], high=fast_history["high"], low=fast_history["low"],
-                         period=len(fast_history))[-1]
+                         timeperiod=len(fast_history))[-1]
 
         full_performance_dict = {"pair": [pair], "symbol": [symbol], "natr": [coin_NATR],
                                  "avg_vol_fast": [avg_vol_fast], "avg_vol_slow": [avg_vol_slow],

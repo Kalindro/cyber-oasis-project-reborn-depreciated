@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from loguru import logger
-from pandas_ta import natr as NATR
 from scipy.stats import linregress
+from talib import NATR
 
 from exchange.get_history import GetFullHistoryDF
 
@@ -15,7 +15,7 @@ def calc_portfolio_parity(pairs_history_df_dict: dict[str: pd.DataFrame], NATR_p
     TRIM = 0.1
     total_inv_vola = 0
     for pair, pair_df in pairs_history_df_dict.items():
-        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], window=NATR_period)
+        pair_df["natr"] = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], timeperiod=NATR_period)
         inv_vola = 1 / pair_df["natr"]
         pair_df["inv_vola"] = inv_vola
         total_inv_vola += inv_vola

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import vectorbt as vbt
+import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
@@ -51,9 +51,8 @@ class MainBacktest(_BaseSettings):
 
     def main(self):
         data = self._get_history()
-        vbt_data = vbt.Data.from_data(data=data, download_kwargs={})
-        print(vbt_data.concat())
-        pf = self.momentum_strat()
+        vbt_data = vbt.Data.from_data(data=data)
+        pf = self.momentum_strat(vbt_data)
 
         print(pf.stats())
 
@@ -62,24 +61,26 @@ class MainBacktest(_BaseSettings):
         #     fig = self._plot_base(portfolio=pf, price_df=price_df)
         #     fig.show()
 
-    def momentum_strat(self):
-        sasa = self._get_history()
-        prices = {pair_df["pair"].iloc[-1]: pair_df for pair_df in sasa}
+    def momentum_strat(self, vbt_data):
         allocations = momentum_ranking_with_parity(momentum_period=self.PERIODS["MOMENTUM"],
                                                    NATR_period=self.PERIODS["NATR"],
-                                                   pairs_history_df_dict=sasa)
+                                                   pairs_history_df_dict=dict(vbt_data.data))
 
-        cash = 10000
+        wrapper = vbt_data.get("close").vbt.wrapper
+        # pf = vbt.PortfolioOptimizer.from_allocate_func(
+        #     wrapper,
+        #     allocations_func,
+        #     every="1D"
+        # )
 
-        size = allocations * cash
+        pf_optimizer = vbt.PortfolioOptimizer.from_allocations(
+            wrapper,
+            allocations
+        )
+        print(pf_optimizer)
+        pf = pf_optimizer.simulate(vbt_data, freq="1h")
 
-        orders = size.diff().fillna(0)
-
-        portfolio = vbt.Portfolio.from_orders(orders, price=prices)
-
-        portfolio.run()
-
-        return portfolio
+        return pf
 
     def _get_history(self):
         pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
@@ -88,7 +89,6 @@ class MainBacktest(_BaseSettings):
                                                                     since=self.since, end=self.end,
                                                                     API=self.API,
                                                                     min_data_length=self.MIN_DATA_LENGTH)
-        # price_df = pd.concat(pairs_history_df_list, axis=1)
 
         return pairs_history_df_list
 
