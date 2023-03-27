@@ -4,7 +4,7 @@ import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
-from general_functions.momentums import momentum_ranking_with_parity
+from general_functions.momentums import allocation_momentum_ranking
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -49,38 +49,35 @@ class _BaseSettings(FundamentalSettings):
 class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
-    def main(self):
-        data = self._get_history()
-        vbt_data = vbt.Data.from_data(data=data)
-        pf = self.momentum_strat(vbt_data)
+    def __init__(self):
+        super().__init__()
+        self.data = self._get_history()
+        self.vbt_data = vbt.Data.from_data(data=self.data)
 
+    def main(self):
+        pf = self._momentum_strat(self.vbt_data)
         print(pf.stats())
 
-        # if self.PLOTTING:
-        #     price_df = self._get_history()
-        #     fig = self._plot_base(portfolio=pf, price_df=price_df)
-        #     fig.show()
-
-    def momentum_strat(self, vbt_data):
-        allocations = momentum_ranking_with_parity(momentum_period=self.PERIODS["MOMENTUM"],
-                                                   NATR_period=self.PERIODS["NATR"],
-                                                   pairs_history_df_dict=dict(vbt_data.data))
-
-        wrapper = vbt_data.get("close").vbt.wrapper
-        # pf = vbt.PortfolioOptimizer.from_allocate_func(
-        #     wrapper,
-        #     allocations_func,
-        #     every="1D"
-        # )
-
-        pf_optimizer = vbt.PortfolioOptimizer.from_allocations(
-            wrapper,
-            allocations
+    def _momentum_strat(self, vbt_data):
+        pf_opt = vbt.PFO.from_allocate_func(
+            vbt_data.symbol_wrapper,
+            self._allocation_function,
+            vbt.RepEval("wrapper.columns"),
+            vbt.Rep("i"),
+            vbt.Param(self.PERIODS["MOMENTUM"]),
+            vbt.Param(self.PERIODS["NATR"]),
+            on=vbt.RepEval("wrapper.index")
         )
-        print(pf_optimizer)
-        pf = pf_optimizer.simulate(vbt_data, freq="1h")
 
-        return pf
+        return pf_opt.simulate(vbt_data)
+
+    def _allocation_function(self, group_idx, i, momentum_period, NATR_period):
+        if i == 0:
+            self.allocations = allocation_momentum_ranking(momentum_period=momentum_period,
+                                                           NATR_period=NATR_period,
+                                                           pairs_history_df_dict=self.data)
+
+        return self.allocations[group_idx].iloc[i]
 
     def _get_history(self):
         pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
