@@ -49,33 +49,32 @@ class _BaseSettings(FundamentalSettings):
 class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
-    def __init__(self):
-        super().__init__()
-        self.data = self._get_history()
-        self.vbt_data = vbt.Data.from_data(data=self.data)
-
     def main(self):
-        pf = self._momentum_strat(self.vbt_data)
+        data = self._get_history()
+        vbt_data = vbt.Data.from_data(data)
+        pf = self._momentum_strat(vbt_data, data)
         print(pf.stats())
 
-    def _momentum_strat(self, vbt_data):
-        pf_opt = vbt.PFO.from_allocate_func(
-            vbt_data.symbol_wrapper,
+    def _momentum_strat(self, vbt_data, data):
+        pf_opt = vbt.PFO.from_optimize_func(
+            vbt_data.get_symbol_wrapper(),
             self._allocation_function,
-            vbt.RepEval("wrapper.columns"),
+            vbt.Rep("group_idx"),
             vbt.Rep("i"),
+            data,
+            vbt.Rep("index_slice"),
             vbt.Param(self.PERIODS["MOMENTUM"]),
             vbt.Param(self.PERIODS["NATR"]),
-            on=vbt.RepEval("wrapper.index")
+            every="D",
+            lookback_period="3D"
         )
 
         return pf_opt.simulate(vbt_data)
 
-    def _allocation_function(self, group_idx, i, momentum_period, NATR_period):
-        if i == 0:
-            self.allocations = allocation_momentum_ranking(pairs_history_df_dict=self.data,
-                                                           momentum_period=momentum_period,
-                                                           NATR_period=NATR_period)
+    def _allocation_function(self, group_idx, i, pairs_history_df_dict, index_slice, momentum_period, NATR_period):
+        self.allocations = allocation_momentum_ranking(pairs_history_df_dict=pairs_history_df_dict,
+                                                       momentum_period=momentum_period,
+                                                       NATR_period=NATR_period)
 
         return self.allocations[group_idx].iloc[i]
 
