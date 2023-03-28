@@ -6,8 +6,11 @@ from talib import NATR
 
 
 def allocation_momentum_ranking(pairs_history_df_dict: dict[str: pd.DataFrame], momentum_period: int,
-                                NATR_period: int, top_decimal: float = None, top_number: int = None,
-                                winsor_trim: bool = False) -> pd.DataFrame:
+                                NATR_period: int, top_decimal: float = None, top_number: int = None) -> pd.DataFrame:
+    if not (top_decimal or top_number):
+        raise ValueError("Please provide either top decimal or top number")
+    if not top_number:
+        top_number = int(len(pairs_history_df_dict) * top_decimal)
     pairs_history_df_dict_momentum = _momentum_calc_for_pairs_histories(pairs_history_df_dict=pairs_history_df_dict,
                                                                         momentum_period=momentum_period,
                                                                         top_decimal=top_decimal, top_number=top_number)
@@ -15,54 +18,20 @@ def allocation_momentum_ranking(pairs_history_df_dict: dict[str: pd.DataFrame], 
         natr = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], timeperiod=NATR_period)
         pair_df["inv_vola"] = 1 / natr.fillna(0)
 
-    # Step 2: Rank the pairs based on momentum
     pair_names = pairs_history_df_dict_momentum.keys()
     momentum_df = pd.concat([df["momentum"] for df in pairs_history_df_dict_momentum.values()], axis=1,
                             keys=pair_names)
     ranked_df = momentum_df.rank(axis=1, method="max", ascending=False)
 
-    # Step 3: Calculate the weighted average of inverse volatility for the top 2 ranked pairs
     inv_vola_df = pd.concat([df["inv_vola"] for df in pairs_history_df_dict_momentum.values()], axis=1,
                             keys=pair_names)
-    top_pairs = ranked_df <= 2
+
+    top_pairs = ranked_df <= top_number
     sum_inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=0).sum(axis=1)
     inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=np.nan)
     inv_vola_top_pairs = inv_vola_top_pairs.div(sum_inv_vola_top_pairs, axis=0)
     inv_vola_top_pairs = inv_vola_top_pairs.fillna(0)
 
-    # Step 4: Normalize the weighted average of inverse volatility
-    inv_vola_df = inv_vola_top_pairs.divide(inv_vola_top_pairs.sum(axis=1), axis=0)
-    inv_vola_df = inv_vola_df.fillna(0)
-
-    return inv_vola_df
-
-
-def momentum_ranking_with_parity(pairs_history_df_dict: dict[str: pd.DataFrame], momentum_period: int,
-                                 NATR_period: int, top_decimal: float = None, top_number: int = None,
-                                 winsor_trim: bool = False) -> pd.DataFrame:
-    pairs_history_df_dict_momentum = _momentum_calc_for_pairs_histories(pairs_history_df_dict=pairs_history_df_dict,
-                                                                        momentum_period=momentum_period,
-                                                                        top_decimal=top_decimal, top_number=top_number)
-    for pair_df in pairs_history_df_dict_momentum.values():
-        natr = NATR(close=pair_df["close"], high=pair_df["high"], low=pair_df["low"], timeperiod=NATR_period)
-        pair_df["inv_vola"] = 1 / natr.fillna(0)
-
-    # Step 2: Rank the pairs based on momentum
-    pair_names = pairs_history_df_dict_momentum.keys()
-    momentum_df = pd.concat([df["momentum"] for df in pairs_history_df_dict_momentum.values()], axis=1,
-                            keys=pair_names)
-    ranked_df = momentum_df.rank(axis=1, method="max", ascending=False)
-
-    # Step 3: Calculate the weighted average of inverse volatility for the top 2 ranked pairs
-    inv_vola_df = pd.concat([df["inv_vola"] for df in pairs_history_df_dict_momentum.values()], axis=1,
-                            keys=pair_names)
-    top_pairs = ranked_df <= 2
-    sum_inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=0).sum(axis=1)
-    inv_vola_top_pairs = inv_vola_df.where(top_pairs, other=np.nan)
-    inv_vola_top_pairs = inv_vola_top_pairs.div(sum_inv_vola_top_pairs, axis=0)
-    inv_vola_top_pairs = inv_vola_top_pairs.fillna(0)
-
-    # Step 4: Normalize the weighted average of inverse volatility
     inv_vola_df = inv_vola_top_pairs.divide(inv_vola_top_pairs.sum(axis=1), axis=0)
     inv_vola_df = inv_vola_df.fillna(0)
 

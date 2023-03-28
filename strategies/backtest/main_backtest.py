@@ -28,6 +28,7 @@ class _BaseSettings(FundamentalSettings):
 
         self.PERIODS = dict(MOMENTUM=168,
                             NATR=128,
+                            TOP_NUMBER=20,
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
@@ -53,6 +54,7 @@ class MainBacktest(_BaseSettings):
         super().__init__()
         self.data = self._get_history()
         self.vbt_data = vbt.Data.from_data(data=self.data)
+        print(self.vbt_data.run("natr").real)
 
     def main(self):
         pf = self._momentum_strat(self.vbt_data)
@@ -66,16 +68,18 @@ class MainBacktest(_BaseSettings):
             vbt.Rep("i"),
             vbt.Param(self.PERIODS["MOMENTUM"]),
             vbt.Param(self.PERIODS["NATR"]),
+            vbt.Param(self.PERIODS["TOP_NUMBER"]),
             on=vbt.RepEval("wrapper.index")
         )
 
         return pf_opt.simulate(vbt_data)
 
-    def _allocation_function(self, group_idx, i, momentum_period, NATR_period):
+    def _allocation_function(self, group_idx, i, momentum_period, NATR_period, top_number):
         if i == 0:
             self.allocations = allocation_momentum_ranking(pairs_history_df_dict=self.data,
                                                            momentum_period=momentum_period,
-                                                           NATR_period=NATR_period)
+                                                           NATR_period=NATR_period,
+                                                           top_number=top_number)
 
         return self.allocations[group_idx].iloc[i]
 
