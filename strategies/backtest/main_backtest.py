@@ -54,7 +54,6 @@ class MainBacktest(_BaseSettings):
         super().__init__()
         self.data = self._get_history()
         self.vbt_data = vbt.Data.from_data(data=self.data)
-        print(self.vbt_data.run("natr").real)
 
     def main(self):
         pf = self._momentum_strat(self.vbt_data)
