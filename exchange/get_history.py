@@ -14,7 +14,7 @@ from loguru import logger
 from utils.utils import (date_string_to_datetime, datetime_to_timestamp_ms, timeframe_to_timestamp_ms,
                          timestamp_ms_to_datetime, dataframe_is_not_none_and_not_empty)
 
-
+print("CHANGES")
 class GetFullHistoryDF:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
