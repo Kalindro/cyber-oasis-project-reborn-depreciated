@@ -12,7 +12,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
-from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime)
+from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime, cut_exact_df_dates)
 
 WORKERS = 2
 
@@ -103,7 +103,7 @@ class GetFullHistoryDF:
         if save_load_history:
             delegate_data_storing.save_to_pickle(one_pair_dict_history)
 
-        return delegate_data_storing.cut_exact_df_dates_for_return(one_pair_dict_history, start, end)
+        return cut_exact_df_dates(one_pair_dict_history, start, end)
 
     @staticmethod
     def _validate_dates(timeframe: str,
@@ -122,7 +122,7 @@ class GetFullHistoryDF:
             end = date_string_to_UTC_datetime(end)
         if number_of_last_candles:
             start = dt.datetime.now() - (timeframe_in_timedelta * number_of_last_candles)
-            end = None
+            end = dt.datetime.now()
 
         return start, end
 
@@ -156,7 +156,7 @@ class _DataStoring:
         if dataframe_is_not_none_and_not_empty(hist_df_full):
             if (hist_df_full.iloc[0].name <= self.start) and (hist_df_full.iloc[-1].name >= self.end):
                 logger.info(f"Saved data for {self.pair} is sufficient, returning")
-                hist_df_final_cut = self.cut_exact_df_dates_for_return(hist_df_full, self.start, self.end)
+                hist_df_final_cut = cut_exact_df_dates(hist_df_full, self.start, self.end)
                 return hist_df_final_cut
             # else:
             #     delegate_get_history = _QueryHistory()
@@ -201,12 +201,3 @@ class _DataStoring:
             else:
                 logger.error(f"Location error, {err}")
             return None
-
-    @staticmethod
-    def cut_exact_df_dates_for_return(pre_dataframe: pd.DataFrame, start: dt.datetime,
-                                      end: dt.datetime) -> pd.DataFrame:
-        """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise to
-         the second while the TIMEFRAME may be 1D - it would never return correctly, mainly when the end is now"""
-        cut_dataframe = pre_dataframe.loc[start:min(pre_dataframe.iloc[-1].name, end)]
-
-        return cut_dataframe

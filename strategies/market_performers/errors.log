@@ -517,3 +517,9 @@
 2023-04-01 00:02:57 | ERROR    | Error on main full history, 'int' object is not subscriptable | _get_vbt_desired_history | get_history.py:98
 2023-04-01 00:03:01 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
 2023-04-01 00:10:03 | ERROR    | Error on main full history, CCXTData.fetch_symbol() got an unexpected keyword argument 'init_kwargs' | _get_vbt_desired_history | get_history.py:99
+2023-04-02 00:20:50 | ERROR    | Error on main full history, unsupported operand type(s) for +: 'NoneType' and 'datetime.timedelta' | get_full_history | get_history.py:58
+2023-04-02 00:20:53 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 00:21:33 | ERROR    | Error on main full history, local variable 'delegate_data_storing' referenced before assignment | get_full_history | get_history.py:58
+2023-04-02 00:21:38 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 00:23:44 | ERROR    | Error on main full history, can't compare offset-naive and offset-aware datetimes | get_full_history | get_history.py:58
+2023-04-02 00:23:47 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66

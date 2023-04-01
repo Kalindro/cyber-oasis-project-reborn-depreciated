@@ -2,12 +2,12 @@ import datetime as dt
 import math
 import time
 from datetime import timedelta
-from vectorbtpro.utils.datetime_ import get_local_tz
 
 import pandas as pd
 from cleantext import clean
 from loguru import logger
 from pandas import ExcelWriter
+from vectorbtpro.utils.datetime_ import get_local_tz
 
 
 def clean_string(message: str) -> str:
@@ -28,6 +28,14 @@ def datetime_to_timestamp_ms(date_datetime: dt.datetime) -> int:
 def timestamp_ms_to_datetime(timestamp_ms: int) -> dt.datetime:
     date_datetime = pd.to_datetime(timestamp_ms / 1000.0, dayfirst=True).tz_localize(get_local_tz()).tz_convert("UTC")
     return date_datetime
+
+
+def cut_exact_df_dates(pre_dataframe: pd.DataFrame, start: dt.datetime, end: dt.datetime) -> pd.DataFrame:
+    """Cut the dataframe to exactly match the desired since/end, small quirk here as end_datetime can be precise to
+     the second while the TIMEFRAME may be 1D - it would never return correctly, mainly when the end is now"""
+    cut_dataframe = pre_dataframe.loc[start:min(pre_dataframe.iloc[-1].name, end)]
+
+    return cut_dataframe
 
 
 def dataframe_is_not_none_and_not_empty(dataframe: pd.DataFrame) -> bool:
