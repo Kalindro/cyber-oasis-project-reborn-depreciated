@@ -18,7 +18,7 @@ def change_leverage_and_mode_for_pairs_list(leverage: int, pairs_list: list[str]
 
 
 def change_leverage_and_mode_one_pair(pair: str, leverage: int, isolated: bool, API: dict) -> None:
-    """Change leverage and margin mode for one pair"""
+    """Change leverage and margin mode for one pairs_list"""
     exchange_client = API["client"]
     mmode = "ISOLATED" if isolated else "CROSS"
 

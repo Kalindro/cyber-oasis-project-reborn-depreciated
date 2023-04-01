@@ -513,3 +513,7 @@
 2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
 2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
 2023-03-08 21:38:28 | ERROR    | Error on main full history, list index out of range | main | get_full_history.py:98
+2023-04-01 00:00:45 | ERROR    | Error on main full history, ThreadPoolEngine doesn't expect arguments ['max_workers'] | _get_vbt_desired_history | get_history.py:98
+2023-04-01 00:02:57 | ERROR    | Error on main full history, 'int' object is not subscriptable | _get_vbt_desired_history | get_history.py:98
+2023-04-01 00:03:01 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-01 00:10:03 | ERROR    | Error on main full history, CCXTData.fetch_symbol() got an unexpected keyword argument 'init_kwargs' | _get_vbt_desired_history | get_history.py:99

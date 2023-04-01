@@ -16,9 +16,6 @@ from utils.utils import excel_save_formatted
 logger = ConfigureLoguru().info_level()
 
 
-# TODO Wyjebac okna dni po których nie bede filtrował z koncowego dict, dodać sektory do coinów (chuj wie jak),
-#  dodac medium vol,
-
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
@@ -53,9 +50,9 @@ class PerformanceRankAnalysis(_BaseSettings):
             if self.PAIRS_MODE == 4:
                 market_median_performance = full_performance_df["median_performance"].median()
                 BTC_median_performance = full_performance_df.loc[
-                    full_performance_df["pair"] == "BTC/USDT", "median_performance"].iloc[-1]
+                    full_performance_df["pairs_list"] == "BTC/USDT", "median_performance"].iloc[-1]
                 ETH_median_performance = full_performance_df.loc[
-                    full_performance_df["pair"] == "ETH/USDT", "median_performance"].iloc[-1]
+                    full_performance_df["pairs_list"] == "ETH/USDT", "median_performance"].iloc[-1]
                 print(f"\033[93mMarket median performance: {market_median_performance:.2%}\033[0m")
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
@@ -71,17 +68,17 @@ class PerformanceRankAnalysis(_BaseSettings):
 
     def _calculate_performances_on_list(self) -> list[dict]:
         """Calculate performance on all pairs on provided list"""
-        pairs_history_df_dict = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
-                                                                    timeframe=self.TIMEFRAME,
-                                                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                                    API=self.API, min_data_length=self.min_data_length)
+        vbt_history = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
+                                                          timeframe=self.TIMEFRAME,
+                                                          number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
+                                                          API=self.API, min_data_length=self.min_data_length)
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
                                                    days_windows=self.DAYS_WINDOWS, min_vol_usd=self.MIN_VOL_USD,
                                                    min_vol_btc=self.MIN_VOL_BTC)
         performances_calculation_results = [partial_performance_calculations(pair_history) for pair_history in
-                                            pairs_history_df_dict.values()]
+                                            vbt_history.data.values()]
 
         return performances_calculation_results
 
@@ -109,7 +106,7 @@ class _PerformanceCalculation:
 
     def performance_calculations(self, coin_history_df: pd.DataFrame, days_windows: list[int], min_vol_usd: int,
                                  min_vol_btc: int) -> tp.Union[dict, None]:
-        """Calculation all the needed performance metrics for the pair"""
+        """Calculation all the needed performance metrics for the pairs list"""
         pair = str(coin_history_df.iloc[-1].pair)
         symbol = str(coin_history_df.iloc[-1].symbol)
         price = coin_history_df.iloc[-1]["close"]
@@ -125,7 +122,7 @@ class _PerformanceCalculation:
         elif pair.endswith(("/BTC", ":BTC")):
             min_vol = min_vol_btc
         else:
-            raise ValueError("Invalid pair quote currency: " + pair)
+            raise ValueError("Invalid pairs_list quote currency: " + pair)
         if avg_vol_slow < min_vol:
             logger.info(f"Skipping {pair}, not enough volume")
             return

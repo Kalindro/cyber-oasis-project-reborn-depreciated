@@ -1,7 +1,8 @@
-from revChatGPT.V1 import Chatbot
-from dotenv import load_dotenv
 import os
+
 import openai
+from dotenv import load_dotenv
+from revChatGPT.V1 import Chatbot
 
 load_dotenv()
 

@@ -1,6 +1,8 @@
 import datetime as dt
 import math
 import time
+from datetime import timedelta
+from vectorbtpro.utils.datetime_ import get_local_tz
 
 import pandas as pd
 from cleantext import clean
@@ -13,8 +15,8 @@ def clean_string(message: str) -> str:
     return message
 
 
-def date_string_to_datetime(date_string: str) -> dt.datetime:
-    date_datetime = pd.to_datetime(date_string, dayfirst=True)
+def date_string_to_UTC_datetime(date_string: str) -> dt.datetime:
+    date_datetime = pd.to_datetime(date_string, dayfirst=True).tz_localize(get_local_tz()).tz_convert("UTC")
     return date_datetime
 
 
@@ -24,7 +26,7 @@ def datetime_to_timestamp_ms(date_datetime: dt.datetime) -> int:
 
 
 def timestamp_ms_to_datetime(timestamp_ms: int) -> dt.datetime:
-    date_datetime = pd.to_datetime(timestamp_ms / 1000.0, dayfirst=True)
+    date_datetime = pd.to_datetime(timestamp_ms / 1000.0, dayfirst=True).tz_localize(get_local_tz()).tz_convert("UTC")
     return date_datetime
 
 
@@ -107,9 +109,36 @@ def timeframe_to_timestamp_ms(timeframe: str) -> int:
     elif timeframe == "7d" or timeframe == "1w":
         timestamp_ms = 604800000
     else:
-        raise ValueError("Unsupported TIMEFRAME to convert to timestamp")
+        raise ValueError("Unsupported timeframe to convert to timestamp")
 
     return int(timestamp_ms)
+
+
+def timeframe_to_timedelta(timeframe: str) -> dt.timedelta:
+    """Convert timeframe string to timestamp in milliseconds"""
+    timeframe = timeframe.lower()
+    if timeframe == "1m" or timeframe == "1min":
+        my_timedelta = timedelta(minutes=1)
+    elif timeframe == "5m" or timeframe == "5min":
+        my_timedelta = timedelta(minutes=5)
+    elif timeframe == "15m" or timeframe == "15min":
+        my_timedelta = timedelta(minutes=15)
+    elif timeframe == "30m" or timeframe == "30min":
+        my_timedelta = timedelta(minutes=30)
+    elif timeframe == "1h" or timeframe == "60m" or timeframe == "60min":
+        my_timedelta = timedelta(hours=1)
+    elif timeframe == "4h":
+        my_timedelta = timedelta(hours=4)
+    elif timeframe == "12h":
+        my_timedelta = timedelta(hours=12)
+    elif timeframe == "24h" or timeframe == "1d":
+        my_timedelta = timedelta(hours=24)
+    elif timeframe == "7d" or timeframe == "1w":
+        my_timedelta = timedelta(days=7)
+    else:
+        raise ValueError("Unsupported timeframe to convert to timedelta")
+
+    return my_timedelta
 
 
 def round_down(x: float) -> float:
