@@ -15,6 +15,11 @@ def clean_string(message: str) -> str:
     return message
 
 
+def datetime_now_in_UTC() -> dt.datetime:
+    date_datetime = dt.datetime.now(dt.timezone.utc)
+    return date_datetime
+
+
 def date_string_to_UTC_datetime(date_string: str) -> dt.datetime:
     date_datetime = pd.to_datetime(date_string, dayfirst=True).tz_localize(get_local_tz()).tz_convert("UTC")
     return date_datetime

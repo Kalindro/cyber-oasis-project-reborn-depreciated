@@ -19,7 +19,7 @@ logger = ConfigureLoguru().info_level()
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 4
+        self.PAIRS_MODE: int = 2
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
@@ -86,8 +86,7 @@ class PerformanceRankAnalysis(_BaseSettings):
         """Process the list of performances and output in formatted dataframe"""
         full_performance_df = df()
         for pair_results in performance_calculation_results:
-            full_performance_df = pd.concat([df(pair_results), full_performance_df],
-                                            ignore_index=True)
+            full_performance_df = pd.concat([df(pair_results), full_performance_df], ignore_index=True)
 
         fast_history = full_performance_df["avg_vol_fast"]
         slow_history = full_performance_df["avg_vol_slow"]

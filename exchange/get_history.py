@@ -12,7 +12,8 @@ import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
-from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime, cut_exact_df_dates)
+from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime,
+                         cut_exact_df_dates, datetime_now_in_UTC)
 
 WORKERS = 2
 
@@ -98,7 +99,7 @@ class GetFullHistoryDF:
 
         delta = timeframe_to_timedelta(timeframe)
         _, one_pair_dict_history = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                                      end=end + delta * 6).data.popitem()
+                                                      end=end + delta * 6, show_progress=False).data.popitem()
 
         if save_load_history:
             delegate_data_storing.save_to_pickle(one_pair_dict_history)
@@ -121,8 +122,8 @@ class GetFullHistoryDF:
         if end:
             end = date_string_to_UTC_datetime(end)
         if number_of_last_candles:
-            start = dt.datetime.now() - (timeframe_in_timedelta * number_of_last_candles)
-            end = dt.datetime.now()
+            start = datetime_now_in_UTC() - (timeframe_in_timedelta * number_of_last_candles)
+            end = datetime_now_in_UTC()
 
         return start, end
 

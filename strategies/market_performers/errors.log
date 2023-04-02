@@ -523,3 +523,10 @@
 2023-04-02 00:21:38 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
 2023-04-02 00:23:44 | ERROR    | Error on main full history, can't compare offset-naive and offset-aware datetimes | get_full_history | get_history.py:58
 2023-04-02 00:23:47 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 20:59:26 | ERROR    | Error on main full history, can't compare offset-naive and offset-aware datetimes | get_full_history | get_history.py:58
+2023-04-02 20:59:29 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 21:02:50 | ERROR    | Error on main full history, can't compare offset-naive and offset-aware datetimes | get_full_history | get_history.py:58
+2023-04-02 21:02:54 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 21:05:29 | ERROR    | Error on main full history, can't compare offset-naive and offset-aware datetimes | get_full_history | get_history.py:58
+2023-04-02 21:05:33 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
+2023-04-02 21:30:44 | ERROR    | Error on main market performance, 'Series' object has no attribute 'pair' | main | market_performers.py:66
