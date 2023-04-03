@@ -50,9 +50,9 @@ class PerformanceRankAnalysis(_BaseSettings):
             if self.PAIRS_MODE == 4:
                 market_median_performance = full_performance_df["median_performance"].median()
                 BTC_median_performance = full_performance_df.loc[
-                    full_performance_df["pairs_list"] == "BTC/USDT", "median_performance"].iloc[-1]
+                    full_performance_df["pair"] == "BTC/USDT", "median_performance"].iloc[-1]
                 ETH_median_performance = full_performance_df.loc[
-                    full_performance_df["pairs_list"] == "ETH/USDT", "median_performance"].iloc[-1]
+                    full_performance_df["pair"] == "ETH/USDT", "median_performance"].iloc[-1]
                 print(f"\033[93mMarket median performance: {market_median_performance:.2%}\033[0m")
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")

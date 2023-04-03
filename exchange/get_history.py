@@ -1,8 +1,10 @@
 import datetime as dt
 import inspect
 import os
+import time
 import traceback
 import typing as tp
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from pathlib import Path
@@ -16,6 +18,7 @@ from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_e
                          cut_exact_df_dates, datetime_now_in_UTC)
 
 WORKERS = 2
+SLEEP = 0.25
 
 
 class GetFullHistoryDF:
@@ -37,7 +40,8 @@ class GetFullHistoryDF:
 
             if number_of_last_candles and save_load_history:
                 save_load_history = False
-                print("ERROR, You cannot provide last_n_candles and save_load together, saving/loading turned off")
+                warnings.warn("ERROR, You cannot provide last_n_candles and save_load together,"
+                              " saving/loading turned off")
 
             vbt_full_history = self._get_vbt_all_pairs_desired_history(pairs_list=pairs_list, timeframe=timeframe,
                                                                        API=API, save_load_history=save_load_history,
@@ -98,8 +102,10 @@ class GetFullHistoryDF:
                 return one_pair_dict_history
 
         delta = timeframe_to_timedelta(timeframe)
+        time.sleep(SLEEP)
         _, one_pair_dict_history = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                                      end=end + delta * 6, show_progress=False).data.popitem()
+                                                      end=end + delta * 6, exchange=API["client"],
+                                                      show_progress=False).data.popitem()
 
         if save_load_history:
             delegate_data_storing.save_to_pickle(one_pair_dict_history)
