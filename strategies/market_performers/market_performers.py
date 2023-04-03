@@ -19,7 +19,7 @@ logger = ConfigureLoguru().info_level()
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 2
+        self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
@@ -77,8 +77,9 @@ class PerformanceRankAnalysis(_BaseSettings):
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
                                                    days_windows=self.DAYS_WINDOWS, min_vol_usd=self.MIN_VOL_USD,
                                                    min_vol_btc=self.MIN_VOL_BTC)
-        performances_calculation_results = [partial_performance_calculations(pair_history) for pair_history in
-                                            vbt_history.data.values()]
+
+        performances_calculation_results = [partial_performance_calculations(pair, pair_history) for pair, pair_history
+                                            in vbt_history.data.items()]
 
         return performances_calculation_results
 
@@ -103,17 +104,15 @@ class PerformanceRankAnalysis(_BaseSettings):
 class _PerformanceCalculation:
     """CLass containing calculations"""
 
-    def performance_calculations(self, coin_history_df: pd.DataFrame, days_windows: list[int], min_vol_usd: int,
-                                 min_vol_btc: int) -> tp.Union[dict, None]:
+    def performance_calculations(self, pair: str, coin_history_df: pd.DataFrame, days_windows: list[int],
+                                 min_vol_usd: int, min_vol_btc: int) -> tp.Union[dict, None]:
         """Calculation all the needed performance metrics for the pairs list"""
-        pair = str(coin_history_df.iloc[-1].pair)
-        symbol = str(coin_history_df.iloc[-1].symbol)
-        price = coin_history_df.iloc[-1]["close"]
+        price = coin_history_df.iloc[-1]["Close"]
         days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in days_windows}
         fast_history = days_history_dict["3d_hourly_history"]
         slow_history = days_history_dict["31d_hourly_history"]
-        avg_vol_fast = (fast_history["volume"].sum() / int(len(fast_history) / 24)) * price
-        avg_vol_slow = (slow_history["volume"].sum() / int(len(slow_history) / 24)) * price
+        avg_vol_fast = (fast_history["Volume"].sum() / int(len(fast_history) / 24)) * price
+        avg_vol_slow = (slow_history["Volume"].sum() / int(len(slow_history) / 24)) * price
         vol_increase = avg_vol_fast / avg_vol_slow
 
         if pair.endswith(("/USDT", ":USDT")):
@@ -126,12 +125,11 @@ class _PerformanceCalculation:
             logger.info(f"Skipping {pair}, not enough volume")
             return
 
-        coin_NATR = NATR(close=fast_history["close"], high=fast_history["high"], low=fast_history["low"],
+        coin_NATR = NATR(close=fast_history["Close"], high=fast_history["High"], low=fast_history["Low"],
                          timeperiod=len(fast_history))[-1]
 
-        full_performance_dict = {"pair": [pair], "symbol": [symbol], "natr": [coin_NATR],
-                                 "avg_vol_fast": [avg_vol_fast], "avg_vol_slow": [avg_vol_slow],
-                                 "vol_increase": [vol_increase]}
+        full_performance_dict = {"pair": [pair], "natr": [coin_NATR], "avg_vol_fast": [avg_vol_fast],
+                                 "avg_vol_slow": [avg_vol_slow], "vol_increase": [vol_increase]}
         price_change_dict = {
             f"{days}d_performance": self._calculate_price_change(days_history_dict[f"{days}d_hourly_history"])
             for days in days_windows}
@@ -143,8 +141,8 @@ class _PerformanceCalculation:
     @staticmethod
     def _calculate_price_change(cut_history_dataframe: pd.DataFrame) -> float:
         """Function counting price change in %"""
-        performance = (cut_history_dataframe.iloc[-1]["close"] - cut_history_dataframe.iloc[0]["close"]) / \
-                      cut_history_dataframe.iloc[0]["close"]
+        performance = (cut_history_dataframe.iloc[-1]["Close"] - cut_history_dataframe.iloc[0]["Close"]) / \
+                      cut_history_dataframe.iloc[0]["Close"]
 
         return performance
 
