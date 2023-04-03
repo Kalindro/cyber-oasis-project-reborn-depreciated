@@ -27,14 +27,15 @@ class _BaseSettings(FundamentalSettings):
         self.VOL_QUANTILE_DROP = 0.60
         self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
         self.MIN_VOL_USD = 300_000
+        self.MIN_VOL_BTC = self._min_vol_BTC
 
     @property
-    def MIN_VOL_BTC(self):
+    def _min_vol_BTC(self):
         BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         return self.MIN_VOL_USD / BTC_price
 
     @property
-    def min_data_length(self):
+    def _min_data_length(self):
         return max(self.DAYS_WINDOWS) * 24
 
 
@@ -71,7 +72,7 @@ class PerformanceRankAnalysis(_BaseSettings):
         vbt_history = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
                                                           timeframe=self.TIMEFRAME,
                                                           number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                          API=self.API, min_data_length=self.min_data_length)
+                                                          API=self.API, min_data_length=self._min_data_length)
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,

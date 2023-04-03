@@ -34,17 +34,21 @@ class _BaseSettings(FundamentalSettings):
         self.PLOTTING: bool = True
 
         self.TIMEFRAME: str = "1h"
-        self.since: str = "01.01.2022"
+        self.start: str = "01.01.2022"
         self.end: str = "31.12.2022"
 
         self.MIN_VOLUME = 10
-        self.MIN_DATA_LENGTH = 10
-        self.validate_inputs()
+        self.MIN_DATA_LENGTH = self._min_data_length
+        self._validate_inputs()
 
-    def validate_inputs(self) -> None:
+    def _validate_inputs(self) -> None:
         """Validate input parameters"""
         if self.PAIRS_MODE != 1:
             self.PLOTTING = False
+
+    @property
+    def _min_data_length(self):
+        return max(self.PERIODS.values())
 
 
 class MainBacktest(_BaseSettings):
@@ -52,8 +56,7 @@ class MainBacktest(_BaseSettings):
 
     def __init__(self):
         super().__init__()
-        self.data = self._get_history()
-        self.vbt_data = vbt.Data.from_data(data=self.data)
+        self.vbt_data = self._get_history()
 
     def main(self):
         pf = self._momentum_strat(self.vbt_data)
@@ -75,7 +78,7 @@ class MainBacktest(_BaseSettings):
 
     def _allocation_function(self, group_idx, i, momentum_period, NATR_period, top_number):
         if i == 0:
-            self.allocations = allocation_momentum_ranking(pairs_history_df_dict=self.data,
+            self.allocations = allocation_momentum_ranking(vbt_data=self.vbt_data,
                                                            momentum_period=momentum_period,
                                                            NATR_period=NATR_period,
                                                            top_number=top_number)
@@ -83,11 +86,10 @@ class MainBacktest(_BaseSettings):
         return self.allocations[group_idx].iloc[i]
 
     def _get_history(self):
-        pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
-                                                                    timeframe=self.TIMEFRAME,
-                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                    since=self.since, end=self.end,
+        pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start,
+                                                                    end=self.end, timeframe=self.TIMEFRAME,
                                                                     API=self.API,
+                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
                                                                     min_data_length=self.MIN_DATA_LENGTH)
 
         return pairs_history_df_list

@@ -103,6 +103,7 @@ class GetFullHistoryDF:
 
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
+
         _, one_pair_dict_history = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
                                                       end=end + delta * 6, exchange=API["client"],
                                                       show_progress=False).data.popitem()
