@@ -23,7 +23,7 @@ vbt.settings.portfolio.stats['incl_unrealized'] = True
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 2
+        self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.PERIODS = dict(MOMENTUM=168,
@@ -76,23 +76,20 @@ class MainBacktest(_BaseSettings):
 
         return pf_opt.simulate(vbt_data)
 
-    def _allocation_function(self, group_idx, i, momentum_period, NATR_period, top_number):
+    def _allocation_function(self, columns, i, momentum_period, NATR_period, top_number):
         if i == 0:
-            self.allocations = allocation_momentum_ranking(vbt_data=self.vbt_data,
-                                                           momentum_period=momentum_period,
-                                                           NATR_period=NATR_period,
-                                                           top_number=top_number)
+            self.allocations = allocation_momentum_ranking(vbt_data=self.vbt_data, momentum_period=momentum_period,
+                                                           NATR_period=NATR_period, top_number=top_number)
 
-        return self.allocations[group_idx].iloc[i]
+        return self.allocations[columns].iloc[i]
 
     def _get_history(self):
-        pairs_history_df_list = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start,
-                                                                    end=self.end, timeframe=self.TIMEFRAME,
-                                                                    API=self.API,
-                                                                    save_load_history=self.SAVE_LOAD_HISTORY,
-                                                                    min_data_length=self.MIN_DATA_LENGTH)
+        vbt_data = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start, end=self.end,
+                                                       timeframe=self.TIMEFRAME, API=self.API,
+                                                       save_load_history=self.SAVE_LOAD_HISTORY,
+                                                       min_data_length=self.MIN_DATA_LENGTH)
 
-        return pairs_history_df_list
+        return vbt_data
 
     @staticmethod
     def _plot_base(portfolio, price_df):

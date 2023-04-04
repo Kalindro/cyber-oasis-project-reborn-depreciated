@@ -5,7 +5,10 @@ from loguru import logger
 from scipy.stats import linregress
 
 
-def allocation_momentum_ranking(vbt_data: vbt.Data, momentum_period: int, NATR_period: int, top_decimal: float = None,
+def allocation_momentum_ranking(vbt_data: vbt.Data,
+                                momentum_period: int,
+                                NATR_period: int,
+                                top_decimal: float = None,
                                 top_number: int = None) -> pd.DataFrame:
     if not (top_decimal or top_number):
         raise ValueError("Please provide either top decimal or top number")
@@ -15,6 +18,7 @@ def allocation_momentum_ranking(vbt_data: vbt.Data, momentum_period: int, NATR_p
     ranked_df = momentum_data.rank(axis=1, method="max", ascending=False)
 
     natr_data = vbt_data.run("talib_NATR", timeperiod=NATR_period).real
+    natr_data.columns = natr_data.columns.droplevel(0)
     inv_vol_data = 1 / natr_data
 
     top_pairs = ranked_df <= top_number

@@ -97,21 +97,21 @@ class GetFullHistoryDF:
 
         if save_load_history:
             delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-            one_pair_dict_history = delegate_data_storing.load_pickle_and_pre_check()
-            if dataframe_is_not_none_and_not_empty(one_pair_dict_history):
-                return one_pair_dict_history
+            one_pair_df = delegate_data_storing.load_pickle_and_pre_check()
+            if dataframe_is_not_none_and_not_empty(one_pair_df):
+                return one_pair_df
 
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 
-        _, one_pair_dict_history = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                                      end=end + delta * 6, exchange=API["client"],
-                                                      show_progress=False).data.popitem()
+        _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
+                                            end=end + delta * 6, exchange=API["client"], skip_on_error=True,
+                                            show_progress=False).data.popitem()
 
         if save_load_history:
-            delegate_data_storing.save_to_pickle(one_pair_dict_history)
+            delegate_data_storing.save_to_pickle(one_pair_df)
 
-        return cut_exact_df_dates(one_pair_dict_history, start, end)
+        return cut_exact_df_dates(one_pair_df, start, end)
 
     @staticmethod
     def _validate_dates(timeframe: str,

@@ -5,4 +5,12 @@
 2023-01-14 00:18:57 | ERROR    | Error on main full history, Cannot save file into a non-existent directory: 'D:\Google Drive Sync\Rzeczy\Projekty_PY\Boty\CyberOasisProjectReborn\history_data\binance_spot\1h' | main | get_full_history.py:206
 2023-01-14 00:18:59 | ERROR    | Error on main full history, Cannot save file into a non-existent directory: 'D:\Google Drive Sync\Rzeczy\Projekty_PY\Boty\CyberOasisProjectReborn\history_data\binance_spot\1h' | main | get_full_history.py:206
 2023-01-14 00:25:23 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\1h' | main | get_full_history.py:206
+2023-04-03 22:20:15 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\history_data\\binance_spot\\1h' | _get_desired_history_for_pair | get_history.py:120
 2023-04-03 19:50:09 | ERROR    | Error on main full history, division by zero  | get_full_history | get_history.py:63
+2023-04-03 23:15:17 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 08:11:09 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 08:43:54 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 08:47:01 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 08:54:02 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 08:58:09 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 09:17:20 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
