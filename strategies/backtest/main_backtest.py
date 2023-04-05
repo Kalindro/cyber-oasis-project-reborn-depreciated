@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+import numpy as np
 import vectorbtpro as vbt
-
+import numpy
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
@@ -19,7 +20,6 @@ vbt.settings.portfolio['slippage'] = 0
 vbt.settings.portfolio.stats['incl_unrealized'] = True
 
 
-# TODO filtorwanie listy lepsze (tylko active pary, dodajnie min vol i length, zrobić coś z tym exception na single symbolu złym)
 @dataclass
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
@@ -27,8 +27,8 @@ class _BaseSettings(FundamentalSettings):
         self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=168,
-                            NATR=128,
+        self.PERIODS = dict(MOMENTUM=np.arange(5, 200, 5),  # np.arange(5, 200, 5),
+                            NATR=np.arange(5, 200, 5),
                             TOP_NUMBER=20,
                             )
         self.SAVE_LOAD_HISTORY: bool = True
@@ -49,7 +49,8 @@ class _BaseSettings(FundamentalSettings):
 
     @property
     def _min_data_length(self):
-        return max(self.PERIODS.values())
+        return 100
+        # return max(self.PERIODS.values())
 
 
 class MainBacktest(_BaseSettings):
@@ -61,7 +62,9 @@ class MainBacktest(_BaseSettings):
 
     def main(self):
         pf = self._momentum_strat(self.vbt_data)
-        print(pf.stats())
+        analytics = pf.stats(agg_func=None)
+        print(analytics)
+        analytics.to_excel()
 
     def _momentum_strat(self, vbt_data):
         pf_opt = vbt.PFO.from_allocate_func(
@@ -74,7 +77,6 @@ class MainBacktest(_BaseSettings):
             vbt.Param(self.PERIODS["TOP_NUMBER"]),
             on=vbt.RepEval("wrapper.index")
         )
-
         return pf_opt.simulate(vbt_data)
 
     def _allocation_function(self, columns, i, momentum_period, NATR_period, top_number):

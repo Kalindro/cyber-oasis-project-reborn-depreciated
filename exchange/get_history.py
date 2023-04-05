@@ -166,7 +166,6 @@ class _DataStoring:
                 hist_df_final_cut = cut_exact_df_dates(one_pair_df, self.start, self.end)
                 return hist_df_final_cut
 
-            # Check if the coin genesis was later than desired start
             else:
                 if one_pair_dict["first_datetime"]:
                     first_valid_datetime = one_pair_dict["first_datetime"]
@@ -177,6 +176,7 @@ class _DataStoring:
                     one_pair_dict["first_datetime"] = first_valid_datetime
                     self.save_to_pickle(one_pair_dict)
 
+                # Check if the coin first available timestamp was later than the desired start
                 if (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
                         first_valid_datetime > self.start):
                     logger.info(
