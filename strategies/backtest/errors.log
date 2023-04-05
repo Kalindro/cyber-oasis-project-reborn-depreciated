@@ -54,3 +54,6 @@
 2023-04-05 13:21:33 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
 2023-04-05 13:22:45 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
 2023-04-05 13:22:59 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-05 14:10:43 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | get_full_history | get_history.py:63
+2023-04-05 14:13:35 | ERROR    | Error on main full history, Symbols have mismatching columns | get_full_history | get_history.py:63
+2023-04-05 14:22:41 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63

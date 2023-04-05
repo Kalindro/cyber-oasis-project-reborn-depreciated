@@ -80,6 +80,8 @@ class GetFullHistoryDF:
 
         with ThreadPoolExecutor(max_workers=WORKERS) as executor:
             histories_dict = dict(zip(pairs_list, executor.map(vbt_history_partial, pairs_list)))
+            histories_dict = {pair: history_df for pair, history_df in histories_dict.items() if
+                              dataframe_is_not_none_and_not_empty(history_df)}
 
         vbt_full_history = vbt.Data.from_data(histories_dict)
 
@@ -104,9 +106,15 @@ class GetFullHistoryDF:
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 
-        _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                            end=end + delta * 6, exchange=API["client"],
-                                            show_progress=False).data.popitem()
+        try:
+            _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
+                                                end=end + delta * 6, exchange=API["client"],
+                                                show_progress=False, silence_warnings=True).data.popitem()
+        except Exception as err:
+            if "No symbols could be fetched" in str(err):
+                return None
+            else:
+                raise err
 
         one_pair_dict = {"data": one_pair_df, "first_datetime": None}
 
