@@ -19,6 +19,7 @@ vbt.settings.portfolio['slippage'] = 0
 vbt.settings.portfolio.stats['incl_unrealized'] = True
 
 
+# TODO filtorwanie listy lepsze (tylko active pary, dodajnie min vol i length, zrobić coś z tym exception na single symbolu złym)
 @dataclass
 class _BaseSettings(FundamentalSettings):
     def __init__(self):

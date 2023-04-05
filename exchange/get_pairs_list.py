@@ -18,9 +18,11 @@ def get_pairs_list_BTC(API: dict) -> list[str]:
     logger.info("Getting BTC pairs list...")
     pairs_list_original = _get_pairs_list_base(API=API)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/BTC", ":BTC"))]
+    pairs_list_final = []
+    [pairs_list_final.append(pair) for pair in pairs_list if pair not in pairs_list_final]
     logger.debug("Pairs list completed, returning")
 
-    return pairs_list
+    return pairs_list_final
 
 
 def get_pairs_list_USDT(API: dict) -> list[str]:
@@ -28,9 +30,12 @@ def get_pairs_list_USDT(API: dict) -> list[str]:
     logger.info("Getting USDT pairs list...")
     pairs_list_original = _get_pairs_list_base(API=API)
     pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(("/USDT", ":USDT"))]
+    pairs_list_final = []
+    [pairs_list_final.append(pair) for pair in pairs_list if pair not in pairs_list_final]
+
     logger.debug("Pairs list completed, returning")
 
-    return pairs_list
+    return pairs_list_final
 
 
 def get_pairs_list_ALL(API: dict) -> list[str]:
@@ -39,20 +44,25 @@ def get_pairs_list_ALL(API: dict) -> list[str]:
     pairs_list_original = _get_pairs_list_base(API=API)
     pairs_list = [str(pair) for pair in pairs_list_original if
                   str(pair).endswith(("/USDT", ":USDT", "/BTC", ":BTC", "/ETH", ":ETH"))]
+    pairs_list_final = []
+    [pairs_list_final.append(pair) for pair in pairs_list if pair not in pairs_list_final]
     logger.debug("Pairs list completed, returning")
 
-    return pairs_list
+    return pairs_list_final
 
 
 def _remove_shit_from_pairs_list(pairs_list: list[str]):
     """Remove bs pairs from ever list"""
-    forbidden_symbols = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
-    forbidden_ending = ("UP", "DOWN", "BEAR", "BULL")
+    forbidden_symbols_fiat = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
+    forbidden_symbols_stables = ("USDC", "USDT", "USDP", "TUSD", "BUSD", "DAI", "USDO", "FRAX", "USDD", "GUSD", "LUSD")
+    forbidden_symbols = forbidden_symbols_fiat + forbidden_symbols_stables
+    forbidden_symbol_ending = ("UP", "DOWN", "BEAR", "BULL")
 
-    def symbol_func(pair): return str(pair).split("/")[0]
+    def get_symbol(pair): return str(pair).split("/")[0]
 
-    pairs_list = [str(pair) for pair in pairs_list if not (symbol_func(pair) in forbidden_symbols)]
-    pairs_list = [str(pair) for pair in pairs_list if not symbol_func(pair).endswith(forbidden_ending)]
+    pairs_list = [str(pair) for pair in pairs_list if not get_symbol(pair) in forbidden_symbols]
+    pairs_list = [str(pair) for pair in pairs_list if not get_symbol(pair).endswith(forbidden_symbol_ending)]
+
     return pairs_list
 
 

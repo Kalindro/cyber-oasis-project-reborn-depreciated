@@ -1,19 +1,19 @@
 import datetime as dt
-import inspect
 import os
+import pickle
 import time
 import traceback
 import typing as tp
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
+from utils.root_dir import ROOT_DIR
 from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime,
                          cut_exact_df_dates, datetime_now_in_UTC)
 
@@ -105,13 +105,15 @@ class GetFullHistoryDF:
         time.sleep(SLEEP)
 
         _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                            end=end + delta * 6, exchange=API["client"], skip_on_error=True,
+                                            end=end + delta * 6, exchange=API["client"],
                                             show_progress=False).data.popitem()
 
-        if save_load_history:
-            delegate_data_storing.save_to_pickle(one_pair_df)
+        one_pair_dict = {"data": one_pair_df, "first_datetime": None}
 
-        return cut_exact_df_dates(one_pair_df, start, end)
+        if save_load_history:
+            delegate_data_storing.save_to_pickle(one_pair_dict)
+
+        return cut_exact_df_dates(one_pair_dict["data"], start, end)
 
     @staticmethod
     def _validate_dates(timeframe: str,
@@ -155,57 +157,76 @@ class _DataStoring:
         self.timeframe = timeframe
         self.start = start
         self.end = end
-        self.exchange = API["exchange"]
+        self.API = API
+        self.exchange_name = self.API["exchange"]
 
     def load_pickle_and_pre_check(self) -> tp.Union[pd.DataFrame, None]:
         """Check if loaded data range is sufficient for current request, if not - get new"""
-        hist_df_full = self._load_pickle_only()
+        one_pair_dict = self._load_pickle_only()
+        if one_pair_dict:
+            one_pair_df = one_pair_dict["data"]
+        else:
+            one_pair_df = None
 
-        if dataframe_is_not_none_and_not_empty(hist_df_full):
-            if (hist_df_full.iloc[0].name <= self.start) and (hist_df_full.iloc[-1].name >= self.end):
+        # Desired range if in the data
+        if dataframe_is_not_none_and_not_empty(one_pair_df):
+            if (one_pair_df.iloc[0].name <= self.start) and (one_pair_df.iloc[-1].name >= self.end):
                 logger.info(f"Saved data for {self.pair} is sufficient, returning")
-                hist_df_final_cut = cut_exact_df_dates(hist_df_full, self.start, self.end)
+                hist_df_final_cut = cut_exact_df_dates(one_pair_df, self.start, self.end)
                 return hist_df_final_cut
-            # else:
-            #     delegate_get_history = _QueryHistory()
-            #     test_data = delegate_get_history.get_test_data(pair=self.pair, timeframe=self.timeframe, API=API)
-            #     first_valid_datetime = timestamp_ms_to_datetime(test_data[0][0])
-            #     if (hist_df_full.iloc[-1].name >= self.end) and (
-            #             hist_df_full.iloc[0].name <= first_valid_datetime) and (first_valid_datetime > self.start):
-            #         logger.info(
-            #             f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
-            #         hist_df_final_cut = cut_delegate.cut_exact_df_dates_for_return(hist_df_full, self.start, self.end)
-            #         return hist_df_final_cut
+
+            # Check if the coin genesis was later than desired start
+            else:
+                if one_pair_dict["first_datetime"]:
+                    first_valid_datetime = one_pair_dict["first_datetime"]
+
+                else:
+                    first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=self.pair, timeframe=self.timeframe,
+                                                                           exchange=self.API["client"])
+                    one_pair_dict["first_datetime"] = first_valid_datetime
+                    self.save_to_pickle(one_pair_dict)
+
+                if (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
+                        first_valid_datetime > self.start):
+                    logger.info(
+                        f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
+                    hist_df_final_cut = cut_exact_df_dates(one_pair_df, self.start, self.end)
+                    return hist_df_final_cut
 
             logger.info(f"Saved data for {self.pair} found, not sufficient data range, getting whole fresh")
 
         return None
 
-    def save_to_pickle(self, df_to_save: pd.DataFrame) -> None:
+    def save_to_pickle(self, dict_to_save: dict[dt.datetime, pd.DataFrame]) -> None:
         """Pickle the data and save"""
-        df_to_save.to_pickle(f"{self._pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
-        logger.info(f"Saved {self.pair} history dataframe as pickle")
+        with open(self._pair_pickle_location, "wb") as f:
+            pickle.dump(dict_to_save, f)
+        logger.info(f"Saved {self.pair} history dict as pickle")
 
     @property
-    def _pair_history_location(self) -> str:
-        """Return the path where the history for this exchange should be saved"""
-        current_path = os.path.dirname(inspect.getfile(inspect.currentframe()))
-        project_path = Path(current_path).parent
+    def _pair_pickle_location(self) -> str:
+        """Return the path where this pair should be saved"""
+        return f"{self._history_data_folder_location}\\{self.pair_for_data}_{self.timeframe}.pickle"
 
-        return f"{project_path}\\history_data\\{self.exchange}\\{self.timeframe}"
+    @property
+    def _history_data_folder_location(self) -> str:
+        """Return the path where the history for this exchange should be saved"""
+        return os.path.join(ROOT_DIR, "history_data", self.exchange_name, self.timeframe)
 
     def _load_pickle_only(self) -> tp.Union[pd.DataFrame, None]:
         """Check for pickled data and load, if no folder for data - create"""
         try:
-            if not os.path.exists(self._pair_history_location):
-                os.makedirs(self._pair_history_location)
-            history_df_saved = pd.read_pickle(
-                f"{self._pair_history_location}\\{self.pair_for_data}_{self.timeframe}.pickle")
-            return history_df_saved
+            if not os.path.exists(self._history_data_folder_location):
+                os.makedirs(self._history_data_folder_location)
+            with open(self._pair_pickle_location, "rb") as f:
+                one_pair_dict = pickle.load(f)
+
+            return one_pair_dict
 
         except FileNotFoundError as err:
             if "No such file or directory" in str(err):
                 logger.info(f"No saved history for {self.pair}")
             else:
                 logger.error(f"Location error, {err}")
+
             return None

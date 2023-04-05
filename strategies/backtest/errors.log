@@ -14,3 +14,43 @@
 2023-04-04 08:54:02 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
 2023-04-04 08:58:09 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
 2023-04-04 09:17:20 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-04 22:12:57 | ERROR    | Error on main full history, 'dict' object has no attribute 'to_pickle' | get_full_history | get_history.py:64
+2023-04-04 23:56:30 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:64
+2023-04-04 23:56:57 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:64
+2023-04-04 23:57:15 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 00:02:30 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 00:04:24 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 08:46:05 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 08:50:58 | ERROR    | Error on main full history, list index out of range | get_full_history | get_history.py:64
+2023-04-05 08:51:40 | ERROR    | Error on main full history, list index out of range | get_full_history | get_history.py:64
+2023-04-05 08:52:11 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'replace' | get_full_history | get_history.py:64
+2023-04-05 08:52:34 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'replace' | get_full_history | get_history.py:64
+2023-04-05 08:54:50 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 08:56:40 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 08:57:09 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 08:59:31 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 09:00:25 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 09:01:17 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 09:12:04 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:64
+2023-04-05 09:13:46 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:64
+2023-04-05 09:14:13 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 09:15:57 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 11:44:19 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 11:46:13 | ERROR    | Error on main full history, local variable 'one_pair_df' referenced before assignment | get_full_history | get_history.py:64
+2023-04-05 11:46:37 | ERROR    | Error on main full history, local variable 'one_pair_df' referenced before assignment | get_full_history | get_history.py:64
+2023-04-05 11:56:34 | ERROR    | Error on main full history, local variable 'one_pair_df' referenced before assignment | get_full_history | get_history.py:64
+2023-04-05 11:58:01 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 12:11:44 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 12:15:27 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 12:15:50 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:64
+2023-04-05 12:46:43 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:63
+2023-04-05 12:46:58 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:63
+2023-04-05 12:50:01 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:63
+2023-04-05 12:53:05 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:63
+2023-04-05 12:53:13 | ERROR    | Error on main full history, The truth value of a DataFrame is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all(). | get_full_history | get_history.py:63
+2023-04-05 13:03:52 | ERROR    | Error on main full history, [Errno 13] Permission denied: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\1h\\BTC-USDT_1h.pickle' | get_full_history | get_history.py:63
+2023-04-05 13:06:36 | ERROR    | Error on main full history, [Errno 13] Permission denied: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\1h\\BTC-USDT_1h.pickle' | get_full_history | get_history.py:63
+2023-04-05 13:12:22 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\1h' | get_full_history | get_history.py:63
+2023-04-05 13:21:33 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-05 13:22:45 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
+2023-04-05 13:22:59 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
