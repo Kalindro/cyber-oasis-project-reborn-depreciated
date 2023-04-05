@@ -4,7 +4,7 @@ import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
-from general_functions.momentums import allocation_momentum_ranking
+from strategies.backtest.momentums import MomentumAllocation
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
@@ -34,11 +34,11 @@ class _BaseSettings(FundamentalSettings):
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "1h"
+        self.TIMEFRAME: str = "1d"
         self.start: str = "01.01.2022"
         self.end: str = "31.12.2022"
 
-        self.MIN_VOLUME = 10
+        self.VOL_QUANTILE_DROP = 0.2
         self.MIN_DATA_LENGTH = self._min_data_length
         self._validate_inputs()
 
@@ -79,8 +79,10 @@ class MainBacktest(_BaseSettings):
 
     def _allocation_function(self, columns, i, momentum_period, NATR_period, top_number):
         if i == 0:
-            self.allocations = allocation_momentum_ranking(vbt_data=self.vbt_data, momentum_period=momentum_period,
-                                                           NATR_period=NATR_period, top_number=top_number)
+            self.allocations = MomentumAllocation().allocation_momentum_ranking(vbt_data=self.vbt_data,
+                                                                                momentum_period=momentum_period,
+                                                                                NATR_period=NATR_period,
+                                                                                top_number=top_number)
 
         return self.allocations[columns].iloc[i]
 
@@ -88,7 +90,8 @@ class MainBacktest(_BaseSettings):
         vbt_data = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start, end=self.end,
                                                        timeframe=self.TIMEFRAME, API=self.API,
                                                        save_load_history=self.SAVE_LOAD_HISTORY,
-                                                       min_data_length=self.MIN_DATA_LENGTH)
+                                                       min_data_length=self.MIN_DATA_LENGTH,
+                                                       vol_quantile_drop=self.VOL_QUANTILE_DROP)
 
         return vbt_data
 
