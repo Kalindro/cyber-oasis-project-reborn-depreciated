@@ -28,7 +28,7 @@ class GetFullHistoryDF:
                          pairs_list: list[str],
                          timeframe: str,
                          API: dict,
-                         min_data_length: int = None,
+                         min_data_length: int = 10,
                          vol_quantile_drop: float = None,
                          save_load_history: bool = False,
                          number_of_last_candles: tp.Optional[int] = None,

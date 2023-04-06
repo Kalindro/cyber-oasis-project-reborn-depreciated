@@ -1,8 +1,9 @@
+import os
+import pickle
 from dataclasses import dataclass
 
-import numpy as np
 import vectorbtpro as vbt
-import numpy
+
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
@@ -15,7 +16,7 @@ vbt.settings['plotting']['layout']['height'] = 800
 vbt.settings.set_theme("seaborn")
 
 vbt.settings.portfolio['init_cash'] = 1000
-vbt.settings.portfolio['fees'] = 0.0025
+vbt.settings.portfolio['fees'] = 0.001
 vbt.settings.portfolio['slippage'] = 0
 vbt.settings.portfolio.stats['incl_unrealized'] = True
 
@@ -27,8 +28,8 @@ class _BaseSettings(FundamentalSettings):
         self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=np.arange(5, 200, 5),  # np.arange(5, 200, 5),
-                            NATR=np.arange(5, 200, 5),
+        self.PERIODS = dict(MOMENTUM=(100, 200),  # np.arange(5, 200, 5),
+                            NATR=200,
                             TOP_NUMBER=20,
                             )
         self.SAVE_LOAD_HISTORY: bool = True
@@ -39,7 +40,6 @@ class _BaseSettings(FundamentalSettings):
         self.end: str = "31.12.2022"
 
         self.VOL_QUANTILE_DROP = 0.2
-        self.MIN_DATA_LENGTH = self._min_data_length
         self._validate_inputs()
 
     def _validate_inputs(self) -> None:
@@ -47,24 +47,25 @@ class _BaseSettings(FundamentalSettings):
         if self.PAIRS_MODE != 1:
             self.PLOTTING = False
 
-    @property
-    def _min_data_length(self):
-        return 100
-        # return max(self.PERIODS.values())
-
 
 class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
     def __init__(self):
         super().__init__()
-        self.vbt_data = self._get_history()
+        self.vbt_data = None
 
     def main(self):
-        pf = self._momentum_strat(self.vbt_data)
+        backtest_pickle_name = "backtest.pickle"
+        if os.path.exists(backtest_pickle_name):
+            pf = vbt.Portfolio.load(backtest_pickle_name)
+        else:
+            self.vbt_data = self._get_history()
+            pf = self._momentum_strat(self.vbt_data)
+            pf.save(backtest_pickle_name)
+
         analytics = pf.stats(agg_func=None)
         print(analytics)
-        analytics.to_excel()
 
     def _momentum_strat(self, vbt_data):
         pf_opt = vbt.PFO.from_allocate_func(
@@ -75,7 +76,7 @@ class MainBacktest(_BaseSettings):
             vbt.Param(self.PERIODS["MOMENTUM"]),
             vbt.Param(self.PERIODS["NATR"]),
             vbt.Param(self.PERIODS["TOP_NUMBER"]),
-            on=vbt.RepEval("wrapper.index")
+            on=vbt.RepEval("wrapper.index"),
         )
         return pf_opt.simulate(vbt_data)
 
@@ -92,7 +93,6 @@ class MainBacktest(_BaseSettings):
         vbt_data = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start, end=self.end,
                                                        timeframe=self.TIMEFRAME, API=self.API,
                                                        save_load_history=self.SAVE_LOAD_HISTORY,
-                                                       min_data_length=self.MIN_DATA_LENGTH,
                                                        vol_quantile_drop=self.VOL_QUANTILE_DROP)
 
         return vbt_data
