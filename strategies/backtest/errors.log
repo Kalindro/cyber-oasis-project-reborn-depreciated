@@ -58,3 +58,5 @@
 2023-04-05 14:13:35 | ERROR    | Error on main full history, Symbols have mismatching columns | get_full_history | get_history.py:63
 2023-04-05 14:22:41 | ERROR    | Error on main full history, No symbols could be fetched | get_full_history | get_history.py:63
 2023-04-05 19:48:42 | ERROR    | Error on main full history, 'volume'          | get_full_history | get_history.py:65
+2023-04-07 12:59:01 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\4h' | get_full_history | get_history.py:68
+2023-04-07 13:29:55 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\4h' | get_full_history | get_history.py:68

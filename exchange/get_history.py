@@ -51,11 +51,13 @@ class GetFullHistoryDF:
 
             histories_dict = {pair: history_df for pair, history_df in histories_dict.items() if
                               dataframe_is_not_none_and_not_empty(history_df)}
+
             if min_data_length:
-                histories_dict = {pair: history_df for pair, history_df in histories_dict.items()
-                                  if len(history_df) > min_data_length}
+                histories_dict = self._drop_too_short_history(histories_dict=histories_dict,
+                                                              min_data_length=min_data_length)
+
             if vol_quantile_drop:
-                histories_dict = self._drop_bottom_quantile_vol(pairs_history_df_dict=histories_dict,
+                histories_dict = self._drop_bottom_quantile_vol(histories_dict=histories_dict,
                                                                 quantile=vol_quantile_drop)
 
             vbt_full_history = vbt.Data.from_data(histories_dict)
@@ -89,6 +91,8 @@ class GetFullHistoryDF:
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
                                                 end=end + delta * 6, exchange=API["client"],
                                                 show_progress=False, silence_warnings=True).data.popitem()
+            one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
+
         except Exception as err:
             if "No symbols could be fetched" in str(err):
                 return None
@@ -128,15 +132,26 @@ class GetFullHistoryDF:
         return start, end, save_load_history
 
     @staticmethod
-    def _drop_bottom_quantile_vol(pairs_history_df_dict: dict[str: pd.DataFrame],
-                                  quantile: float) -> dict[str: pd.DataFrame]:
-        mean_volumes = {pair: history_df["Volume"].mean() for pair, history_df in pairs_history_df_dict.items()}
-        threshold = np.quantile(list(mean_volumes.values()), quantile)
-        pairs_history_dict_quantiled = {pair: history_df for pair, history_df in pairs_history_df_dict.items() if
-                                        mean_volumes[pair] > threshold}
-        logger.success(f"Dropped bottom {quantile * 100}% volume coins")
+    def _drop_too_short_history(histories_dict: dict[str: pd.DataFrame],
+                                min_data_length: int) -> dict[str: pd.DataFrame]:
+        drop_len_pairs = [pair for pair, history_df in histories_dict.items() if len(history_df) <= min_data_length]
+        for pair in drop_len_pairs:
+            del histories_dict[pair]
+        logger.success(f"Pairs dropped due to length: {drop_len_pairs}")
 
-        return pairs_history_dict_quantiled
+        return histories_dict
+
+    @staticmethod
+    def _drop_bottom_quantile_vol(histories_dict: dict[str: pd.DataFrame],
+                                  quantile: float) -> dict[str: pd.DataFrame]:
+        mean_volumes = {pair: history_df["Volume"].mean() for pair, history_df in histories_dict.items()}
+        threshold = np.quantile(list(mean_volumes.values()), quantile)
+        drop_vol_pairs = [pair for pair, history_df in histories_dict.items() if mean_volumes[pair] < threshold]
+        for pair in drop_vol_pairs:
+            del histories_dict[pair]
+        logger.success(f"Pairs dropped due to being in bottom {quantile * 100}% volume: {drop_vol_pairs}")
+
+        return histories_dict
 
 
 class _DataStoring:
@@ -208,7 +223,10 @@ class _DataStoring:
         """Check for pickled data and load, if no folder for data - create"""
         try:
             if not os.path.exists(self._history_data_folder_location):
-                os.makedirs(self._history_data_folder_location)
+                try:
+                    os.makedirs(self._history_data_folder_location)
+                except:
+                    pass
             with open(self._pair_pickle_location, "rb") as f:
                 one_pair_dict = pickle.load(f)
 

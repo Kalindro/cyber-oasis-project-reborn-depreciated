@@ -7,14 +7,21 @@ from loguru import logger
 class MomentumAllocation:
     def allocation_momentum_ranking(self, vbt_data: vbt.Data, momentum_period: int, NATR_period: int,
                                     top_decimal: float = None, top_number: int = None) -> pd.DataFrame:
-        """Create allocation dataframe that depend on momentum ranking and inverse volatality"""
+        """Create allocation dataframe that depend on momentum ranking and inverse volatility"""
+        only_positive = False
         if not (top_decimal or top_number):
             raise ValueError("Please provide either top decimal or top number")
         if not top_number:
             top_number = int(len(vbt_data.data) * top_decimal)
 
+        btc_data = vbt_data.get(symbols="BTC/USDT")
+        btc_sma = btc_data.run("SMA")
+        print(btc_sma)
+
         momentum_data = self._momentum_calc_for_vbt_data(vbt_data=vbt_data, momentum_period=momentum_period)
         momentum_data.columns = momentum_data.columns.droplevel(0)
+        if only_positive:
+            momentum_data = momentum_data.where(momentum_data > 0)
         ranked_df = momentum_data.rank(axis=1, method="max", ascending=False)
 
         natr_data = vbt_data.run("talib_NATR", timeperiod=NATR_period).real

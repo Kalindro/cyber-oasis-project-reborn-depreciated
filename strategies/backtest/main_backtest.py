@@ -1,5 +1,4 @@
 import os
-import pickle
 from dataclasses import dataclass
 
 import vectorbtpro as vbt
@@ -28,16 +27,16 @@ class _BaseSettings(FundamentalSettings):
         self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=(100, 200),  # np.arange(5, 200, 5),
-                            NATR=200,
+        self.PERIODS = dict(MOMENTUM=(10, 50),  # np.arange(5, 200, 5),
+                            NATR=20,
                             TOP_NUMBER=20,
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "1d"
-        self.start: str = "01.01.2022"
-        self.end: str = "31.12.2022"
+        self.TIMEFRAME: str = "4h"
+        self.start: str = "01.01.2021"
+        self.end: str = "01.01.2023"
 
         self.VOL_QUANTILE_DROP = 0.2
         self._validate_inputs()
@@ -86,7 +85,6 @@ class MainBacktest(_BaseSettings):
                                                                                 momentum_period=momentum_period,
                                                                                 NATR_period=NATR_period,
                                                                                 top_number=top_number)
-
         return self.allocations[columns].iloc[i]
 
     def _get_history(self):
