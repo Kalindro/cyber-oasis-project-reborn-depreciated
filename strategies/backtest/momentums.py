@@ -14,9 +14,10 @@ class MomentumAllocation:
         if not top_number:
             top_number = int(len(vbt_data.data) * top_decimal)
 
-        btc_data = vbt_data.get(symbols="BTC/USDT")
-        btc_sma = btc_data.run("SMA")
-        print(btc_sma)
+        btc_close_data = vbt_data.get(symbols="BTC/USDT", columns="Close")
+        btc_sma = vbt.indicators.MA.run(close=btc_close_data)
+        print(btc_sma.ma)
+        x = 5/0
 
         momentum_data = self._momentum_calc_for_vbt_data(vbt_data=vbt_data, momentum_period=momentum_period)
         momentum_data.columns = momentum_data.columns.droplevel(0)
