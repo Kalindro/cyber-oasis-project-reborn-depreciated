@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
+from numba import njit
 
 
 class MomentumAllocation:
