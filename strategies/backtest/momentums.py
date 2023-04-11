@@ -8,25 +8,34 @@ class MomentumAllocation:
     def allocation_momentum_ranking(self, vbt_data: vbt.Data, momentum_period: int, NATR_period: int,
                                     top_decimal: float = None, top_number: int = None) -> pd.DataFrame:
         """Create allocation dataframe that depend on momentum ranking and inverse volatility"""
-        only_positive = False
         if not (top_decimal or top_number):
             raise ValueError("Please provide either top decimal or top number")
         if not top_number:
             top_number = int(len(vbt_data.data) * top_decimal)
 
         btc_close_data = vbt_data.get(symbols="BTC/USDT", columns="Close")
-        btc_sma = vbt.indicators.MA.run(close=btc_close_data)
-        print(btc_sma.ma)
-        x = 5/0
+        btc_sma = vbt.indicators.MA.run(close=btc_close_data).ma
 
         momentum_data = self._momentum_calc_for_vbt_data(vbt_data=vbt_data, momentum_period=momentum_period)
         momentum_data.columns = momentum_data.columns.droplevel(0)
-        if only_positive:
-            momentum_data = momentum_data.where(momentum_data > 0)
-        ranked_df = momentum_data.rank(axis=1, method="max", ascending=False)
 
         natr_data = vbt_data.run("talib_NATR", timeperiod=NATR_period).real
         natr_data.columns = natr_data.columns.droplevel(0)
+
+        allocations = self._allocation_calc_for_vbt_data(momentum_data=momentum_data, natr_data=natr_data,
+                                                         top_number=top_number)
+
+        return allocations
+
+    @staticmethod
+    def _allocation_calc_for_vbt_data(momentum_data: pd.DataFrame, natr_data: pd.DataFrame, top_number: int = None):
+        """Calculate allocation for vbt data"""
+        only_positive = False
+
+        if only_positive:
+            momentum_data = momentum_data.where(momentum_data > 0)
+
+        ranked_df = momentum_data.rank(axis=1, method="max", ascending=False)
         inv_vol_data = 1 / natr_data
 
         top_pairs = ranked_df <= top_number
@@ -36,8 +45,9 @@ class MomentumAllocation:
 
         return allocations
 
-    def _momentum_calc_for_vbt_data(self, vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
-        """Calculate momentum ranking for list of history dataframes"""
+    @staticmethod
+    def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
+        """Calculate momentum ranking for vbt data"""
         logger.info("Calculating momentum ranking for pairs histories")
         returns = np.log(vbt_data.get("Close"))
         x = np.arange(len(returns))

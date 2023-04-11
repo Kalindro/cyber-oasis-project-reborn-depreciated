@@ -34,11 +34,11 @@ class _BaseSettings(FundamentalSettings):
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "4h"
+        self.TIMEFRAME: str = "1d"
         self.start: str = "01.01.2021"
         self.end: str = "01.01.2023"
 
-        self.VOL_QUANTILE_DROP = 0.2
+        self.VOL_QUANTILE_DROP = 0.25
         self._validate_inputs()
 
     def _validate_inputs(self) -> None:
