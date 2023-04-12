@@ -68,8 +68,8 @@ class GetFullHistoryDF:
             logger.error(f"Error on main full history, {err}")
             print(traceback.format_exc())
 
-    @staticmethod
-    def _get_vbt_one_pair_desired_history(pair: str,
+    def _get_vbt_one_pair_desired_history(self,
+                                          pair: str,
                                           timeframe: str,
                                           API: dict,
                                           start: tp.Optional[dt.datetime] = None,
@@ -82,14 +82,26 @@ class GetFullHistoryDF:
             delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
             one_pair_dict = delegate_data_storing.load_pickle_and_pre_check()
             one_pair_df = one_pair_dict.get("data")
-            first_valid_datetime = one_pair_dict.get("first_datetime")
+            first_valid_datetime = one_pair_dict["first_datetime"]
             if dataframe_is_not_none_and_not_empty(one_pair_df):
                 return cut_exact_df_dates(pre_dataframe=one_pair_df, start=start, end=end)
-            else:
-                if first_valid_datetime > end:
-                    logger.info(f"{pair} starts after desired end, returning None")
-                    return None
+            elif first_valid_datetime > end:
+                logger.info(f"{pair} starts after desired end, returning None")
+                return None
 
+            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+
+            one_pair_dict["data"] = one_pair_df
+            delegate_data_storing.save_to_pickle(one_pair_dict)
+
+        else:
+            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+
+        return cut_exact_df_dates(one_pair_df, start, end)
+
+    @staticmethod
+    def _history_fetch(pair: str, timeframe: str, API: dict, start: tp.Optional[dt.datetime] = None,
+                       end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 
@@ -100,17 +112,13 @@ class GetFullHistoryDF:
                                                 show_progress=False, silence_warnings=True).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
 
+            return one_pair_df
+
         except Exception as err:
             if "No symbols could be fetched" in str(err):
                 return None
             else:
                 raise err
-
-        if save_load_history:
-            one_pair_dict = {"data": one_pair_df}
-            delegate_data_storing.save_to_pickle(one_pair_dict)
-
-        return cut_exact_df_dates(one_pair_df, start, end)
 
     @staticmethod
     def _validate_dates(timeframe: str,
@@ -189,15 +197,17 @@ class _DataStoring:
         if dataframe_is_not_none_and_not_empty(one_pair_df):
             # Desired range if in the data
             if (one_pair_df.iloc[0].name <= self.start) and (one_pair_df.iloc[-1].name >= self.end):
-                logger.info(f"Saved data for {self.pair} is sufficient, returning")
-                return one_pair_dict
+                logger.info(f"Saved data for {self.pair} is sufficient")
 
             # If the coin first available datetime was later than the desired start but still before end
             elif (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
                     first_valid_datetime > self.start):
                 logger.info(
-                    f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
-                return one_pair_dict
+                    f"Saved data for {self.pair} is sufficient (history starts later than expected)")
+
+            # Not enough data, remove to query new
+            else:
+                one_pair_dict["data"] = None
 
         return one_pair_dict
 
