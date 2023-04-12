@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
-from numba import njit
 
 
 class MomentumAllocation:
     def allocation_momentum_ranking(self, vbt_data: vbt.Data, momentum_period: int, NATR_period: int,
                                     top_decimal: float = None, top_number: int = None) -> pd.DataFrame:
         """Create allocation dataframe that depend on momentum ranking and inverse volatility"""
+        logger.info("Calculating momentum ranking for pairs histories")
         if not (top_decimal or top_number):
             raise ValueError("Please provide either top decimal or top number")
         if not top_number:
@@ -48,8 +48,7 @@ class MomentumAllocation:
 
     @staticmethod
     def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
-        """Calculate momentum ranking for vbt data"""
-        logger.info("Calculating momentum ranking for pairs histories")
+        """Calculate momentum for vbt data"""
         returns = np.log(vbt_data.get("Close"))
         x = np.arange(len(returns))
         slope = vbt.OLS.run(x=x, y=returns, window=momentum_period).slope * 100

@@ -179,4 +179,4 @@ def _legacy_momentum_calculate(price_closes: pd.DataFrame) -> float:
     slope, _, rvalue, _, _ = linregress(x, returns)
     slope = slope * 100
 
-    return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue**2)
+    return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue ** 2)

@@ -2,7 +2,8 @@ import os
 from dataclasses import dataclass
 
 import vectorbtpro as vbt
-
+import numpy as np
+from pandas import DataFrame as df
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
@@ -30,11 +31,12 @@ class _BaseSettings(FundamentalSettings):
         self.PERIODS = dict(MOMENTUM=(10, 50),  # np.arange(5, 200, 5),
                             NATR=20,
                             TOP_NUMBER=20,
+                            REBALANCE="1D",
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "4h"
+        self.TIMEFRAME: str = "1d"
         self.start: str = "01.01.2021"
         self.end: str = "01.01.2023"
 
@@ -67,6 +69,7 @@ class MainBacktest(_BaseSettings):
         print(analytics)
 
     def _momentum_strat(self, vbt_data):
+        rebalance_indexes = df({"rnd": np.random.rand(len(vbt_data.index))}, index=vbt_data.index).resample(self.PERIODS["REBALANCE"]).last().index
         pf_opt = vbt.PFO.from_allocate_func(
             vbt_data.symbol_wrapper,
             self._allocation_function,
