@@ -100,7 +100,9 @@ class GetFullHistoryDF:
         return cut_exact_df_dates(one_pair_df, start, end)
 
     @staticmethod
-    def _history_fetch(pair: str, timeframe: str, API: dict, start: tp.Optional[dt.datetime] = None,
+    def _history_fetch(pair: str, timeframe: str,
+                       API: dict,
+                       start: tp.Optional[dt.datetime] = None,
                        end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)

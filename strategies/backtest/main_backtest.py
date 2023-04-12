@@ -1,9 +1,11 @@
 import os
 from dataclasses import dataclass
 
-import vectorbtpro as vbt
 import numpy as np
+import pandas as pd
+import vectorbtpro as vbt
 from pandas import DataFrame as df
+
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
@@ -28,15 +30,15 @@ class _BaseSettings(FundamentalSettings):
         self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=(10, 50),  # np.arange(5, 200, 5),
+        self.PERIODS = dict(MOMENTUM=[10, 50],  # np.arange(5, 200, 5),
                             NATR=20,
                             TOP_NUMBER=20,
-                            REBALANCE="1D",
+                            REBALANCE=["1D"],
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "4h"
+        self.TIMEFRAME: str = "1d"
         self.start: str = "01.01.2021"
         self.end: str = "01.01.2023"
 
@@ -69,7 +71,8 @@ class MainBacktest(_BaseSettings):
         print(analytics)
 
     def _momentum_strat(self, vbt_data):
-        rebalance_indexes = df({"rnd": np.random.rand(len(vbt_data.index))}, index=vbt_data.index).resample(self.PERIODS["REBALANCE"]).last().index
+        rebalance_indexes = [df({"rnd": np.random.rand(len(vbt_data.index))}, index=vbt_data.index).resample(
+            rebalance_period).asfreq().index for rebalance_period in self.PERIODS["REBALANCE"]]
         pf_opt = vbt.PFO.from_allocate_func(
             vbt_data.symbol_wrapper,
             self._allocation_function,
@@ -78,11 +81,12 @@ class MainBacktest(_BaseSettings):
             vbt.Param(self.PERIODS["MOMENTUM"]),
             vbt.Param(self.PERIODS["NATR"]),
             vbt.Param(self.PERIODS["TOP_NUMBER"]),
-            on=vbt.RepEval("wrapper.index"),
+            on=vbt.Param(rebalance_indexes)
         )
         return pf_opt.simulate(vbt_data)
 
-    def _allocation_function(self, columns, i, momentum_period, NATR_period, top_number):
+    def _allocation_function(self, columns: pd.DataFrame.columns, i: int, momentum_period: int, NATR_period: int,
+                             top_number: int):
         if i == 0:
             self.allocations = MomentumAllocation().allocation_momentum_ranking(vbt_data=self.vbt_data,
                                                                                 momentum_period=momentum_period,
