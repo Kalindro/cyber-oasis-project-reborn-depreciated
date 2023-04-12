@@ -60,3 +60,7 @@
 2023-04-05 19:48:42 | ERROR    | Error on main full history, 'volume'          | get_full_history | get_history.py:65
 2023-04-07 12:59:01 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\4h' | get_full_history | get_history.py:68
 2023-04-07 13:29:55 | ERROR    | Error on main full history, [WinError 183] Cannot create a file when that file already exists: 'D:\\Google Drive Sync\\Rzeczy\\Projekty_PY\\Boty\\CyberOasisProjectReborn\\history_data\\binance_spot\\4h' | get_full_history | get_history.py:68
+2023-04-12 13:07:34 | ERROR    | Error on main full history, 'NoneType' object does not support item assignment | get_full_history | get_history.py:68
+2023-04-12 13:08:32 | ERROR    | Error on main full history, 'NoneType' object does not support item assignment | get_full_history | get_history.py:68
+2023-04-12 13:10:55 | ERROR    | Error on main full history, 'NoneType' object does not support item assignment | get_full_history | get_history.py:68
+2023-04-12 14:08:16 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'get' | get_full_history | get_history.py:68

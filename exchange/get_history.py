@@ -76,18 +76,25 @@ class GetFullHistoryDF:
                                           end: tp.Optional[dt.datetime] = None,
                                           save_load_history: tp.Optional[bool] = False) -> pd.DataFrame:
         """Get desired history of one pair"""
-        logger.info(f"Getting {pair} history")
+        logger.info(f"Valuating {pair} history")
 
         if save_load_history:
             delegate_data_storing = _DataStoring(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-            one_pair_df = delegate_data_storing.load_pickle_and_pre_check()
+            one_pair_dict = delegate_data_storing.load_pickle_and_pre_check()
+            one_pair_df = one_pair_dict.get("data")
+            first_valid_datetime = one_pair_dict.get("first_datetime")
             if dataframe_is_not_none_and_not_empty(one_pair_df):
-                return one_pair_df
+                return cut_exact_df_dates(pre_dataframe=one_pair_df, start=start, end=end)
+            else:
+                if first_valid_datetime > end:
+                    logger.info(f"{pair} starts after desired end, returning None")
+                    return None
 
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 
         try:
+            logger.info(f"Getting fresh {pair} data")
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
                                                 end=end + delta * 6, exchange=API["client"],
                                                 show_progress=False, silence_warnings=True).data.popitem()
@@ -99,12 +106,11 @@ class GetFullHistoryDF:
             else:
                 raise err
 
-        one_pair_dict = {"data": one_pair_df, "first_datetime": None}
-
         if save_load_history:
+            one_pair_dict = {"data": one_pair_df}
             delegate_data_storing.save_to_pickle(one_pair_dict)
 
-        return cut_exact_df_dates(one_pair_dict["data"], start, end)
+        return cut_exact_df_dates(one_pair_df, start, end)
 
     @staticmethod
     def _validate_dates(timeframe: str,
@@ -169,39 +175,31 @@ class _DataStoring:
     def load_pickle_and_pre_check(self) -> tp.Union[pd.DataFrame, None]:
         """Check if loaded data range is sufficient for current request, if not - get new"""
         one_pair_dict = self._load_pickle_only()
-        if one_pair_dict:
-            one_pair_df = one_pair_dict["data"]
-        else:
-            one_pair_df = None
+        if not one_pair_dict:
+            one_pair_dict = {}
+        one_pair_df = one_pair_dict.get("data")
+        first_valid_datetime = one_pair_dict.get("first_datetime")
 
-        # Desired range if in the data
+        if not first_valid_datetime:
+            first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=self.pair, timeframe=self.timeframe,
+                                                                   exchange=self.API["client"])
+            one_pair_dict["first_datetime"] = first_valid_datetime
+            self.save_to_pickle(one_pair_dict)
+
         if dataframe_is_not_none_and_not_empty(one_pair_df):
+            # Desired range if in the data
             if (one_pair_df.iloc[0].name <= self.start) and (one_pair_df.iloc[-1].name >= self.end):
                 logger.info(f"Saved data for {self.pair} is sufficient, returning")
-                hist_df_final_cut = cut_exact_df_dates(one_pair_df, self.start, self.end)
-                return hist_df_final_cut
+                return one_pair_dict
 
-            else:
-                if one_pair_dict["first_datetime"]:
-                    first_valid_datetime = one_pair_dict["first_datetime"]
+            # If the coin first available datetime was later than the desired start but still before end
+            elif (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
+                    first_valid_datetime > self.start):
+                logger.info(
+                    f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
+                return one_pair_dict
 
-                else:
-                    first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=self.pair, timeframe=self.timeframe,
-                                                                           exchange=self.API["client"])
-                    one_pair_dict["first_datetime"] = first_valid_datetime
-                    self.save_to_pickle(one_pair_dict)
-
-                # Check if the coin first available timestamp was later than the desired start
-                if (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
-                        first_valid_datetime > self.start):
-                    logger.info(
-                        f"Saved data for {self.pair} is sufficient (history starts later than expected), returning")
-                    hist_df_final_cut = cut_exact_df_dates(one_pair_df, self.start, self.end)
-                    return hist_df_final_cut
-
-            logger.info(f"Saved data for {self.pair} found, not sufficient data range, getting whole fresh")
-
-        return None
+        return one_pair_dict
 
     def save_to_pickle(self, dict_to_save: dict[dt.datetime, pd.DataFrame]) -> None:
         """Pickle the data and save"""
