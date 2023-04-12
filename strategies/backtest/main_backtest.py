@@ -36,7 +36,7 @@ class _BaseSettings(FundamentalSettings):
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "1d"
+        self.TIMEFRAME: str = "4h"
         self.start: str = "01.01.2021"
         self.end: str = "01.01.2023"
 
