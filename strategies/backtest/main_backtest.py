@@ -1,15 +1,14 @@
 import os
 from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
-from pandas import DataFrame as df
 
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
 from utils.log_config import ConfigureLoguru
+from utils.utils import resample_datetime_index
 
 logger = ConfigureLoguru().info_level()
 
@@ -38,7 +37,7 @@ class _BaseSettings(FundamentalSettings):
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "1d"
+        self.TIMEFRAME: str = "4h"
         self.start: str = "01.01.2021"
         self.end: str = "01.01.2023"
 
@@ -71,8 +70,8 @@ class MainBacktest(_BaseSettings):
         print(analytics)
 
     def _momentum_strat(self, vbt_data):
-        rebalance_indexes = [df({"rnd": np.random.rand(len(vbt_data.index))}, index=vbt_data.index).resample(
-            rebalance_period).asfreq().index for rebalance_period in self.PERIODS["REBALANCE"]]
+        rebalance_indexes = [resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
+                             rebalance_tf in self.PERIODS["REBALANCE"]]
         pf_opt = vbt.PFO.from_allocate_func(
             vbt_data.symbol_wrapper,
             self._allocation_function,

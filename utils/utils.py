@@ -8,6 +8,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from cleantext import clean
 from loguru import logger
+from pandas import DataFrame as df
 from pandas import ExcelWriter
 from scipy.stats import linregress
 from vectorbtpro.utils.datetime_ import get_local_tz
@@ -163,6 +164,11 @@ def round_down(x: float) -> float:
 
 def round_up(x: float) -> float:
     return math.ceil(x * 4) / 4
+
+
+def resample_datetime_index(dt_index: pd.DatetimeIndex, resample_tf: str):
+    return df({"rnd": np.random.rand(len(dt_index))}, index=dt_index).resample(
+        resample_tf).asfreq().index
 
 
 def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
