@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 
@@ -29,10 +30,10 @@ class _BaseSettings(FundamentalSettings):
         self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=[10, 50],  # np.arange(5, 200, 5),
-                            NATR=20,
+        self.PERIODS = dict(MOMENTUM=[10, 50],  # np.arrange(2, 100, 2),
+                            NATR=20,  # np.arrange(2, 100, 2)
                             TOP_NUMBER=20,
-                            REBALANCE=["1D"],
+                            REBALANCE=["12h", "1d"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
@@ -70,8 +71,8 @@ class MainBacktest(_BaseSettings):
         print(analytics)
 
     def _momentum_strat(self, vbt_data):
-        rebalance_indexes = [resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
-                             rebalance_tf in self.PERIODS["REBALANCE"]]
+        rebalance_indexes = {f'{rebalance_tf}_rl_tf': resample_datetime_index(
+            dt_index=vbt_data.index, resample_tf=rebalance_tf) for rebalance_tf in self.PERIODS["REBALANCE"]}
         pf_opt = vbt.PFO.from_allocate_func(
             vbt_data.symbol_wrapper,
             self._allocation_function,
@@ -118,3 +119,4 @@ class MainBacktest(_BaseSettings):
 
 if __name__ == "__main__":
     MainBacktest().main()
+    a = np.log(5)  # So formatter won't remove np from import
