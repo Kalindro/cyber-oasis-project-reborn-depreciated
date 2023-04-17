@@ -68,6 +68,31 @@ class GetFullHistoryDF:
             logger.error(f"Error on main full history, {err}")
             print(traceback.format_exc())
 
+    @staticmethod
+    def _validate_dates(timeframe: str,
+                        number_of_last_candles: tp.Optional[int],
+                        save_load_history: tp.Optional[bool],
+                        start: tp.Optional[str],
+                        end: tp.Optional[str]) -> tp.Tuple[dt.datetime, tp.Union[None, dt.datetime], bool]:
+        """Validate if correct arguments are passed"""
+        timeframe_in_timedelta = timeframe_to_timedelta(timeframe)
+        if number_of_last_candles and save_load_history:
+            save_load_history = False
+            warnings.warn("ERROR, You cannot provide last_n_candles and save_load together, saving/loading turned off")
+        if not (number_of_last_candles or start):
+            raise ValueError("Please provide either starting date or number of last n candles to provide")
+        if number_of_last_candles and (start or end):
+            raise ValueError("You cannot provide start/end date together with last n candles parameter")
+        if start:
+            start = date_string_to_UTC_datetime(start)
+        if end:
+            end = date_string_to_UTC_datetime(end)
+        if number_of_last_candles:
+            start = datetime_now_in_UTC() - (timeframe_in_timedelta * number_of_last_candles)
+            end = datetime_now_in_UTC()
+
+        return start, end, save_load_history
+
     def _get_vbt_one_pair_desired_history(self,
                                           pair: str,
                                           timeframe: str,
@@ -121,31 +146,6 @@ class GetFullHistoryDF:
                 return None
             else:
                 raise err
-
-    @staticmethod
-    def _validate_dates(timeframe: str,
-                        number_of_last_candles: tp.Optional[int],
-                        save_load_history: tp.Optional[bool],
-                        start: tp.Optional[str],
-                        end: tp.Optional[str]) -> tp.Tuple[dt.datetime, tp.Union[None, dt.datetime], bool]:
-        """Validate if correct arguments are passed"""
-        timeframe_in_timedelta = timeframe_to_timedelta(timeframe)
-        if number_of_last_candles and save_load_history:
-            save_load_history = False
-            warnings.warn("ERROR, You cannot provide last_n_candles and save_load together, saving/loading turned off")
-        if not (number_of_last_candles or start):
-            raise ValueError("Please provide either starting date or number of last n candles to provide")
-        if number_of_last_candles and (start or end):
-            raise ValueError("You cannot provide start/end date together with last n candles parameter")
-        if start:
-            start = date_string_to_UTC_datetime(start)
-        if end:
-            end = date_string_to_UTC_datetime(end)
-        if number_of_last_candles:
-            start = datetime_now_in_UTC() - (timeframe_in_timedelta * number_of_last_candles)
-            end = datetime_now_in_UTC()
-
-        return start, end, save_load_history
 
     @staticmethod
     def _drop_too_short_history(histories_dict: dict[str: pd.DataFrame],

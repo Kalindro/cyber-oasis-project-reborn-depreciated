@@ -1,3 +1,4 @@
 history_data/
 API/.env
 .idea
+/strategies/backtest/backtest.pickle
