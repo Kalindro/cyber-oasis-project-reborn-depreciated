@@ -5,16 +5,8 @@ from loguru import logger
 
 
 class MomentumAllocation:
-
-    def allocation_momentum_ranking(self,
-                                    vbt_data: vbt.Data,
-                                    momentum_period: int,
-                                    NATR_period: int = None,
-                                    btc_sma_p: int = None,
-                                    only_positive: bool = False,
-                                    backtest_trim: bool = False,
-                                    top_number: int = None,
-                                    top_decimal: float = None) -> pd.DataFrame:
+    def allocation_momentum_ranking(self, vbt_data: vbt.Data, momentum_period: int, NATR_period: int,
+                                    top_decimal: float = None, top_number: int = None) -> pd.DataFrame:
         """Create allocation dataframe that depend on momentum ranking and inverse volatility"""
         logger.info("Calculating momentum ranking for pairs histories")
         if not (top_decimal or top_number):
@@ -22,48 +14,37 @@ class MomentumAllocation:
         if not top_number:
             top_number = int(len(vbt_data.data) * top_decimal)
 
-        top_momentum_pairs = self._momentum_rank(vbt_data=vbt_data, momentum_period=momentum_period,
-                                                 only_positive=only_positive, backtest_trim=backtest_trim,
-                                                 top_number=top_number)
+        btc_close_data = vbt_data.get(symbols="BTC/USDT", columns="Close")
+        btc_sma = vbt.indicators.MA.run(close=btc_close_data).ma
 
-        if NATR_period:
-            natr_data = vbt_data.run("talib_NATR", timeperiod=NATR_period).real
-            natr_data.columns = natr_data.columns.droplevel(0)
-            inv_vol_data = 1 / natr_data
-
-            top_pairs_inv_vol = inv_vol_data.where(top_momentum_pairs, other=np.nan)
-            sum_top_pairs_inv_vol = top_pairs_inv_vol.sum(axis=1)
-            allocations = top_pairs_inv_vol.div(sum_top_pairs_inv_vol, axis=0)
-        else:
-            sum_top_pairs = top_momentum_pairs.sum(axis=1)
-            allocations = top_momentum_pairs.div(sum_top_pairs, axis=0)
-
-        if btc_sma_p:
-            btc_close_data = vbt_data.get(symbols="BTC/USDT", columns="Close")
-            btc_data = vbt.indicators.MA.run(close=btc_close_data, window=btc_sma_p).ma_below(btc_close_data)
-            allocations = allocations.where(btc_data, other=np.nan)
-
-        allocations = allocations.replace(0, np.nan)
-        return allocations
-
-    def _momentum_rank(self, vbt_data: vbt.Data, momentum_period: int, only_positive: bool, backtest_trim: bool,
-                       top_number: int):
         momentum_data = self._momentum_calc_for_vbt_data(vbt_data=vbt_data, momentum_period=momentum_period)
         momentum_data.columns = momentum_data.columns.droplevel(0)
 
-        if only_positive:
-            momentum_data = momentum_data.where(momentum_data > 0, other=np.nan)
+        natr_data = vbt_data.run("talib_NATR", timeperiod=NATR_period).real
+        natr_data.columns = natr_data.columns.droplevel(0)
 
-        if backtest_trim:
-            avg_momentums = momentum_data.mean()
-            lower_cutoff = avg_momentums.quantile(0.05)
-            upper_cutoff = avg_momentums.quantile(0.95)
-            momentum_data.loc[:, (avg_momentums < lower_cutoff) | (avg_momentums > upper_cutoff)] = 0
+        allocations = self._allocation_calc_for_vbt_data(momentum_data=momentum_data, natr_data=natr_data,
+                                                         top_number=top_number)
+
+        return allocations
+
+    @staticmethod
+    def _allocation_calc_for_vbt_data(momentum_data: pd.DataFrame, natr_data: pd.DataFrame, top_number: int = None):
+        """Calculate allocation for vbt data"""
+        only_positive = False
+
+        if only_positive:
+            momentum_data = momentum_data.where(momentum_data > 0)
 
         ranked_df = momentum_data.rank(axis=1, method="max", ascending=False)
-        top_momentum_pairs = ranked_df <= top_number
+        inv_vol_data = 1 / natr_data
 
-        return top_momentum_pairs
+        top_pairs = ranked_df <= top_number
+        top_pairs_inv_vol = inv_vol_data.where(top_pairs, other=np.nan)
+        sum_top_pairs_inv_vol = top_pairs_inv_vol.sum(axis=1)
+        allocations = top_pairs_inv_vol.div(sum_top_pairs_inv_vol, axis=0).replace(0, np.nan)
+
+        return allocations
 
     @staticmethod
     def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
@@ -74,4 +55,4 @@ class MomentumAllocation:
         correlation_func = vbt.IF.from_expr("@out_corr:rolling_corr_nb(@in_x, @in_y, @p_window)")
         rvalue = correlation_func.run(x, returns, momentum_period).corr
 
-        return round(slope * (rvalue ** 2), 4)
+        return slope * (rvalue ** 2)

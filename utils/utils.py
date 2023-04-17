@@ -166,7 +166,7 @@ def round_up(x: float) -> float:
     return math.ceil(x * 4) / 4
 
 
-def resample_datetime_index(dt_index: pd.DataFrame.index, resample_tf: str):
+def resample_datetime_index(dt_index: pd.DatetimeIndex, resample_tf: str):
     resample_tf = resample_tf.upper()
     return df({"rnd": np.random.rand(len(dt_index))}, index=dt_index).resample(
         resample_tf).asfreq().index
