@@ -34,13 +34,13 @@ class _BaseSettings(FundamentalSettings):
                             NATR=False,  # np.arange(2, 100, 2)
                             BTC_SMA=False,  # np.arange(2, 100, 2)
                             TOP_NUMBER=20,
-                            REBALANCE=["12H"],  # ["8h", "12h", "1d", "2d", "4d"]
+                            REBALANCE=["30min"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "4h"
-        self.start: str = "01.01.2021"
+        self.TIMEFRAME: str = "30min"
+        self.start: str = "01.11.2022"
         self.end: str = "01.04.2023"
 
         self.VOL_QUANTILE_DROP = 0.2
@@ -83,6 +83,7 @@ class MainBacktest(_BaseSettings):
         rebalance_indexes = {
             f"{rebalance_tf}_rl_tf": resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
             rebalance_tf in self.PERIODS["REBALANCE"]}
+
         pf_opt = vbt.PFO.from_allocate_func(
             vbt_data.symbol_wrapper,
             self._allocation_function,
@@ -94,6 +95,7 @@ class MainBacktest(_BaseSettings):
             vbt.Param(self.PERIODS["TOP_NUMBER"]),
             on=vbt.Param(rebalance_indexes),
         )
+
         return pf_opt.simulate(vbt_data, bm_close=vbt_data.get(symbols="BTC/USDT", columns="Close"))
 
     def _allocation_function(self, columns: pd.DataFrame.columns, i: int, momentum_period: int, NATR_period: int,
@@ -104,6 +106,7 @@ class MainBacktest(_BaseSettings):
                                                                                 NATR_period=NATR_period,
                                                                                 btc_sma_p=btc_sma_p,
                                                                                 top_number=top_number)
+
         return self.allocations[columns].iloc[i]
 
     def _get_history(self):

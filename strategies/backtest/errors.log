@@ -64,3 +64,6 @@
 2023-04-12 13:08:32 | ERROR    | Error on main full history, 'NoneType' object does not support item assignment | get_full_history | get_history.py:68
 2023-04-12 13:10:55 | ERROR    | Error on main full history, 'NoneType' object does not support item assignment | get_full_history | get_history.py:68
 2023-04-12 14:08:16 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'get' | get_full_history | get_history.py:68
+2023-04-18 20:26:26 | ERROR    | Error on main full history, Unsupported timeframe to convert to timedelta | get_full_history | get_history.py:68
+2023-04-18 22:09:52 | ERROR    | Error on main full history, Exchange Binance does not support 30MIN timeframe | get_full_history | get_history.py:69
+2023-04-18 22:11:38 | ERROR    | Error on main full history, Exchange Binance does not support 30MIN timeframe | get_full_history | get_history.py:69

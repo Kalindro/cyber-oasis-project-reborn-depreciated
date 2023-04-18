@@ -107,23 +107,23 @@ def excel_save_formatted(dataframe: pd.DataFrame, filename: str,
 def timeframe_to_timestamp_ms(timeframe: str) -> int:
     """Convert timeframe string to timestamp in milliseconds"""
     timeframe = timeframe.lower()
-    if timeframe == "1m" or timeframe == "1min":
+    if timeframe == "1min":
         timestamp_ms = 60000
-    elif timeframe == "5m" or timeframe == "5min":
+    elif timeframe == "5min":
         timestamp_ms = 300000
-    elif timeframe == "15m" or timeframe == "15min":
+    elif timeframe == "15min":
         timestamp_ms = 900000
-    elif timeframe == "30m" or timeframe == "30min":
+    elif timeframe == "30min":
         timestamp_ms = 1800000
-    elif timeframe == "1h" or timeframe == "60m" or timeframe == "60min":
+    elif timeframe == "1h":
         timestamp_ms = 3600000
     elif timeframe == "4h":
         timestamp_ms = 14400000
     elif timeframe == "12h":
         timestamp_ms = 43200000
-    elif timeframe == "24h" or timeframe == "1d":
+    elif timeframe == "1d":
         timestamp_ms = 86400000
-    elif timeframe == "7d" or timeframe == "1w":
+    elif timeframe == "1w":
         timestamp_ms = 604800000
     else:
         raise ValueError("Unsupported timeframe to convert to timestamp")
@@ -134,23 +134,23 @@ def timeframe_to_timestamp_ms(timeframe: str) -> int:
 def timeframe_to_timedelta(timeframe: str) -> dt.timedelta:
     """Convert timeframe string to timestamp in milliseconds"""
     timeframe = timeframe.lower()
-    if timeframe == "1m" or timeframe == "1min":
+    if timeframe == "1min":
         my_timedelta = timedelta(minutes=1)
-    elif timeframe == "5m" or timeframe == "5min":
+    elif timeframe == "5min":
         my_timedelta = timedelta(minutes=5)
-    elif timeframe == "15m" or timeframe == "15min":
+    elif timeframe == "15min":
         my_timedelta = timedelta(minutes=15)
-    elif timeframe == "30m" or timeframe == "30min":
+    elif timeframe == "30min":
         my_timedelta = timedelta(minutes=30)
-    elif timeframe == "1h" or timeframe == "60m" or timeframe == "60min":
+    elif timeframe == "1h":
         my_timedelta = timedelta(hours=1)
     elif timeframe == "4h":
         my_timedelta = timedelta(hours=4)
     elif timeframe == "12h":
         my_timedelta = timedelta(hours=12)
-    elif timeframe == "24h" or timeframe == "1d":
+    elif timeframe == "1d":
         my_timedelta = timedelta(hours=24)
-    elif timeframe == "7d" or timeframe == "1w":
+    elif timeframe == "1w":
         my_timedelta = timedelta(days=7)
     else:
         raise ValueError("Unsupported timeframe to convert to timedelta")

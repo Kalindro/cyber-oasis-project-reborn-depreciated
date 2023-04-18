@@ -115,6 +115,7 @@ class GetFullHistoryDF:
                 return None
 
             one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+            one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
 
             one_pair_dict["data"] = one_pair_df
             delegate_data_storing.save_to_pickle(one_pair_dict)
@@ -125,7 +126,8 @@ class GetFullHistoryDF:
         return cut_exact_df_dates(one_pair_df, start, end)
 
     @staticmethod
-    def _history_fetch(pair: str, timeframe: str,
+    def _history_fetch(pair: str,
+                       timeframe: str,
                        API: dict,
                        start: tp.Optional[dt.datetime] = None,
                        end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:

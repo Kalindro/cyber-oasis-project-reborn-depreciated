@@ -44,6 +44,7 @@ class MomentumAllocation:
             allocations = allocations.where(btc_data, other=np.nan)
 
         allocations = allocations.replace(0, np.nan)
+
         return allocations
 
     def _momentum_rank(self, vbt_data: vbt.Data, momentum_period: int, only_positive: bool, backtest_trim: bool,
