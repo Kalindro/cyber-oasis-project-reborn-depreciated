@@ -138,7 +138,7 @@ class GetFullHistoryDF:
             logger.info(f"Getting fresh {pair} data")
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
                                                 end=end + delta * 6, exchange=API["client"],
-                                                show_progress=False, silence_warnings=True).data.popitem()
+                                                show_progress=False, silence_warnings=False).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
 
             return one_pair_df
