@@ -110,10 +110,9 @@ class MainBacktest(_BaseSettings):
         return self.allocations[columns].iloc[i]
 
     def _get_history(self):
-        vbt_data = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list, start=self.start, end=self.end,
-                                                       timeframe=self.TIMEFRAME, API=self.API,
-                                                       save_load_history=self.SAVE_LOAD_HISTORY,
-                                                       vol_quantile_drop=self.VOL_QUANTILE_DROP)
+        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.start, end=self.end,
+                                    timeframe=self.TIMEFRAME, API=self.API, save_load_history=self.SAVE_LOAD_HISTORY,
+                                    vol_quantile_drop=self.VOL_QUANTILE_DROP).get_full_history()
 
         return vbt_data
 

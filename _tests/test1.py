@@ -1,6 +1,6 @@
 from API.API_exchange_initiator import ExchangeAPISelect
 from exchange.get_history import GetFullHistoryDF
-import vectorbtpro as vbt
+
 API = ExchangeAPISelect().binance_spot_read_only()
 pair = ["JOE/BTC"]
 timeframe = "1d"
