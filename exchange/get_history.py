@@ -87,7 +87,10 @@ class GetFullHistoryDF:
         else:
             one_pair_df = self._evaluate_loaded_data(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
 
-        return cut_exact_df_dates(one_pair_df, start, end)
+        if dataframe_is_not_none_and_not_empty(one_pair_df):
+            one_pair_df = cut_exact_df_dates(one_pair_df, start, end)
+
+        return one_pair_df
 
     def _evaluate_loaded_data(self,
                               pair: str,
@@ -128,8 +131,7 @@ class GetFullHistoryDF:
 
             # There is history but not enough, update existing accordingly
             else:
-                logger.info(
-                    f"Saved data for {pair} found, not enough, updating accordingly")
+                logger.info(f"Saved data for {pair} found, not enough, updating accordingly")
                 available_start = one_pair_df.iloc[0].name
                 available_end = one_pair_df.iloc[-1].name
                 if available_start > start:
@@ -150,7 +152,6 @@ class GetFullHistoryDF:
 
                 one_pair_dict["data"] = one_pair_df
                 data_storing.save_pickle(one_pair_dict)
-
                 return one_pair_df
 
         # No history saved, get fresh
@@ -177,8 +178,10 @@ class GetFullHistoryDF:
                                                 end=end + delta * 6, exchange=API["client"],
                                                 show_progress=False, silence_warnings=False).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
+            if dataframe_is_not_none_and_not_empty(one_pair_df):
+                one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
 
-            return one_pair_df.resample(timeframe.lower()).bfill()
+            return one_pair_df
 
         except Exception as err:
             if "No symbols could be fetched" in str(err):

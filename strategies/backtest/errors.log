@@ -68,3 +68,5 @@
 2023-04-18 22:09:52 | ERROR    | Error on main full history, Exchange Binance does not support 30MIN timeframe | get_full_history | get_history.py:69
 2023-04-18 22:11:38 | ERROR    | Error on main full history, Exchange Binance does not support 30MIN timeframe | get_full_history | get_history.py:69
 2023-04-20 23:24:14 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | get_full_history | get_history.py:72
+2023-04-21 23:06:27 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | get_full_history | get_history.py:72
+2023-04-21 23:09:12 | ERROR    | Error on main full history, 'NoneType' object has no attribute 'loc' | get_full_history | get_history.py:72
