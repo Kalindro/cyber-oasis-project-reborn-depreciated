@@ -120,14 +120,12 @@ class GetFullHistoryDF:
             # Check if desired range in the data
             if (one_pair_df.iloc[0].name <= start) and (one_pair_df.iloc[-1].name >= end):
                 logger.info(f"Saved data for {pair} is sufficient")
-                return one_pair_df
 
             # Check if the coin first available datetime was later than the desired start but still before end
             elif (one_pair_df.iloc[-1].name >= end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
                     first_valid_datetime > start):
                 logger.info(
                     f"Saved data for {pair} is sufficient (history starts later than expected)")
-                return one_pair_df
 
             # There is history but not enough, update existing accordingly
             else:
@@ -152,7 +150,8 @@ class GetFullHistoryDF:
 
                 one_pair_dict["data"] = one_pair_df
                 data_storing.save_pickle(one_pair_dict)
-                return one_pair_df
+
+            return one_pair_df
 
         # No history saved, get fresh
         else:
@@ -160,6 +159,7 @@ class GetFullHistoryDF:
             one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
             one_pair_dict["data"] = one_pair_df
             data_storing.save_pickle(one_pair_dict)
+
             return one_pair_df
 
     @staticmethod
