@@ -126,6 +126,9 @@ class GetFullHistoryDF:
             else:
                 raise err
 
+    def _evaluate_loaded_data(self):
+        pass
+
     def _drop_too_short_history(self, histories_dict: dict[str: pd.DataFrame]) -> dict[str: pd.DataFrame]:
         drop_len_pairs = [pair for pair, history_df in histories_dict.items() if
                           len(history_df) <= self.min_data_length]
