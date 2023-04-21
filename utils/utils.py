@@ -172,6 +172,18 @@ def resample_datetime_index(dt_index: pd.DataFrame.index, resample_tf: str):
         resample_tf).asfreq().index
 
 
+def merge_df_dicts(*dicts):
+    merged_dict = {}
+    for dict_item in dicts:
+        for key, value in dict_item.items():
+            if key in merged_dict:
+                merged_dict[key] = pd.concat([merged_dict[key], value]).loc[
+                    ~pd.concat([merged_dict[key], value]).index.duplicated(keep="last")]
+            else:
+                merged_dict.update({key: value})
+    return merged_dict
+
+
 def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
     """Calculate momentum ranking for list of history dataframes"""
     logger.info("Calculating momentum ranking for pairs histories")

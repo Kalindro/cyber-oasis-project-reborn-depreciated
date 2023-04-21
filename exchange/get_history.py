@@ -89,8 +89,8 @@ class GetFullHistoryDF:
 
         return cut_exact_df_dates(one_pair_df, start, end)
 
-    @staticmethod
-    def _evaluate_loaded_data(pair: str,
+    def _evaluate_loaded_data(self,
+                              pair: str,
                               timeframe: str,
                               start: dt.datetime,
                               end: dt.datetime,
@@ -128,17 +128,38 @@ class GetFullHistoryDF:
 
             # There is history but not enough, update existing accordingly
             else:
-                "Update history"
+                logger.info(
+                    f"Saved data for {pair} found, not enough, updating accordingly")
+                available_start = one_pair_df.iloc[0].name
+                available_end = one_pair_df.iloc[-1].name
+                if available_start > start:
+                    new_start = start
+                    new_end = available_start
+                    before_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
+                                                    API=API)
+                    one_pair_df = pd.concat([before_df, one_pair_df]).loc[
+                        ~pd.concat([before_df, one_pair_df]).index.duplicated(keep="last")]
+
+                if available_end < end:
+                    new_start = available_end
+                    new_end = end
+                    after_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
+                                                   API=API)
+                    one_pair_df = pd.concat([one_pair_df, after_df]).loc[
+                        ~pd.concat([one_pair_df, after_df]).index.duplicated(keep="last")]
+
+                one_pair_dict["data"] = one_pair_df
+                data_storing.save_pickle(one_pair_dict)
+
+                return one_pair_df
 
         # No history saved, get fresh
         else:
-            "Fetch new history"
-
-
-        one_pair_dict["data"] = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-        data_storing.save_pickle(one_pair_dict)
-
-        return one_pair_dict
+            logger.info(f"No saved history for {pair}, getting fresh")
+            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+            one_pair_dict["data"] = one_pair_df
+            data_storing.save_pickle(one_pair_dict)
+            return one_pair_df
 
     @staticmethod
     def _history_fetch(pair: str,
@@ -151,7 +172,7 @@ class GetFullHistoryDF:
         time.sleep(SLEEP)
 
         try:
-            logger.info(f"Getting fresh {pair} data")
+            logger.info(f"Getting {pair} data")
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
                                                 end=end + delta * 6, exchange=API["client"],
                                                 show_progress=False, silence_warnings=False).data.popitem()
