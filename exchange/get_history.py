@@ -84,22 +84,61 @@ class GetFullHistoryDF:
 
         if not save_load_history:
             one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-
         else:
-            data_storing = _DataStoring(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-            one_pair_dict = data_storing.load_pickle_and_pre_check()
-            one_pair_df = one_pair_dict.get("data")
-            first_valid_datetime = one_pair_dict["first_datetime"]
-            if dataframe_is_not_none_and_not_empty(one_pair_df):
-                return cut_exact_df_dates(pre_dataframe=one_pair_df, start=start, end=end)
-            elif first_valid_datetime > end:
-                logger.info(f"{pair} starts after desired end, returning None")
-                return None
-
-            one_pair_dict["data"] = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
-            data_storing.save_to_pickle(one_pair_dict)
+            one_pair_df = self._evaluate_loaded_data(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
 
         return cut_exact_df_dates(one_pair_df, start, end)
+
+    @staticmethod
+    def _evaluate_loaded_data(pair: str,
+                              timeframe: str,
+                              start: dt.datetime,
+                              end: dt.datetime,
+                              API: dict):
+        """Check if loaded data range is sufficient for current request, if not, get new or update existing"""
+        data_storing = _DataStoring(pair=pair, timeframe=timeframe, API=API)
+        one_pair_dict = data_storing.load_pickle()
+        one_pair_df = one_pair_dict.get("data")
+        first_valid_datetime = one_pair_dict.get("first_datetime")
+
+        # Get first valid timestamp if not already available
+        if first_valid_datetime is None:
+            first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=pair, timeframe=timeframe,
+                                                                   exchange=API["client"])
+            one_pair_dict["first_datetime"] = first_valid_datetime
+            data_storing.save_pickle(one_pair_dict)
+
+        # Check if coin even exists in this data range
+        if first_valid_datetime > end:
+            logger.info(f"{pair} starts after desired end, returning None")
+            return None
+
+        if dataframe_is_not_none_and_not_empty(one_pair_df):
+            # Check if desired range in the data
+            if (one_pair_df.iloc[0].name <= start) and (one_pair_df.iloc[-1].name >= end):
+                logger.info(f"Saved data for {pair} is sufficient")
+                return one_pair_df
+
+            # Check if the coin first available datetime was later than the desired start but still before end
+            elif (one_pair_df.iloc[-1].name >= end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
+                    first_valid_datetime > start):
+                logger.info(
+                    f"Saved data for {pair} is sufficient (history starts later than expected)")
+                return one_pair_df
+
+            # There is history but not enough, update existing accordingly
+            else:
+                "Update history"
+
+        # No history saved, get fresh
+        else:
+            "Fetch new history"
+
+
+        one_pair_dict["data"] = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+        data_storing.save_pickle(one_pair_dict)
+
+        return one_pair_dict
 
     @staticmethod
     def _history_fetch(pair: str,
@@ -125,9 +164,6 @@ class GetFullHistoryDF:
                 return None
             else:
                 raise err
-
-    def _evaluate_loaded_data(self):
-        pass
 
     def _drop_too_short_history(self, histories_dict: dict[str: pd.DataFrame]) -> dict[str: pd.DataFrame]:
         drop_len_pairs = [pair for pair, history_df in histories_dict.items() if
@@ -170,12 +206,10 @@ class GetFullHistoryDF:
 class _DataStoring:
     """Class for handling the history loading and saving to pickle"""
 
-    def __init__(self, pair: str, timeframe: str, start: dt.datetime, end: dt.datetime, API: dict):
+    def __init__(self, pair: str, timeframe: str, API: dict):
         self.pair = pair
         self.pair_for_data = pair.replace("/", "-")
         self.timeframe = timeframe
-        self.start = start
-        self.end = end
         self.API = API
         self.exchange_name = self.API["exchange"]
 
@@ -189,59 +223,29 @@ class _DataStoring:
         """Return the path where the history for this exchange should be saved"""
         return os.path.join(ROOT_DIR, "history_data", self.exchange_name, self.timeframe)
 
-    def load_pickle_and_pre_check(self) -> tp.Union[pd.DataFrame, None]:
-        """Check if loaded data range is sufficient for current request, if not - get new"""
-        one_pair_dict = self._load_pickle_only()
-        if not one_pair_dict:
-            one_pair_dict = {}
-        one_pair_df = one_pair_dict.get("data")
-        first_valid_datetime = one_pair_dict.get("first_datetime")
-
-        if not first_valid_datetime:
-            first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=self.pair, timeframe=self.timeframe,
-                                                                   exchange=self.API["client"])
-            one_pair_dict["first_datetime"] = first_valid_datetime
-            self.save_to_pickle(one_pair_dict)
-
-        if dataframe_is_not_none_and_not_empty(one_pair_df):
-            # Desired range if in the data
-            if (one_pair_df.iloc[0].name <= self.start) and (one_pair_df.iloc[-1].name >= self.end):
-                logger.info(f"Saved data for {self.pair} is sufficient")
-
-            # If the coin first available datetime was later than the desired start but still before end
-            elif (one_pair_df.iloc[-1].name >= self.end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
-                    first_valid_datetime > self.start):
-                logger.info(
-                    f"Saved data for {self.pair} is sufficient (history starts later than expected)")
-
-            # Not enough data, remove to query new
-            else:
-                one_pair_dict["data"] = None
-
-        return one_pair_dict
-
-    def _load_pickle_only(self) -> tp.Union[pd.DataFrame, None]:
+    def load_pickle(self) -> dict:
         """Check for pickled data and load, if no folder for data - create"""
-        try:
-            if not os.path.exists(self._history_data_folder_location):
-                try:
-                    os.makedirs(self._history_data_folder_location)
-                except:
-                    pass
-            with open(self._pair_pickle_location, "rb") as f:
-                one_pair_dict = pickle.load(f)
 
-            return one_pair_dict
+        if not os.path.exists(self._history_data_folder_location):
+            try:
+                os.makedirs(self._history_data_folder_location)
+            except:
+                pass
+        else:
+            try:
+                with open(self._pair_pickle_location, "rb") as f:
+                    one_pair_dict = pickle.load(f)
+                return one_pair_dict
 
-        except FileNotFoundError as err:
-            if "No such file or directory" in str(err):
-                logger.info(f"No saved history for {self.pair}")
-            else:
-                logger.error(f"Location error, {err}")
+            except FileNotFoundError as err:
+                if "No such file or directory" in str(err):
+                    logger.info(f"No saved history for {self.pair}")
+                else:
+                    logger.error(f"Error on loading file, {err}")
 
-            return None
+        return {}
 
-    def save_to_pickle(self, dict_to_save: dict[dt.datetime: pd.DataFrame]) -> None:
+    def save_pickle(self, dict_to_save: dict[dt.datetime: pd.DataFrame]) -> None:
         """Pickle the data and save"""
         with open(self._pair_pickle_location, "wb") as f:
             pickle.dump(dict_to_save, f)
