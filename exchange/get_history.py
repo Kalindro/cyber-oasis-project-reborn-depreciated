@@ -14,11 +14,12 @@ import vectorbtpro as vbt
 from loguru import logger
 
 from utils.root_dir import ROOT_DIR
-from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, date_string_to_UTC_datetime,
-                         cut_exact_df_dates, datetime_now_in_UTC)
+from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates,
+                         date_string_to_datetime)
 
 WORKERS = 2
 SLEEP = 0.25
+BASE_TIMEFRAME = "15min"
 
 
 class GetFullHistoryDF:
@@ -83,22 +84,23 @@ class GetFullHistoryDF:
         logger.info(f"Valuating {pair} history")
 
         if not save_load_history:
-            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+            one_pair_df = self._history_fetch(pair=pair, start=start, end=end, API=API)
         else:
-            one_pair_df = self._evaluate_loaded_data(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+            one_pair_df = self._evaluate_loaded_data(pair=pair, start=start, end=end, API=API)
 
         if dataframe_is_not_none_and_not_empty(one_pair_df):
             one_pair_df = cut_exact_df_dates(one_pair_df, start, end)
+            one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
 
         return one_pair_df
 
     def _evaluate_loaded_data(self,
                               pair: str,
-                              timeframe: str,
                               start: dt.datetime,
                               end: dt.datetime,
                               API: dict):
         """Check if loaded data range is sufficient for current request, if not, get new or update existing"""
+        timeframe = BASE_TIMEFRAME
         data_storing = _DataStoring(pair=pair, timeframe=timeframe, API=API)
         one_pair_dict = data_storing.load_pickle()
         one_pair_df = one_pair_dict.get("data")
@@ -135,16 +137,14 @@ class GetFullHistoryDF:
                 if available_start > start:
                     new_start = start
                     new_end = available_start
-                    before_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
-                                                    API=API)
+                    before_df = self._history_fetch(pair=pair, start=new_start, end=new_end, API=API)
                     one_pair_df = pd.concat([before_df, one_pair_df]).loc[
                         ~pd.concat([before_df, one_pair_df]).index.duplicated(keep="last")]
 
                 if available_end < end:
                     new_start = available_end
                     new_end = end
-                    after_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
-                                                   API=API)
+                    after_df = self._history_fetch(pair=pair, start=new_start, end=new_end, API=API)
                     one_pair_df = pd.concat([one_pair_df, after_df]).loc[
                         ~pd.concat([one_pair_df, after_df]).index.duplicated(keep="last")]
 
@@ -156,7 +156,7 @@ class GetFullHistoryDF:
         # No history saved, get fresh
         else:
             logger.info(f"No saved history for {pair}, getting fresh")
-            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
+            one_pair_df = self._history_fetch(pair=pair, start=start, end=end, API=API)
             one_pair_dict["data"] = one_pair_df
             data_storing.save_pickle(one_pair_dict)
 
@@ -164,11 +164,11 @@ class GetFullHistoryDF:
 
     @staticmethod
     def _history_fetch(pair: str,
-                       timeframe: str,
                        API: dict,
                        start: tp.Optional[dt.datetime] = None,
                        end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
         """Core history query wrapper"""
+        timeframe = BASE_TIMEFRAME
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 
@@ -180,6 +180,7 @@ class GetFullHistoryDF:
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
             if dataframe_is_not_none_and_not_empty(one_pair_df):
                 one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
+                one_pair_df.index = one_pair_df.index.tz_localize(None)
 
             return one_pair_df
 
@@ -219,12 +220,12 @@ class GetFullHistoryDF:
         if self.number_of_last_candles and (self.start or self.end):
             raise ValueError("You cannot provide start/end date together with last n candles parameter")
         if self.start:
-            self.start = date_string_to_UTC_datetime(self.start)
+            self.start = date_string_to_datetime(self.start)
         if self.end:
-            self.end = date_string_to_UTC_datetime(self.end)
+            self.end = date_string_to_datetime(self.end)
         if self.number_of_last_candles:
-            self.start = datetime_now_in_UTC() - (timeframe_in_timedelta * self.number_of_last_candles)
-            self.end = datetime_now_in_UTC()
+            self.start = dt.datetime.now() - (timeframe_in_timedelta * self.number_of_last_candles)
+            self.end = dt.datetime.now()
 
 
 class _DataStoring:

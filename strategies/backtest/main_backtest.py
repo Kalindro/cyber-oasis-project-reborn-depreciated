@@ -40,8 +40,8 @@ class _BaseSettings(FundamentalSettings):
         self.PLOTTING: bool = True
 
         self.TIMEFRAME: str = "30min"
-        self.start: str = "01.02.2022"
-        self.end: str = "01.06.2022"
+        self.start: str = "01.01.2021"
+        self.end: str = "01.04.2023"
 
         self.VOL_QUANTILE_DROP = 0.2
         self._validate_inputs()

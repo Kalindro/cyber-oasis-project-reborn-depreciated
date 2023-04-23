@@ -69,10 +69,9 @@ class PerformanceRankAnalysis(_BaseSettings):
 
     def _calculate_performances_on_list(self) -> list[dict]:
         """Calculate performance on all pairs on provided list"""
-        vbt_history = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,
-                                                          timeframe=self.TIMEFRAME,
-                                                          number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,
-                                                          API=self.API, min_data_length=self._min_data_length)
+        vbt_history = GetFullHistoryDF(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
+                                       number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API,
+                                       min_data_length=self._min_data_length).get_full_history()
 
         logger.info("Calculating performance for all the coins...")
         partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
@@ -100,10 +99,6 @@ class PerformanceRankAnalysis(_BaseSettings):
         full_performance_df.sort_values(by="vol_increase", ascending=False, inplace=True)
 
         return full_performance_df
-
-
-class _PerformanceCalculation:
-    """CLass containing calculations"""
 
     def performance_calculations(self, pair: str, coin_history_df: pd.DataFrame, days_windows: list[int],
                                  min_vol_usd: int, min_vol_btc: int) -> tp.Union[dict, None]:

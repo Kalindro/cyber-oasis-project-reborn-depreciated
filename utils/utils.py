@@ -29,6 +29,11 @@ def date_string_to_UTC_datetime(date_string: str) -> dt.datetime:
     return date_datetime
 
 
+def date_string_to_datetime(date_string: str) -> dt.datetime:
+    date_datetime = pd.to_datetime(date_string, dayfirst=True)
+    return date_datetime
+
+
 def datetime_to_timestamp_ms(date_datetime: dt.datetime) -> int:
     date_timestamp = int(time.mktime(date_datetime.timetuple()) * 1000)
     return date_timestamp
