@@ -58,20 +58,25 @@ def dataframe_is_not_none_and_not_empty(dataframe: pd.DataFrame) -> bool:
             return True
 
 
-def excel_save_formatted(dataframe: pd.DataFrame, filename: str,
-                         global_cols_size: int = None,
-                         cash_cols: str = None,
-                         cash_cols_size: int = None,
-                         rounded_cols: str = None,
-                         rounded_cols_size: int = None,
-                         perc_cols: str = None,
-                         perc_cols_size: int = None,
-                         str_cols: str = None,
-                         str_cols_size: int = None) -> None:
+def excel_save_formatted_naive(dataframe: pd.DataFrame, filename: str,
+                               global_cols_size: int = None,
+                               cash_cols: str = None,
+                               cash_cols_size: int = None,
+                               rounded_cols: str = None,
+                               rounded_cols_size: int = None,
+                               perc_cols: str = None,
+                               perc_cols_size: int = None,
+                               str_cols: str = None,
+                               str_cols_size: int = None) -> None:
     """Save dataframe as formatted excel"""
     count = 1
     while True:
         try:
+            dt_cols = [col for col in dataframe.columns if isinstance(dataframe[col].dtype, pd.DatetimeTZDtype)]
+            if dt_cols:
+                for col in dt_cols:
+                    dataframe[col] = dataframe[col].dt.tz_convert(None)
+
             writer = ExcelWriter(filename, engine="xlsxwriter")
             with writer as writer:
                 dataframe.to_excel(writer, sheet_name="main")

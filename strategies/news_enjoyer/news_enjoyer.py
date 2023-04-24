@@ -7,7 +7,7 @@ from pandas import DataFrame as df
 from chatGPT.ask_chat import ask_question_API
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
-from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted
+from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
 from webscraper.crypto_news_scraper import CryptoNewsScraper
 
 logger = ConfigureLoguru().info_level()
@@ -81,8 +81,8 @@ class NewsEnjoyer(_BaseSettings):
         return chat_response
 
     def _save_dataframe(self) -> None:
-        excel_save_formatted(dataframe=self.old_rows, filename="old_news.xlsx", global_cols_size=20, str_cols="B:B",
-                             str_cols_size=155)
+        excel_save_formatted_naive(dataframe=self.old_rows, filename="old_news.xlsx", global_cols_size=20, str_cols="B:B",
+                                   str_cols_size=155)
 
 
 if __name__ == "__main__":

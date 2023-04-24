@@ -14,8 +14,7 @@ import vectorbtpro as vbt
 from loguru import logger
 
 from utils.root_dir import ROOT_DIR
-from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates,
-                         date_string_to_datetime)
+from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC               )
 
 WORKERS = 2
 SLEEP = 0.25
@@ -87,7 +86,6 @@ class GetFullHistoryDF:
             one_pair_df = self._history_fetch(pair=pair, start=start, end=end, API=API)
         else:
             one_pair_df = self._evaluate_loaded_data(pair=pair, start=start, end=end, API=API)
-
         if dataframe_is_not_none_and_not_empty(one_pair_df):
             one_pair_df = cut_exact_df_dates(one_pair_df, start, end)
             one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
@@ -178,9 +176,9 @@ class GetFullHistoryDF:
                                                 end=end + delta * 6, exchange=API["client"],
                                                 show_progress=False, silence_warnings=False).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
+
             if dataframe_is_not_none_and_not_empty(one_pair_df):
                 one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
-                one_pair_df.index = one_pair_df.index.tz_localize(None)
 
             return one_pair_df
 
@@ -220,12 +218,12 @@ class GetFullHistoryDF:
         if self.number_of_last_candles and (self.start or self.end):
             raise ValueError("You cannot provide start/end date together with last n candles parameter")
         if self.start:
-            self.start = date_string_to_datetime(self.start)
+            self.start = date_string_to_UTC_datetime(self.start)
         if self.end:
-            self.end = date_string_to_datetime(self.end)
+            self.end = date_string_to_UTC_datetime(self.end)
         if self.number_of_last_candles:
-            self.start = dt.datetime.now() - (timeframe_in_timedelta * self.number_of_last_candles)
-            self.end = dt.datetime.now()
+            self.start = datetime_now_in_UTC() - (timeframe_in_timedelta * self.number_of_last_candles)
+            self.end = datetime_now_in_UTC()
 
 
 class _DataStoring:

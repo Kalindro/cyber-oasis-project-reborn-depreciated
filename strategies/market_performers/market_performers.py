@@ -4,6 +4,7 @@ import typing as tp
 from functools import partial
 
 import pandas as pd
+import vectorbtpro as vbt
 from pandas import DataFrame as df
 from talib import NATR
 
@@ -11,7 +12,7 @@ from exchange.base_functions import get_pairs_prices
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
-from utils.utils import excel_save_formatted
+from utils.utils import excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 
@@ -19,24 +20,28 @@ logger = ConfigureLoguru().info_level()
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 3
+        self.PAIRS_MODE: int = 2
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
-        self.NUMBER_OF_LAST_CANDLES = 1000
         self.VOL_QUANTILE_DROP = 0.60
         self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
+        self.NUMBER_OF_LAST_CANDLES = self.number_of_last_candles
         self.MIN_VOL_USD = 300_000
         self.MIN_VOL_BTC = self._min_vol_BTC
+
+    @property
+    def number_of_last_candles(self):
+        return (max(self.DAYS_WINDOWS) + 3) * 24
+
+    @property
+    def _min_data_length(self):
+        return max(self.DAYS_WINDOWS + 3) * 24
 
     @property
     def _min_vol_BTC(self):
         BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
         return self.MIN_VOL_USD / BTC_price
-
-    @property
-    def _min_data_length(self):
-        return max(self.DAYS_WINDOWS) * 24
 
 
 class PerformanceRankAnalysis(_BaseSettings):
@@ -58,9 +63,9 @@ class PerformanceRankAnalysis(_BaseSettings):
                 print(f"\033[93mBTC median performance: {BTC_median_performance:.2%}\033[0m")
                 print(f"\033[93mETH median performance: {ETH_median_performance:.2%}\033[0m")
 
-            excel_save_formatted(full_performance_df, filename="performance.xlsx", global_cols_size=13,
-                                 cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", perc_cols="G:N",
-                                 perc_cols_size=16)
+            excel_save_formatted_naive(full_performance_df, filename="performance.xlsx", global_cols_size=13,
+                                       cash_cols="E:F", cash_cols_size=17, rounded_cols="D:D", perc_cols="G:N",
+                                       perc_cols_size=16)
             logger.success("Saved excel, all done")
 
         except Exception as err:
@@ -74,9 +79,8 @@ class PerformanceRankAnalysis(_BaseSettings):
                                        min_data_length=self._min_data_length).get_full_history()
 
         logger.info("Calculating performance for all the coins...")
-        partial_performance_calculations = partial(_PerformanceCalculation().performance_calculations,
-                                                   days_windows=self.DAYS_WINDOWS, min_vol_usd=self.MIN_VOL_USD,
-                                                   min_vol_btc=self.MIN_VOL_BTC)
+        partial_performance_calculations = partial(self.performance_calculations, days_windows=self.DAYS_WINDOWS,
+                                                   min_vol_usd=self.MIN_VOL_USD, min_vol_btc=self.MIN_VOL_BTC)
 
         performances_calculation_results = [partial_performance_calculations(pair, pair_history) for pair, pair_history
                                             in vbt_history.data.items()]
@@ -100,8 +104,8 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         return full_performance_df
 
-    def performance_calculations(self, pair: str, coin_history_df: pd.DataFrame, days_windows: list[int],
-                                 min_vol_usd: int, min_vol_btc: int) -> tp.Union[dict, None]:
+    def performance_calculations2(self, pair: str, coin_history_df: pd.DataFrame, days_windows: list[int],
+                                  min_vol_usd: int, min_vol_btc: int) -> tp.Union[dict, None]:
         """Calculation all the needed performance metrics for the pairs list"""
         price = coin_history_df.iloc[-1]["Close"]
         days_history_dict = {f"{days}d_hourly_history": coin_history_df.tail(24 * days) for days in days_windows}
@@ -134,11 +138,14 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         return full_performance_dict
 
+    def performance_calculations(self, vbt_data: vbt.Data):
+        """Calculation all the needed performance metrics for the pairs list"""
+        print(vbt_data)
+
     @staticmethod
-    def _calculate_price_change(cut_history_dataframe: pd.DataFrame) -> float:
+    def _calculate_price_change(hist_df: pd.DataFrame) -> float:
         """Function counting price change in %"""
-        performance = (cut_history_dataframe.iloc[-1]["Close"] - cut_history_dataframe.iloc[0]["Close"]) / \
-                      cut_history_dataframe.iloc[0]["Close"]
+        performance = (hist_df.iloc[-1]["Close"] - hist_df.iloc[0]["Close"]) / hist_df.iloc[0]["Close"]
 
         return performance
 

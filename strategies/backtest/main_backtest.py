@@ -4,12 +4,11 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
-
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from strategies.backtest.momentums import MomentumAllocation
 from utils.log_config import ConfigureLoguru
-from utils.utils import resample_datetime_index
+from utils.utils import resample_datetime_index, excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 
@@ -27,19 +26,19 @@ vbt.settings.portfolio.stats['incl_unrealized'] = True
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 4
+        self.PAIRS_MODE: int = 2
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=[20],  # np.arange(2, 60, 2),
+        self.PERIODS = dict(MOMENTUM=[20, 25],  # np.arange(2, 60, 2),
                             NATR=False,  # np.arange(2, 100, 2)
                             BTC_SMA=False,  # np.arange(2, 100, 2)
                             TOP_NUMBER=20,
-                            REBALANCE=["30min"],  # ["8h", "12h", "1d", "2d", "4d"]
+                            REBALANCE=["1h"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "30min"
+        self.TIMEFRAME: str = "1h"
         self.start: str = "01.01.2021"
         self.end: str = "01.04.2023"
 
@@ -71,11 +70,13 @@ class MainBacktest(_BaseSettings):
         trades = pf.get_trade_history()
         print(analytics)
 
-        trades[["Index"]] = trades[["Index"]].astype(str)
-        analytics[["Start", "End"]] = analytics[["Start", "End"]].astype(str)
         try:
-            trades.to_excel("trades_analytics.xlsx")
-            analytics.to_excel("backtest_analytics.xlsx")
+            trades[["Index"]] = trades[["Index"]]
+            analytics[["Start", "End"]] = analytics[["Start", "End"]]
+            if isinstance(trades, pd.DataFrame):
+                excel_save_formatted_naive(dataframe=trades, filename="trades_analytics.xlsx")
+            if isinstance(analytics, pd.DataFrame):
+                excel_save_formatted_naive(dataframe=analytics, filename="backtest_analytics.xlsx")
         except Exception as err:
             print(err)
 
