@@ -26,10 +26,10 @@ vbt.settings.portfolio.stats['incl_unrealized'] = True
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 2
+        self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
-        self.PERIODS = dict(MOMENTUM=[20, 25],  # np.arange(2, 60, 2),
+        self.PERIODS = dict(MOMENTUM=[20],  # np.arange(2, 60, 2),
                             NATR=False,  # np.arange(2, 100, 2)
                             BTC_SMA=False,  # np.arange(2, 100, 2)
                             TOP_NUMBER=20,
