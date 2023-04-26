@@ -14,7 +14,8 @@ import vectorbtpro as vbt
 from loguru import logger
 
 from utils.root_dir import ROOT_DIR
-from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC               )
+from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates,
+                         date_string_to_UTC_datetime, datetime_now_in_UTC)
 
 WORKERS = 2
 SLEEP = 0.25
@@ -83,9 +84,10 @@ class GetFullHistoryDF:
         logger.info(f"Valuating {pair} history")
 
         if not save_load_history:
-            one_pair_df = self._history_fetch(pair=pair, start=start, end=end, API=API)
+            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
         else:
             one_pair_df = self._evaluate_loaded_data(pair=pair, start=start, end=end, API=API)
+
         if dataframe_is_not_none_and_not_empty(one_pair_df):
             one_pair_df = cut_exact_df_dates(one_pair_df, start, end)
             one_pair_df = one_pair_df.resample(timeframe.lower()).bfill()
@@ -135,14 +137,16 @@ class GetFullHistoryDF:
                 if available_start > start:
                     new_start = start
                     new_end = available_start
-                    before_df = self._history_fetch(pair=pair, start=new_start, end=new_end, API=API)
+                    before_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
+                                                    API=API)
                     one_pair_df = pd.concat([before_df, one_pair_df]).loc[
                         ~pd.concat([before_df, one_pair_df]).index.duplicated(keep="last")]
 
                 if available_end < end:
                     new_start = available_end
                     new_end = end
-                    after_df = self._history_fetch(pair=pair, start=new_start, end=new_end, API=API)
+                    after_df = self._history_fetch(pair=pair, timeframe=timeframe, start=new_start, end=new_end,
+                                                   API=API)
                     one_pair_df = pd.concat([one_pair_df, after_df]).loc[
                         ~pd.concat([one_pair_df, after_df]).index.duplicated(keep="last")]
 
@@ -154,7 +158,7 @@ class GetFullHistoryDF:
         # No history saved, get fresh
         else:
             logger.info(f"No saved history for {pair}, getting fresh")
-            one_pair_df = self._history_fetch(pair=pair, start=start, end=end, API=API)
+            one_pair_df = self._history_fetch(pair=pair, timeframe=timeframe, start=start, end=end, API=API)
             one_pair_dict["data"] = one_pair_df
             data_storing.save_pickle(one_pair_dict)
 
@@ -163,10 +167,10 @@ class GetFullHistoryDF:
     @staticmethod
     def _history_fetch(pair: str,
                        API: dict,
+                       timeframe: str,
                        start: tp.Optional[dt.datetime] = None,
                        end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
         """Core history query wrapper"""
-        timeframe = BASE_TIMEFRAME
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
 

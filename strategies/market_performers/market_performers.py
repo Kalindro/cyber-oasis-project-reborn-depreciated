@@ -4,9 +4,7 @@ import typing as tp
 from functools import partial
 
 import pandas as pd
-import vectorbtpro as vbt
 from pandas import DataFrame as df
-from talib import NATR
 
 from exchange.base_functions import get_pairs_prices
 from exchange.get_history import GetFullHistoryDF
@@ -36,7 +34,7 @@ class _BaseSettings(FundamentalSettings):
 
     @property
     def _min_data_length(self):
-        return max(self.DAYS_WINDOWS + 3) * 24
+        return max(self.DAYS_WINDOWS) * 24
 
     @property
     def _min_vol_BTC(self):
@@ -125,10 +123,7 @@ class PerformanceRankAnalysis(_BaseSettings):
             logger.info(f"Skipping {pair}, not enough volume")
             return
 
-        coin_NATR = NATR(close=fast_history["Close"], high=fast_history["High"], low=fast_history["Low"],
-                         timeperiod=len(fast_history))[-1]
-
-        full_performance_dict = {"pair": [pair], "natr": [coin_NATR], "avg_vol_fast": [avg_vol_fast],
+        full_performance_dict = {"pair": [pair], "avg_vol_fast": [avg_vol_fast],
                                  "avg_vol_slow": [avg_vol_slow], "vol_increase": [vol_increase]}
         price_change_dict = {
             f"{days}d_performance": self._calculate_price_change(days_history_dict[f"{days}d_hourly_history"])
@@ -138,9 +133,24 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         return full_performance_dict
 
-    def performance_calculations(self, vbt_data: vbt.Data):
+    def performance_calculations(self):
         """Calculation all the needed performance metrics for the pairs list"""
-        print(vbt_data)
+        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
+                                    number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API,
+                                    min_data_length=self._min_data_length).get_full_history()
+        hist_1d = vbt_data.iloc[1 * (-24):]
+        hist_3d = vbt_data.iloc[3 * (-24):]
+        hist_7d = vbt_data.iloc[7 * (-24):]
+
+        hist_1d_mean_vol = hist_1d.get(columns="Volume").mean()
+        hist_3d_mean_vol = hist_3d.get(columns="Volume").mean()
+        hist_7d_mean_vol = hist_7d.get(columns="Volume").mean()
+
+        vol_3d_incr = (hist_3d_mean_vol / hist_1d_mean_vol).to_dict()
+        vol_7d_incr = (hist_7d_mean_vol / hist_1d_mean_vol).to_dict()
+
+        full_performance_dict = {pair: {f"{vol_3d_incr}": vol_3d_incr[pair], f"{vol_7d_incr}": vol_7d_incr[pair]} for pair, _
+                                 in vol_3d_incr.items()}
 
     @staticmethod
     def _calculate_price_change(hist_df: pd.DataFrame) -> float:
@@ -151,4 +161,4 @@ class PerformanceRankAnalysis(_BaseSettings):
 
 
 if __name__ == "__main__":
-    PerformanceRankAnalysis().main()
+    PerformanceRankAnalysis().performance_calculations()

@@ -554,3 +554,6 @@
 2023-04-03 19:11:49 | ERROR    | Error on main full history, division by zero  | get_full_history | get_history.py:63
 2023-04-03 19:11:51 | ERROR    | Error on main market performance, 'NoneType' object has no attribute 'data' | main | market_performers.py:66
 2023-04-23 23:16:45 | ERROR    | Error on main market performance, name '_PerformanceCalculation' is not defined | main | market_performers.py:72
+2023-04-26 22:02:11 | ERROR    | Error on main full history, list index out of range | get_full_history | get_history.py:73
+2023-04-26 22:02:57 | ERROR    | Error on main full history, list index out of range | get_full_history | get_history.py:73
+2023-04-26 22:08:11 | ERROR    | Error on main full history, list index out of range | get_full_history | get_history.py:73
