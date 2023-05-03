@@ -10,7 +10,7 @@ class _BaseSettings(FundamentalSettings):
         self.EXCHANGE_MODE: int = 5
         super().__init__(exchange_mode=self.EXCHANGE_MODE)
 
-        self.LEVERAGE = 5
+        self.LEVERAGE = 5 
         self.ISOLATED = True
 
 
