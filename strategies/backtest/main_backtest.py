@@ -33,12 +33,12 @@ class _BaseSettings(FundamentalSettings):
                             NATR=False,  # np.arange(2, 100, 2)
                             BTC_SMA=False,  # np.arange(2, 100, 2)
                             TOP_NUMBER=20,
-                            REBALANCE=["1h"],  # ["8h", "12h", "1d", "2d", "4d"]
+                            REBALANCE=["1d"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
         self.SAVE_LOAD_HISTORY: bool = True
         self.PLOTTING: bool = True
 
-        self.TIMEFRAME: str = "1h"
+        self.TIMEFRAME: str = "4h"
         self.start: str = "01.01.2021"
         self.end: str = "01.04.2023"
 
@@ -68,7 +68,7 @@ class MainBacktest(_BaseSettings):
             pf.save(backtest_pickle_name)
         analytics = pf.stats(agg_func=None)
         trades = pf.get_trade_history()
-        print(analytics)
+        print(analytics.to_string())
 
         try:
             trades[["Index"]] = trades[["Index"]]
