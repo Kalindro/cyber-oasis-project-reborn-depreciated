@@ -7,8 +7,8 @@ from exchange.get_pairs_list import get_pairs_list_test_single, get_pairs_list_t
 class FundamentalSettings:
     """
     Modes available:
-    :EXCHANGE_MODE: 1 - Binance Spot Read; 2 - Binance Futures Read; 3 - Kucoin Spot Read;
-                    4 - Bybit Read; 5 - Bybit Trade
+    :EXCHANGE_MODE: 1 - Binance Spot Read; 2 - Binance Futures Read;
+                    3 - Bybit Read; 4 - Bybit Trade; 5 - OKX Read; 6 - OKX Trade;
     :PAIRS_MODE: 1 - Test single; 2 - Test multi; 3 - BTC; 4 - USDT
     """
 
@@ -23,9 +23,10 @@ def select_exchange_mode(exchange_mode: int) -> dict:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     exchanges_dict = {1: ExchangeAPISelect().binance_spot_read_only,
                       2: ExchangeAPISelect().binance_futures_read_only,
-                      3: ExchangeAPISelect().kucoin_spot_read_only,
-                      4: ExchangeAPISelect().bybit_read_only,
-                      5: ExchangeAPISelect().bybit_trade,
+                      3: ExchangeAPISelect().bybit_read_only,
+                      4: ExchangeAPISelect().bybit_trade,
+                      5: ExchangeAPISelect().okx_read_only,
+                      6: ExchangeAPISelect().okx_trade,
                       }
     exchange = exchanges_dict.get(exchange_mode)
     if exchange is None:
