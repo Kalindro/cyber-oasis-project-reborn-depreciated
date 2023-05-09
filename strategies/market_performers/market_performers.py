@@ -1,7 +1,6 @@
 import pandas as pd
 from pandas import DataFrame as df
 
-from exchange.base_functions import get_pairs_prices
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
 from utils.log_config import ConfigureLoguru
@@ -17,11 +16,9 @@ class _BaseSettings(FundamentalSettings):
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
-        self.VOL_QUANTILE_DROP = 0.60
+        self.VOL_QUANTILE_DROP = 0.25
         self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
         self.NUMBER_OF_LAST_CANDLES = self.number_of_last_candles
-        self.MIN_VOL_USD = 300_000
-        self.MIN_VOL_BTC = self._min_vol_BTC
 
     @property
     def number_of_last_candles(self):
@@ -31,11 +28,6 @@ class _BaseSettings(FundamentalSettings):
     def _min_data_length(self):
         return max(self.DAYS_WINDOWS) * 24
 
-    @property
-    def _min_vol_BTC(self):
-        BTC_price = get_pairs_prices(self.API).loc["BTC/USDT"]["price"]
-        return self.MIN_VOL_USD / BTC_price
-
 
 class PerformanceRankAnalysis(_BaseSettings):
     """Main analysis class"""
@@ -44,7 +36,8 @@ class PerformanceRankAnalysis(_BaseSettings):
         """Main function runin the analysis"""
         vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
                                     number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API,
-                                    min_data_length=self._min_data_length, vol_quantile_drop=0.25).get_full_history()
+                                    min_data_length=self._min_data_length,
+                                    vol_quantile_drop=self.VOL_QUANTILE_DROP).get_full_history()
         hist_dict = {f"hist_{days}d": vbt_data.iloc[days * (-24):] for days in self.DAYS_WINDOWS}
 
         hist_24h = hist_dict["hist_1d"]
@@ -52,14 +45,14 @@ class PerformanceRankAnalysis(_BaseSettings):
         hist_3d = hist_dict["hist_3d"]
         hist_7d = hist_dict["hist_7d"]
 
-        hist_24h_mean_vol = hist_24h.get(columns="Volume").mean()
-        hist_3d_mean_vol = hist_3d.get(columns="Volume").mean()
-        hist_7d_mean_vol = hist_7d.get(columns="Volume").mean()
+        hist_24h_median_vol = hist_24h.get(columns="Volume").median()
+        hist_3d_median_vol = hist_3d.get(columns="Volume").median()
+        hist_7d_median_vol = hist_7d.get(columns="Volume").median()
 
         price_24h_change = self._calculate_price_change(hist_24h.get(columns="Close"))
         price_prev_24h_change = self._calculate_price_change(hist_prev_24h.get(columns="Close"))
-        vol_3d_incr = round((hist_3d_mean_vol / hist_24h_mean_vol), 2).to_dict()
-        vol_7d_incr = round((hist_7d_mean_vol / hist_24h_mean_vol), 2).to_dict()
+        vol_3d_incr = round((hist_3d_median_vol / hist_24h_median_vol), 2).to_dict()
+        vol_7d_incr = round((hist_7d_median_vol / hist_24h_median_vol), 2).to_dict()
 
         full_performance_df = df.from_dict(
             {pair: {"24h_change": price_24h_change[pair], "prev_24h_change": price_prev_24h_change[pair],
@@ -69,15 +62,27 @@ class PerformanceRankAnalysis(_BaseSettings):
         excel_save_formatted_naive(full_performance_df, filename="performance.xlsx", global_cols_size=15)
         logger.success("Saved excel")
         try:
+            print(full_performance_df)
+            print("24H:")
             btc_perf = f'{round(full_performance_df.loc["BTC/USDT", "24h_change"] * 100, 2):.2f}'
-            print(f"BTC 24h performance: {btc_perf}%")
             market_perf = f'{round(full_performance_df["24h_change"].mean() * 100, 2):.2f}'
-            print(f"Market 24h performance: {market_perf}%")
+            positive_percent = (full_performance_df["24h_change"] > 0).sum() / len(full_performance_df) * 100
+            negative_percent = (full_performance_df["24h_change"] < 0).sum() / len(full_performance_df) * 100
+            print(f"BTC performance: {btc_perf}%")
+            print(f"Market performance: {market_perf}%")
+            print(f"Positive coins: {positive_percent}% | Negative coins: {negative_percent}&")
+            print()
+            print("Previous 24H:")
             btc_prev_perf = f'{round(full_performance_df.loc["BTC/USDT", "prev_24h_change"] * 100, 2):.2f}'
-            print(f"BTC previous 24h performance: {btc_prev_perf}%")
             market_prev_perf = f'{round(full_performance_df["prev_24h_change"].mean() * 100, 2):.2f}'
-            print(f"Market previous 24h performance: {market_prev_perf}%")
+            positive_prev_percent = (full_performance_df["prev_24h_change"] > 0).sum() / len(full_performance_df) * 100
+            negative_prev_percent = (full_performance_df["prev_24h_change"] < 0).sum() / len(full_performance_df) * 100
+            print(f"BTC performance: {btc_prev_perf}%")
+            print(f"Market performance: {market_prev_perf}%")
+            print(f"Positive coins: {positive_prev_percent}% | Negative coins: {negative_prev_percent}%")
+
         except Exception as err:
+            print(err)
             pass
 
     @staticmethod
