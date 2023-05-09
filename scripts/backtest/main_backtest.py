@@ -6,7 +6,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from exchange.get_history import GetFullHistoryDF
 from exchange.select_mode import FundamentalSettings
-from strategies.backtest.momentums import MomentumAllocation
+from scripts.backtest.momentums import MomentumAllocation
 from utils.log_config import ConfigureLoguru
 from utils.utils import resample_datetime_index, excel_save_formatted_naive
 

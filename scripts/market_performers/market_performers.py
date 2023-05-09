@@ -12,7 +12,7 @@ logger = ConfigureLoguru().info_level()
 class _BaseSettings(FundamentalSettings):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 2
+        self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
@@ -66,8 +66,8 @@ class PerformanceRankAnalysis(_BaseSettings):
             print("24H:")
             btc_perf = f'{round(full_performance_df.loc["BTC/USDT", "24h_change"] * 100, 2):.2f}'
             market_perf = f'{round(full_performance_df["24h_change"].mean() * 100, 2):.2f}'
-            positive_percent = (full_performance_df["24h_change"] > 0).sum() / len(full_performance_df) * 100
-            negative_percent = (full_performance_df["24h_change"] < 0).sum() / len(full_performance_df) * 100
+            positive_percent = f'{round(full_performance_df["24h_change"] > 0).sum() / len(full_performance_df) * 100:.2f}'
+            negative_percent = f'{round(full_performance_df["24h_change"] < 0).sum() / len(full_performance_df) * 100:.2f}'
             print(f"BTC performance: {btc_perf}%")
             print(f"Market performance: {market_perf}%")
             print(f"Positive coins: {positive_percent}% | Negative coins: {negative_percent}&")
@@ -75,8 +75,8 @@ class PerformanceRankAnalysis(_BaseSettings):
             print("Previous 24H:")
             btc_prev_perf = f'{round(full_performance_df.loc["BTC/USDT", "prev_24h_change"] * 100, 2):.2f}'
             market_prev_perf = f'{round(full_performance_df["prev_24h_change"].mean() * 100, 2):.2f}'
-            positive_prev_percent = (full_performance_df["prev_24h_change"] > 0).sum() / len(full_performance_df) * 100
-            negative_prev_percent = (full_performance_df["prev_24h_change"] < 0).sum() / len(full_performance_df) * 100
+            positive_prev_percent = f'{round(full_performance_df["prev_24h_change"] > 0).sum() / len(full_performance_df) * 100:.2f}'
+            negative_prev_percent = f'{round(full_performance_df["prev_24h_change"] < 0).sum() / len(full_performance_df) * 100:.2f}'
             print(f"BTC performance: {btc_prev_perf}%")
             print(f"Market performance: {market_prev_perf}%")
             print(f"Positive coins: {positive_prev_percent}% | Negative coins: {negative_prev_percent}%")
