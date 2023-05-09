@@ -33,7 +33,7 @@ class PerformanceRankAnalysis(_BaseSettings):
     """Main analysis class"""
 
     def main(self) -> None:
-        """Main function runin the analysis"""
+        """Main function runing the analysis"""
         vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
                                     number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API,
                                     min_data_length=self._min_data_length,
@@ -61,6 +61,8 @@ class PerformanceRankAnalysis(_BaseSettings):
 
         excel_save_formatted_naive(full_performance_df, filename="performance.xlsx", global_cols_size=15)
         logger.success("Saved excel")
+
+        # Printing
         try:
             print(full_performance_df)
             print("24H:")
@@ -70,7 +72,7 @@ class PerformanceRankAnalysis(_BaseSettings):
             negative_percent = f'{round(full_performance_df["24h_change"] < 0).sum() / len(full_performance_df) * 100:.2f}'
             print(f"BTC performance: {btc_perf}%")
             print(f"Market performance: {market_perf}%")
-            print(f"Positive coins: {positive_percent}% | Negative coins: {negative_percent}&")
+            print(f"Positive coins: {positive_percent}% | Negative coins: {negative_percent}%")
             print()
             print("Previous 24H:")
             btc_prev_perf = f'{round(full_performance_df.loc["BTC/USDT", "prev_24h_change"] * 100, 2):.2f}'

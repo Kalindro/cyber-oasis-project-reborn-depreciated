@@ -1,4 +1,4 @@
-from API.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
+from _depreciated.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
 from utils.utils import clean_string
 
 
