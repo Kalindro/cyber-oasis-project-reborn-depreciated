@@ -47,7 +47,8 @@ class MomentumAllocation:
                                     only_positive: bool = False,
                                     backtest_trim: bool = False,
                                     top_number: int = None,
-                                    top_decimal: float = None) -> pd.DataFrame:
+                                    top_decimal: float = None
+                                    ) -> pd.DataFrame:
         """Create allocation dataframe that depend on momentum ranking and inverse volatility"""
         logger.info("Calculating momentum ranking for pairs histories")
         if not (top_decimal or top_number):

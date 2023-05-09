@@ -79,7 +79,8 @@ class GetFullHistoryDF:
                                           API: dict,
                                           start: tp.Optional[dt.datetime] = None,
                                           end: tp.Optional[dt.datetime] = None,
-                                          save_load_history: tp.Optional[bool] = False) -> pd.DataFrame:
+                                          save_load_history: tp.Optional[bool] = False
+                                          ) -> pd.DataFrame:
         """Get desired history of one pair"""
         logger.info(f"Valuating {pair} history")
 
@@ -98,7 +99,8 @@ class GetFullHistoryDF:
                               pair: str,
                               start: dt.datetime,
                               end: dt.datetime,
-                              API: dict):
+                              API: dict
+                              ) -> pd.DataFrame:
         """Check if loaded data range is sufficient for current request, if not, get new or update existing"""
         timeframe = BASE_TIMEFRAME
         data_storing = _DataStoring(pair=pair, timeframe=timeframe, API=API)
@@ -169,7 +171,8 @@ class GetFullHistoryDF:
                        API: dict,
                        timeframe: str,
                        start: tp.Optional[dt.datetime] = None,
-                       end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
+                       end: tp.Optional[dt.datetime] = None
+                       ) -> pd.DataFrame:
         """Core history query wrapper"""
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)

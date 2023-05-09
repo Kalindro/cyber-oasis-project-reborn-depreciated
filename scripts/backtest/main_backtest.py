@@ -52,47 +52,7 @@ class _BaseSettings(FundamentalSettings):
             self.PLOTTING = False
 
 
-class BacktestTemplate(_BaseSettings):
-    def _get_history(self):
-        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.start, end=self.end,
-                                    timeframe=self.TIMEFRAME, API=self.API, save_load_history=self.SAVE_LOAD_HISTORY,
-                                    vol_quantile_drop=self.VOL_QUANTILE_DROP).get_full_history()
-
-        return vbt_data
-
-    @staticmethod
-    def _plot_ohlc(portfolio, price_df):
-        pf = portfolio
-        fig = pf.plot(subplots=[("price", dict(title="Price", group_id_labels=True, yaxis_kwargs=dict(title="Price"))
-                                 ), "value", "trades", "cum_returns", "drawdowns", "cash"])
-        fig = price_df.vbt.ohlc.plot(plot_type="candlestick", show_volume=False,
-                                     ohlc_add_trace_kwargs=dict(row=1, col=1), xaxis=dict(rangeslider_visible=False),
-                                     fig=fig)
-        fig = pf.orders.plot(add_trace_kwargs=dict(row=1, col=1), buy_trace_kwargs=dict(marker=dict(color="blue")),
-                             sell_trace_kwargs=dict(marker=dict(color="black")),
-                             close_trace_kwargs=dict(opacity=0, line=dict(color="black")), fig=fig)
-
-        return fig
-
-    @staticmethod
-    def _plot_base(portfolio):
-        pf = portfolio
-        fig = pf.plot(subplots=["value", "trades", "cum_returns", "drawdowns", "cash"])
-        return fig
-
-    @staticmethod
-    def _benchmark_DD_metric():
-        max_winning_streak = (
-            'max_winning_streak',
-            dict(
-                title='Max Winning Streak',
-                calc_func=lambda self, group_by:
-                self.get_trades(group_by=group_by).winning_streak.max()
-            )
-        )
-
-
-class MainBacktest(BacktestTemplate):
+class MainBacktest(_BaseSettings):
     """Main class with backtesting template"""
 
     def __init__(self):
@@ -150,6 +110,13 @@ class MainBacktest(BacktestTemplate):
                                                                                 top_number=top_number)
 
         return self.allocations[columns].iloc[i]
+
+    def _get_history(self):
+        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.start, end=self.end,
+                                    timeframe=self.TIMEFRAME, API=self.API, save_load_history=self.SAVE_LOAD_HISTORY,
+                                    vol_quantile_drop=self.VOL_QUANTILE_DROP).get_full_history()
+
+        return vbt_data
 
 
 if __name__ == "__main__":

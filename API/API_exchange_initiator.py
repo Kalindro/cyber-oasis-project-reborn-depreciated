@@ -5,8 +5,12 @@ import ccxt
 from dotenv import load_dotenv
 
 
-def _create_exchange_instance(CCXT_exchange_name: str, public_key: str, secret_key: str,
-                              passphrase: Optional[str] = None, options: Optional[dict] = None) -> ccxt.Exchange:
+def _create_exchange_instance(CCXT_exchange_name: str,
+                              public_key: str,
+                              secret_key: str,
+                              passphrase: Optional[str] = None,
+                              options: Optional[dict] = None
+                              ) -> ccxt.Exchange:
     """Factory function for creating CCXT exchange instance"""
     exchange_params = {"apiKey": public_key, "secret": secret_key}
     if passphrase:

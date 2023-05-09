@@ -6,7 +6,10 @@ from loguru import logger
 from exchange.get_pairs_list import get_pairs_list_ALL
 
 
-def change_leverage_and_mode_for_whole_exchange(leverage: int, isolated: bool, API: dict) -> None:
+def change_leverage_and_mode_for_whole_exchange(leverage: int,
+                                                isolated: bool,
+                                                API: dict
+                                                ) -> None:
     """Change leverage and margin mode on all exchange pairs"""
     logger.info("Changing leverage and margin mode on all pairs on exchange")
     pairs_list = get_pairs_list_ALL(API=API)
@@ -14,14 +17,22 @@ def change_leverage_and_mode_for_whole_exchange(leverage: int, isolated: bool, A
     logger.success("Finished changing leverage and margin mode on all")
 
 
-def change_leverage_and_mode_for_pairs_list(leverage: int, pairs_list: list[str], isolated: bool, API: dict) -> None:
+def change_leverage_and_mode_for_pairs_list(leverage: int,
+                                            pairs_list: list[str],
+                                            isolated: bool,
+                                            API: dict
+                                            ) -> None:
     """Change leverage and margin mode on all pairs on list"""
     with ThreadPoolExecutor(max_workers=2) as executor:
         change_lev_partial = partial(change_leverage_and_mode_one_pair, leverage=leverage, isolated=isolated, API=API)
         output = dict(zip(pairs_list, executor.map(change_lev_partial, pairs_list)))
 
 
-def change_leverage_and_mode_one_pair(pair: str, leverage: int, isolated: bool, API: dict) -> None:
+def change_leverage_and_mode_one_pair(pair: str,
+                                      leverage: int,
+                                      isolated: bool,
+                                      API: dict
+                                      ) -> None:
     """Change leverage and margin mode for one pairs_list"""
 
     exchange_client = API["client"]
