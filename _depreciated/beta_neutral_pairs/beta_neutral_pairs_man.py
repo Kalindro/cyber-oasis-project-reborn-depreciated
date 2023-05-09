@@ -1,11 +1,11 @@
 from general_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         super().__init__(exchange_mode=self.EXCHANGE_MODE)
@@ -21,7 +21,7 @@ class _BaseSettings(FundamentalSettings):
         self.PAIR_BENCHMARK: str = "BTC/USDT"
 
 
-class BetaNeutralPairs(_BaseSettings):
+class BetaNeutralPairs(_BaseTemplate):
     """Calculate beta neutral allocation for two pairs"""
 
     def main(self):

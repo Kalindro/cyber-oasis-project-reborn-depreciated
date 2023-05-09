@@ -1,12 +1,12 @@
 from exchange.get_history import GetFullHistoryDF
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from general_functions.portfolio_alocations import calc_portfolio_parity
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 2
@@ -20,7 +20,7 @@ class _BaseSettings(FundamentalSettings):
         self.INVESTMENT = 1000
 
 
-class PortfolioParity(_BaseSettings):
+class PortfolioParity(_BaseTemplate):
     def main(self):
         """Calculate parity for pairs list"""
         pairs_history_df_dict = GetFullHistoryDF().get_full_history(pairs_list=self.pairs_list,

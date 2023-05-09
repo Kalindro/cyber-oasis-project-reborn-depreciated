@@ -6,7 +6,7 @@ import pandas as pd
 import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from scripts.backtest.momentums import MomentumAllocation
 from utils.log_config import ConfigureLoguru
 from utils.utils import resample_datetime_index, excel_save_formatted_naive
@@ -24,7 +24,7 @@ vbt.settings.portfolio.stats['incl_unrealized'] = True
 
 
 @dataclass
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
@@ -37,22 +37,15 @@ class _BaseSettings(FundamentalSettings):
                             REBALANCE=["1d"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
         self.SAVE_LOAD_HISTORY: bool = True
-        self.PLOTTING: bool = True
 
         self.TIMEFRAME: str = "4h"
         self.start: str = "01.01.2021"
         self.end: str = "01.04.2023"
 
         self.VOL_QUANTILE_DROP = 0.2
-        self._validate_inputs()
-
-    def _validate_inputs(self) -> None:
-        """Validate input parameters"""
-        if self.PAIRS_MODE != 1:
-            self.PLOTTING = False
 
 
-class MainBacktest(_BaseSettings):
+class MainBacktest(_BaseTemplate):
     """Main class with backtesting template"""
 
     def __init__(self):

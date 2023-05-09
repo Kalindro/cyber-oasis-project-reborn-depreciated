@@ -2,14 +2,14 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from exchange.get_history import GetFullHistoryDF
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
@@ -29,7 +29,7 @@ class _BaseSettings(FundamentalSettings):
         return max(self.DAYS_WINDOWS) * 24
 
 
-class PerformanceRankAnalysis(_BaseSettings):
+class PerformanceRankAnalysis(_BaseTemplate):
     """Main analysis class"""
 
     def main(self) -> None:

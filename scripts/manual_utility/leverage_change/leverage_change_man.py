@@ -1,11 +1,11 @@
 from exchange.leverage_change import change_leverage_and_mode_for_whole_exchange
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 6
         super().__init__(exchange_mode=self.EXCHANGE_MODE)
@@ -14,7 +14,7 @@ class _BaseSettings(FundamentalSettings):
         self.ISOLATED = True
 
 
-class LeverageChange(_BaseSettings):
+class LeverageChange(_BaseTemplate):
     """Used to manually change leverage and margin mode on all pairs on the exchange"""
 
     def main(self):

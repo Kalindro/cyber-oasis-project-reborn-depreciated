@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
 from _depreciated.chatGPT.ask_chat import ask_question_API
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 from utils.utils import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
 from _depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper
@@ -13,7 +13,7 @@ from _depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
@@ -27,7 +27,7 @@ class _BaseSettings(FundamentalSettings):
         self.old_rows = df()
 
 
-class NewsEnjoyer(_BaseSettings):
+class NewsEnjoyer(_BaseTemplate):
     """Acquire and process news"""
 
     def main(self):

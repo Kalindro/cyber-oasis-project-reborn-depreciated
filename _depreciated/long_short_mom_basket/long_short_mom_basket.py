@@ -1,13 +1,13 @@
 from prime_functions.portfolio_alocations import calc_portfolio_parity
 from prime_functions.momentums import momentum_calculation_for_pairs_histories
 from exchange.get_full_history import get_full_history_for_pairs_list
-from exchange.select_mode import FundamentalSettings
+from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 
 
-class _BaseSettings(FundamentalSettings):
+class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
         self.PAIRS_MODE: int = 4
@@ -25,7 +25,7 @@ class _BaseSettings(FundamentalSettings):
         self.TOP_NUMBER = 20
 
 
-class LongShortMomBasket(_BaseSettings):
+class LongShortMomBasket(_BaseTemplate):
     def main(self):
         pairs_history_df_list = get_full_history_for_pairs_list(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
                                                                 number_of_last_candles=self.NUMBER_OF_LAST_CANDLES,

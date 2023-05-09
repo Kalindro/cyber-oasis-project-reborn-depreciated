@@ -4,7 +4,7 @@ from exchange.get_pairs_list import get_pairs_list_test_single, get_pairs_list_t
     get_pairs_list_USDT
 
 
-class FundamentalSettings:
+class FundamentalTemplate:
     """
     Modes available:
     :EXCHANGE_MODE: 1 - Binance Spot Read; 2 - Binance Futures Read;
