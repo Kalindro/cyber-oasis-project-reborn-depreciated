@@ -16,7 +16,7 @@ class _BaseTemplate(FundamentalTemplate):
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
-        self.VOL_QUANTILE_DROP = 0.25
+        self.VOL_QUANTILE_DROP = 0.3
         self.DAYS_WINDOWS = [1, 2, 3, 7, 14, 31]
         self.NUMBER_OF_LAST_CANDLES = self.number_of_last_candles
 
@@ -64,7 +64,6 @@ class PerformanceRankAnalysis(_BaseTemplate):
 
         # Printing
         try:
-            print(full_performance_df)
             print("24H:")
             btc_perf = f'{round(full_performance_df.loc["BTC/USDT", "24h_change"] * 100, 2):.2f}'
             market_perf = f'{round(full_performance_df["24h_change"].mean() * 100, 2):.2f}'

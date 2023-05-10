@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 
-from exchange.get_history import GetFullHistoryDF
 from exchange.fundamental_template import FundamentalTemplate
-from scripts.backtest.momentum_allocation import MomentumAllocation
+from exchange.get_history import GetFullHistoryDF
+from scripts.backtest.momentum_allocation import MomentumStrat
 from utils.log_config import ConfigureLoguru
-from utils.utils import resample_datetime_index, excel_save_formatted_naive
+from utils.utils import excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 
@@ -36,13 +36,12 @@ class _BaseTemplate(FundamentalTemplate):
                             TOP_NUMBER=20,
                             REBALANCE=["1d"],  # ["8h", "12h", "1d", "2d", "4d"]
                             )
+
         self.SAVE_LOAD_HISTORY: bool = True
-
-        self.TIMEFRAME: str = "4h"
-        self.start: str = "01.01.2021"
-        self.end: str = "01.04.2023"
-
         self.VOL_QUANTILE_DROP = 0.2
+        self.TIMEFRAME: str = "4h"
+        self.START: str = "01.01.2022"
+        self.END: str = "01.01.2023"
 
 
 class MainBacktest(_BaseTemplate):
@@ -51,6 +50,7 @@ class MainBacktest(_BaseTemplate):
     def __init__(self):
         super().__init__()
         self.vbt_data = None
+        self.current_strat = MomentumStrat().momentum_strat
 
     def main(self):
         backtest_pickle_name = "backtest.pickle"
@@ -58,7 +58,7 @@ class MainBacktest(_BaseTemplate):
             pf = vbt.Portfolio.load(backtest_pickle_name)
         else:
             self.vbt_data = self._get_history()
-            pf = self._momentum_strat(self.vbt_data)
+            pf = self.current_strat(vbt_data=self.vbt_data, periods=self.PERIODS)
             pf.save(backtest_pickle_name)
         analytics = pf.stats(agg_func=None)
         trades = pf.get_trade_history()
@@ -74,38 +74,8 @@ class MainBacktest(_BaseTemplate):
         except Exception as err:
             print(err)
 
-    def _momentum_strat(self, vbt_data: vbt.Data):
-        rebalance_indexes = {
-            f"{rebalance_tf}_rl_tf": resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
-            rebalance_tf in self.PERIODS["REBALANCE"]}
-
-        pf_opt = vbt.PFO.from_allocate_func(
-            vbt_data.symbol_wrapper,
-            self._allocation_function,
-            vbt.RepEval("wrapper.columns"),
-            vbt.Rep("i"),
-            vbt.Param(self.PERIODS["MOMENTUM"]),
-            vbt.Param(self.PERIODS["NATR"]),
-            vbt.Param(self.PERIODS["BTC_SMA"]),
-            vbt.Param(self.PERIODS["TOP_NUMBER"]),
-            on=vbt.Param(rebalance_indexes),
-        )
-
-        return pf_opt.simulate(vbt_data, bm_close=vbt_data.get(symbols="BTC/USDT", columns="Close"))
-
-    def _allocation_function(self, columns: pd.DataFrame.columns, i: int, momentum_period: int, NATR_period: int,
-                             btc_sma_p: int, top_number: int):
-        if i == 0:
-            self.allocations = MomentumAllocation().allocation_momentum_ranking(vbt_data=self.vbt_data,
-                                                                                momentum_period=momentum_period,
-                                                                                NATR_period=NATR_period,
-                                                                                btc_sma_p=btc_sma_p,
-                                                                                top_number=top_number)
-
-        return self.allocations[columns].iloc[i]
-
     def _get_history(self):
-        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.start, end=self.end,
+        vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.START, end=self.END,
                                     timeframe=self.TIMEFRAME, API=self.API, save_load_history=self.SAVE_LOAD_HISTORY,
                                     vol_quantile_drop=self.VOL_QUANTILE_DROP).get_full_history()
 

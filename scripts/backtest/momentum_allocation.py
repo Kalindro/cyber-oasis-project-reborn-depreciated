@@ -2,6 +2,41 @@ import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
+from functools import partial
+from utils.utils import resample_datetime_index
+
+
+class MomentumStrat:
+
+    def momentum_strat(self, vbt_data: vbt.Data, periods: dict):
+        rebalance_indexes = {
+            f"{rebalance_tf}_rl_tf": resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
+            rebalance_tf in periods["REBALANCE"]}
+        allocation_function = partial(self._allocation_function, vbt_data=vbt_data)
+        pf_opt = vbt.PFO.from_allocate_func(
+            vbt_data.symbol_wrapper,
+            allocation_function,
+            vbt.RepEval("wrapper.columns"),
+            vbt.Rep("i"),
+            vbt.Param(periods["MOMENTUM"]),
+            vbt.Param(periods["NATR"]),
+            vbt.Param(periods["BTC_SMA"]),
+            vbt.Param(periods["TOP_NUMBER"]),
+            on=vbt.Param(rebalance_indexes),
+        )
+
+        return pf_opt.simulate(vbt_data, bm_close=vbt_data.get(symbols="BTC/USDT", columns="Close"))
+
+    def _allocation_function(self, columns: pd.DataFrame.columns, i: int, momentum_period: int, NATR_period: int,
+                             btc_sma_p: int, top_number: int, vbt_data: vbt.Data):
+        if i == 0:
+            self.allocations = MomentumAllocation().allocation_momentum_ranking(vbt_data=vbt_data,
+                                                                                momentum_period=momentum_period,
+                                                                                NATR_period=NATR_period,
+                                                                                btc_sma_p=btc_sma_p,
+                                                                                top_number=top_number)
+
+        return self.allocations[columns].iloc[i]
 
 
 class MomentumAllocation:
