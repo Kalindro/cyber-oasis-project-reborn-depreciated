@@ -1,8 +1,10 @@
+from functools import partial
+
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
-from functools import partial
+
 from utils.utils import resample_datetime_index
 
 

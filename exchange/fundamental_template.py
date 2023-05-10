@@ -1,10 +1,12 @@
+from abc import ABC, abstractmethod
 from functools import partial
+
 from API.API_exchange_initiator import ExchangeAPISelect
 from exchange.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, get_pairs_list_BTC, \
     get_pairs_list_USDT
 
 
-class FundamentalTemplate:
+class FundamentalTemplate(ABC):
     """
     Modes available:
     :EXCHANGE_MODE: 1 - Binance Spot Read; 2 - Binance Futures Read;
@@ -19,6 +21,7 @@ class FundamentalTemplate:
             self.pairs_list = select_pairs_list_mode(pairs_mode, self.API)
 
 
+@abstractmethod
 def select_exchange_mode(exchange_mode: int) -> dict:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     exchanges_dict = {1: ExchangeAPISelect().binance_spot_read_only,
@@ -35,6 +38,7 @@ def select_exchange_mode(exchange_mode: int) -> dict:
     return exchange()
 
 
+@abstractmethod
 def select_pairs_list_mode(pairs_mode: int, API: dict) -> list[str]:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     pairs_list = {1: partial(get_pairs_list_test_single),

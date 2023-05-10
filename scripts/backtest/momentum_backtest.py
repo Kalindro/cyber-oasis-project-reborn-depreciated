@@ -7,6 +7,7 @@ import vectorbtpro as vbt
 
 from exchange.fundamental_template import FundamentalTemplate
 from exchange.get_history import GetFullHistoryDF
+from scripts.backtest.backtest_template import BacktestTemplate
 from scripts.backtest.momentum_allocation import MomentumStrat
 from utils.log_config import ConfigureLoguru
 from utils.utils import excel_save_formatted_naive
@@ -44,12 +45,11 @@ class _BaseTemplate(FundamentalTemplate):
         self.END: str = "01.01.2023"
 
 
-class MainBacktest(_BaseTemplate):
+class MainBacktest(_BaseTemplate, BacktestTemplate):
     """Main class with backtesting template"""
 
     def __init__(self):
         super().__init__()
-        self.vbt_data = None
         self.current_strat = MomentumStrat().momentum_strat
 
     def main(self):
