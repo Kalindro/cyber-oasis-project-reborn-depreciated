@@ -33,7 +33,7 @@ class PerformanceRankAnalysis(_BaseTemplate):
     """Main analysis class"""
 
     def main(self) -> None:
-        """Main function runing the analysis"""
+        """Main function running the analysis"""
         vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, timeframe=self.TIMEFRAME,
                                     number_of_last_candles=self.NUMBER_OF_LAST_CANDLES, API=self.API,
                                     min_data_length=self._min_data_length,

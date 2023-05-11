@@ -9,8 +9,8 @@ from utils.utils import resample_datetime_index
 
 
 class MomentumStrat:
-
     def momentum_strat(self, vbt_data: vbt.Data, periods: dict):
+        """Main momentum strat passing variables to allocation functions"""
         rebalance_indexes = {
             f"{rebalance_tf}_rl_tf": resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
             rebalance_tf in periods["REBALANCE"]}
@@ -31,6 +31,7 @@ class MomentumStrat:
 
     def _allocation_function(self, columns: pd.DataFrame.columns, i: int, momentum_period: int, NATR_period: int,
                              btc_sma_p: int, top_number: int, vbt_data: vbt.Data):
+        """Required by VBT allocation logic"""
         if i == 0:
             self.allocations = MomentumAllocation().allocation_momentum_ranking(vbt_data=vbt_data,
                                                                                 momentum_period=momentum_period,

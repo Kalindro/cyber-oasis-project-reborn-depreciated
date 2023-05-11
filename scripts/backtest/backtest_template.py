@@ -1,5 +1,5 @@
 import os
-from abc import abstractmethod, ABC
+from abc import ABC
 
 import pandas as pd
 import vectorbtpro as vbt
@@ -9,13 +9,12 @@ from utils.utils import excel_save_formatted_naive
 
 
 class BacktestTemplate(ABC):
-    """Main class with backtesting template"""
+    """Core backtesting template"""
 
     def __init__(self):
         self.vbt_data = None
 
-    @abstractmethod
-    def main(self):
+    def run(self):
         backtest_pickle_name = "backtest.pickle"
         if os.path.exists(backtest_pickle_name):
             pf = vbt.Portfolio.load(backtest_pickle_name)
@@ -37,7 +36,6 @@ class BacktestTemplate(ABC):
         except Exception as err:
             print(err)
 
-    @abstractmethod
     def _get_history(self):
         vbt_data = GetFullHistoryDF(pairs_list=self.pairs_list, start=self.START, end=self.END,
                                     timeframe=self.TIMEFRAME, API=self.API, save_load_history=self.SAVE_LOAD_HISTORY,
