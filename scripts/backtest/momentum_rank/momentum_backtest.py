@@ -45,6 +45,9 @@ class MainBacktest(_BaseTemplate, BacktestTemplate):
         super().__init__()
         self.current_strat = MomentumStrat().momentum_strat
 
+    def run(self):
+        self._run()
+
 
 if __name__ == "__main__":
     MainBacktest().run()

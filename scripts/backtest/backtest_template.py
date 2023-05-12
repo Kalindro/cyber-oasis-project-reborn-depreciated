@@ -5,7 +5,7 @@ import pandas as pd
 import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
-from utils.utils import excel_save_formatted_naive
+from utils.utils import get_calling_module_location, excel_save_formatted_naive
 
 
 class BacktestTemplate(ABC):
@@ -14,8 +14,9 @@ class BacktestTemplate(ABC):
     def __init__(self):
         self.vbt_data = None
 
-    def run(self):
-        backtest_pickle_name = "backtest.pickle"
+    def _run(self):
+        print(get_calling_module_location())
+        backtest_pickle_name = os.path.join(get_calling_module_location(), "backtest.pickle")
         if os.path.exists(backtest_pickle_name):
             pf = vbt.Portfolio.load(backtest_pickle_name)
         else:
@@ -30,9 +31,11 @@ class BacktestTemplate(ABC):
             trades[["Index"]] = trades[["Index"]]
             analytics[["Start", "End"]] = analytics[["Start", "End"]]
             if isinstance(trades, pd.DataFrame):
-                excel_save_formatted_naive(dataframe=trades, filename="trades_analytics.xlsx")
+                excel_save_formatted_naive(dataframe=trades, filename=os.path.join(get_calling_module_location(),
+                                                                                   "trades_analytics.xlsx"))
             if isinstance(analytics, pd.DataFrame):
-                excel_save_formatted_naive(dataframe=analytics, filename="backtest_analytics.xlsx")
+                excel_save_formatted_naive(dataframe=analytics, filename=os.path.join(get_calling_module_location(),
+                                                                                      "backtest_analytics.xlsx"))
         except Exception as err:
             print(err)
 

@@ -1,5 +1,7 @@
 import datetime as dt
+import inspect
 import math
+import os
 import time
 from datetime import timedelta
 
@@ -56,62 +58,6 @@ def dataframe_is_not_none_and_not_empty(dataframe: pd.DataFrame) -> bool:
     if dataframe is not None:
         if not dataframe.empty:
             return True
-
-
-def excel_save_formatted_naive(dataframe: pd.DataFrame, filename: str,
-                               global_cols_size: int = None,
-                               cash_cols: str = None,
-                               cash_cols_size: int = None,
-                               rounded_cols: str = None,
-                               rounded_cols_size: int = None,
-                               perc_cols: str = None,
-                               perc_cols_size: int = None,
-                               str_cols: str = None,
-                               str_cols_size: int = None) -> None:
-    """Save dataframe as formatted excel"""
-    count = 1
-    while True:
-        try:
-            dt_cols = [col for col in dataframe.columns if isinstance(dataframe[col].dtype, pd.DatetimeTZDtype)]
-            if dt_cols:
-                for col in dt_cols:
-                    dataframe[col] = dataframe[col].dt.tz_convert(None)
-
-            writer = ExcelWriter(filename, engine="xlsxwriter")
-            with writer as writer:
-                dataframe.to_excel(writer, sheet_name="main")
-                workbook = writer.book
-                for worksheet_name in writer.sheets.keys():
-                    worksheet = writer.sheets[worksheet_name]
-                    header_format = workbook.add_format({
-                        "valign": "vcenter",
-                        "align": "center",
-                        "bold": True,
-                    })
-                    cash_formatting = workbook.add_format({"num_format": "$#,##0"})
-                    rounded_formatting = workbook.add_format({"num_format": "0.00"})
-                    perc_formatting = workbook.add_format({"num_format": "0.00%"})
-                    str_formatting = workbook.add_format(None)
-                    worksheet.set_row(0, cell_format=header_format)
-                    worksheet.set_column("A:AAA", global_cols_size, None)
-
-                    columns = [(cash_cols, cash_cols_size, cash_formatting),
-                               (rounded_cols, rounded_cols_size, rounded_formatting),
-                               (perc_cols, perc_cols_size, perc_formatting),
-                               (str_cols, str_cols_size, str_formatting)]
-
-                    for cols, cols_size, formatting in columns:
-                        if cols is not None:
-                            worksheet.set_column(cols, width=cols_size, cell_format=formatting)
-                break
-
-        except PermissionError as e:
-            if "denied" in str(e):
-                filename = f"{filename.split('.')[0].split('_')[0]}_{count}.xlsx"
-                logger.warning(f"Trying to save as v{count} because access denied")
-                count += 1
-            else:
-                raise e
 
 
 def timeframe_to_timestamp_ms(timeframe: str) -> int:
@@ -194,6 +140,12 @@ def merge_df_dicts(*dicts):
     return merged_dict
 
 
+def get_calling_module_location():
+    calling_module = inspect.getmodule(inspect.stack()[2][0])
+    calling_module_dir = os.path.dirname(os.path.abspath(calling_module.__file__))
+    return calling_module_dir
+
+
 def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
     """Calculate momentum ranking for list of history dataframes"""
     logger.info("Calculating momentum ranking for pairs histories")
@@ -209,3 +161,60 @@ def _legacy_momentum_calculate(price_closes: pd.DataFrame) -> float:
     slope = slope * 100
 
     return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue ** 2)
+
+
+def excel_save_formatted_naive(dataframe: pd.DataFrame,
+                               filename: str,
+                               global_cols_size: int = None,
+                               cash_cols: str = None,
+                               cash_cols_size: int = None,
+                               rounded_cols: str = None,
+                               rounded_cols_size: int = None,
+                               perc_cols: str = None,
+                               perc_cols_size: int = None,
+                               str_cols: str = None,
+                               str_cols_size: int = None) -> None:
+    """Save dataframe as formatted excel"""
+    count = 1
+    while True:
+        try:
+            dt_cols = [col for col in dataframe.columns if isinstance(dataframe[col].dtype, pd.DatetimeTZDtype)]
+            if dt_cols:
+                for col in dt_cols:
+                    dataframe[col] = dataframe[col].dt.tz_convert(None)
+
+            writer = ExcelWriter(filename, engine="xlsxwriter")
+            with writer as writer:
+                dataframe.to_excel(writer, sheet_name="main")
+                workbook = writer.book
+                for worksheet_name in writer.sheets.keys():
+                    worksheet = writer.sheets[worksheet_name]
+                    header_format = workbook.add_format({
+                        "valign": "vcenter",
+                        "align": "center",
+                        "bold": True,
+                    })
+                    cash_formatting = workbook.add_format({"num_format": "$#,##0"})
+                    rounded_formatting = workbook.add_format({"num_format": "0.00"})
+                    perc_formatting = workbook.add_format({"num_format": "0.00%"})
+                    str_formatting = workbook.add_format(None)
+                    worksheet.set_row(0, cell_format=header_format)
+                    worksheet.set_column("A:AAA", global_cols_size, None)
+
+                    columns = [(cash_cols, cash_cols_size, cash_formatting),
+                               (rounded_cols, rounded_cols_size, rounded_formatting),
+                               (perc_cols, perc_cols_size, perc_formatting),
+                               (str_cols, str_cols_size, str_formatting)]
+
+                    for cols, cols_size, formatting in columns:
+                        if cols is not None:
+                            worksheet.set_column(cols, width=cols_size, cell_format=formatting)
+                break
+
+        except PermissionError as e:
+            if "denied" in str(e):
+                filename = f"{filename.split('.')[0].split('_')[0]}_{count}.xlsx"
+                logger.warning(f"Trying to save as v{count} because access denied")
+                count += 1
+            else:
+                raise e

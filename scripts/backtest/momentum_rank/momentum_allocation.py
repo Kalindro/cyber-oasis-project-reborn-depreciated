@@ -9,8 +9,10 @@ from utils.utils import resample_datetime_index
 
 
 class MomentumStrat:
+    """Class with momentum strat"""
+
     def momentum_strat(self, vbt_data: vbt.Data, periods: dict):
-        """Main momentum strat passing variables to allocation functions"""
+        """Momentum strat passing variables to allocation functions"""
         rebalance_indexes = {
             f"{rebalance_tf}_rl_tf": resample_datetime_index(dt_index=vbt_data.index, resample_tf=rebalance_tf) for
             rebalance_tf in periods["REBALANCE"]}
@@ -43,6 +45,7 @@ class MomentumStrat:
 
 
 class MomentumAllocation:
+    """Class with momentum allocation logic"""
 
     def allocation_momentum_ranking(self,
                                     vbt_data: vbt.Data,

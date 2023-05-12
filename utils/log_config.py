@@ -1,8 +1,11 @@
+import os
 import sys
 import typing as tp
 
 import pandas as pd
 from loguru import logger
+
+from dir_configs import LOG_DIR
 
 
 class ConfigureLoguru:
@@ -26,7 +29,7 @@ class ConfigureLoguru:
         else:
             logger.add(sink=sys.stderr, level=level, format=formatted_format)
 
-        logger.add(sink="errors.log", level="ERROR", format=formatted_format)
+        logger.add(sink=os.path.join(LOG_DIR, "errors.log"), level="ERROR", format=formatted_format)
         return logger
 
     def _log_level_filter(self, record: dict) -> bool:

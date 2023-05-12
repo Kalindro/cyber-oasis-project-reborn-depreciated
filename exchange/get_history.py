@@ -13,7 +13,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
-from utils.root_dir import ROOT_DIR
+from utils.dir_configs import ROOT_DIR
 from utils.utils import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates,
                          date_string_to_UTC_datetime, datetime_now_in_UTC)
 
