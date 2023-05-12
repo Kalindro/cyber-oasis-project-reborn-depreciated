@@ -4,7 +4,7 @@ from pandas import DataFrame as df
 from exchange.get_history import GetFullHistoryDF
 from exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
-from utils.utils import excel_save_formatted_naive
+from utils.utility import excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 

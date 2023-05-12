@@ -5,7 +5,7 @@ import typing as tp
 import pandas as pd
 from loguru import logger
 
-from dir_configs import LOG_DIR
+from utils.dir_paths import LOG_DIR
 
 
 class ConfigureLoguru:

@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from utils.log_config import ConfigureLoguru
-from utils.utils import clean_string
+from utils.utility import clean_string
 
 logger = ConfigureLoguru().info_level()
 

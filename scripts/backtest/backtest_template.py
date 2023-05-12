@@ -5,7 +5,7 @@ import pandas as pd
 import vectorbtpro as vbt
 
 from exchange.get_history import GetFullHistoryDF
-from utils.utils import get_calling_module_location, excel_save_formatted_naive
+from utils.utility import get_calling_module_location, excel_save_formatted_naive
 
 
 class BacktestTemplate(ABC):
@@ -15,7 +15,6 @@ class BacktestTemplate(ABC):
         self.vbt_data = None
 
     def _run(self):
-        print(get_calling_module_location())
         backtest_pickle_name = os.path.join(get_calling_module_location(), "backtest.pickle")
         if os.path.exists(backtest_pickle_name):
             pf = vbt.Portfolio.load(backtest_pickle_name)
