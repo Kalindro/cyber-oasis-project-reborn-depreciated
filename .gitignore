@@ -1,4 +1,6 @@
-history_data/
-API/.env
 .idea
-/scripts/backtest/backtest.pickle
+CEFI/history_data
+CEFI/API/.env
+**/backtest.pickle
+**/trades_analytics.xlsx
+**/backtest_analytics.xlsx

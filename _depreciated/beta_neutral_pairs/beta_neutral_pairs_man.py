@@ -1,5 +1,5 @@
 from general_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

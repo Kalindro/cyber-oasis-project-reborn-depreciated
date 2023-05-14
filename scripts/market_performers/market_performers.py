@@ -1,8 +1,8 @@
 import pandas as pd
 from pandas import DataFrame as df
 
-from exchange.get_history import GetFullHistoryDF
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.get_history import GetFullHistoryDF
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 from utils.utility import excel_save_formatted_naive
 

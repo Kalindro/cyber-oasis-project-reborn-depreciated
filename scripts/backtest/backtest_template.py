@@ -4,7 +4,7 @@ from abc import ABC
 import pandas as pd
 import vectorbtpro as vbt
 
-from exchange.get_history import GetFullHistoryDF
+from CEFI.exchange.get_history import GetFullHistoryDF
 from utils.utility import get_calling_module_location, excel_save_formatted_naive
 
 

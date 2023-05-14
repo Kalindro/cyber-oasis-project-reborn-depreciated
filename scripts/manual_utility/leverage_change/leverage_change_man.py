@@ -1,5 +1,5 @@
-from exchange.leverage_change import change_leverage_and_mode_for_whole_exchange
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.leverage_change import change_leverage_and_mode_for_whole_exchange
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

@@ -1,7 +1,7 @@
 import numpy as np
 import vectorbtpro as vbt
 
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from scripts.backtest.backtest_template import BacktestTemplate
 from scripts.backtest.momentum_rank.momentum_allocation import MomentumStrat
 from utils.log_config import ConfigureLoguru

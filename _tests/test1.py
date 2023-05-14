@@ -1,6 +1,5 @@
-from API.API_exchange_initiator import ExchangeAPISelect
-from exchange.get_history import GetFullHistoryDF
-from utils.utility import merge_df_dicts
+from CEFI.API.API_exchange_initiator import ExchangeAPISelect
+from CEFI.exchange.get_history import GetFullHistoryDF
 
 API = ExchangeAPISelect().binance_spot_read_only()
 pair = ["BTC/USDT"]

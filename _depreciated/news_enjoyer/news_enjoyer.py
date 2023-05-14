@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
 from _depreciated.chatGPT.ask_chat import ask_question_API
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from utils.log_config import ConfigureLoguru
 from utils.utility import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
 from _depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper

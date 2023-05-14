@@ -1,5 +1,5 @@
-from exchange.get_history import GetFullHistoryDF
-from exchange.fundamental_template import FundamentalTemplate
+from CEFI.exchange.get_history import GetFullHistoryDF
+from CEFI.exchange.fundamental_template import FundamentalTemplate
 from general_functions.portfolio_alocations import calc_portfolio_parity
 from utils.log_config import ConfigureLoguru
 
