@@ -1,5 +1,5 @@
-from CEFI.API.API_exchange_initiator import ExchangeAPISelect
-from CEFI.exchange.get_history import GetFullHistoryDF
+from CyberOasisProjectReborn.CEFI.API.API_exchange_initiator import ExchangeAPISelect
+from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
 
 API = ExchangeAPISelect().binance_spot_read_only()
 pair = ["BTC/USDT"]

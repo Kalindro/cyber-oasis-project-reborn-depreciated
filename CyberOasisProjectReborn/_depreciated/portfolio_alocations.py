@@ -4,7 +4,7 @@ from loguru import logger
 from scipy.stats import linregress
 from talib import NATR
 
-from CEFI.exchange.get_history import GetFullHistoryDF
+from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
 
 
 def calc_portfolio_parity(pairs_history_df_dict: dict[str: pd.DataFrame], NATR_period: int, investment: int = 1000,

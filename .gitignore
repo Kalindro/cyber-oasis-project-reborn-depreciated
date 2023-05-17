@@ -1,6 +1,9 @@
+# General
 .idea
-CEFI/history_data
-CEFI/API/.env
+
+#Project
+CyberOasisProjectReborn/CEFI/history_data
+CyberOasisProjectReborn/CEFI/API/.env
 **/backtest.pickle
 **/trades_analytics.xlsx
 **/backtest_analytics.xlsx

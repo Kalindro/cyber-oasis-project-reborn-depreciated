@@ -1,6 +1,6 @@
 from general_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
-from CEFI.exchange.fundamental_template import FundamentalTemplate
-from utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
+from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 

@@ -1,10 +1,10 @@
 import pandas as pd
 from pandas import DataFrame as df
 
-from CEFI.exchange.get_history import GetFullHistoryDF
-from CEFI.exchange.fundamental_template import FundamentalTemplate
-from utils.log_config import ConfigureLoguru
-from utils.utility import excel_save_formatted_naive
+from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
+from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
+from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.utility import excel_save_formatted_naive
 
 logger = ConfigureLoguru().info_level()
 

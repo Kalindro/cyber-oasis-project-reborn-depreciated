@@ -5,7 +5,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
-from utils.utility import resample_datetime_index
+from CyberOasisProjectReborn.utils.utility import resample_datetime_index
 
 
 class MomentumStrat:

@@ -1,8 +1,8 @@
 from prime_functions.portfolio_alocations import calc_portfolio_parity
 from prime_functions.momentums import momentum_calculation_for_pairs_histories
 from CEFI.get_full_history import get_full_history_for_pairs_list
-from CEFI.exchange.fundamental_template import FundamentalTemplate
-from utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
+from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()
 

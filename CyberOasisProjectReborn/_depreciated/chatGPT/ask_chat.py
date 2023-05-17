@@ -1,5 +1,5 @@
-from _depreciated.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
-from utils.utility import clean_string
+from CyberOasisProjectReborn._depreciated.chatGPT_initiator import initiate_chatGPT_wrapper, initiate_chatGPT_API
+from CyberOasisProjectReborn.utils.utility import clean_string
 
 
 def ask_question_wrapper(question: str) -> str:

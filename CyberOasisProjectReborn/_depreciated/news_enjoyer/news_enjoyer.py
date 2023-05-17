@@ -4,11 +4,11 @@ import pandas as pd
 from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
-from _depreciated.chatGPT.ask_chat import ask_question_API
-from CEFI.exchange.fundamental_template import FundamentalTemplate
-from utils.log_config import ConfigureLoguru
-from utils.utility import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
-from _depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper
+from CyberOasisProjectReborn._depreciated.chatGPT.ask_chat import ask_question_API
+from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
+from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.utility import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
+from CyberOasisProjectReborn._depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper
 
 logger = ConfigureLoguru().info_level()
 
