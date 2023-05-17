@@ -3,7 +3,7 @@ from functools import partial
 
 from loguru import logger
 
-from exchange.get_pairs_list import get_pairs_list_ALL
+from CyberOasisProjectReborn.CEFI.exchange.get_pairs_list import get_pairs_list_ALL
 
 
 def change_leverage_and_mode_for_whole_exchange(leverage: int,

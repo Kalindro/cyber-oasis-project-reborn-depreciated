@@ -1,6 +1,6 @@
 from loguru import logger
 
-from exchange.base_functions import get_pairs_with_precisions_status
+from CyberOasisProjectReborn.CEFI.exchange.base_functions import get_pairs_with_precisions_status
 
 
 def get_pairs_list_test_single() -> list[str]:
