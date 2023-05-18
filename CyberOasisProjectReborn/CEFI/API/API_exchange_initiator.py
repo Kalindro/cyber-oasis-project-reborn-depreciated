@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+import typing as tp
 
 import ccxt
 from dotenv import load_dotenv
@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 def _create_exchange_instance(CCXT_exchange_name: str,
                               public_key: str,
                               secret_key: str,
-                              passphrase: Optional[str] = None,
-                              options: Optional[dict] = None
+                              passphrase: tp.Optional[str] = None,
+                              options: tp.Optional[dict] = None
                               ) -> ccxt.Exchange:
     """Factory function for creating CCXT exchange instance"""
     exchange_params = {"apiKey": public_key, "secret": secret_key}
@@ -25,7 +25,7 @@ class _CCXTExchangeSelect:
 
     @staticmethod
     def _binance_spot(public_key: str, secret_key: str) -> ccxt.Exchange:
-        return _create_exchange_instance("binance", public_key=public_key, secret_key=secret_key,
+        return _create_exchange_instance("binance", public_key, secret_key,
                                          options={"defaultType": "spot", "fetchMarkets": ["spot"]})
 
     @staticmethod
@@ -95,7 +95,7 @@ class ExchangeAPISelect(_CCXTExchangeSelect):
         return API
 
     def okx_read_only(self) -> dict:
-        name = "Okx Read Only "
+        name = "Okx Read Only"
         exchange = "okx"
         public_key = os.getenv("OKX_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("OKX_READ_ONLY_PRIVATE_KEY")
@@ -104,7 +104,7 @@ class ExchangeAPISelect(_CCXTExchangeSelect):
         return API
 
     def okx_trade(self) -> dict:
-        name = "Okx Read Only "
+        name = "Okx Read Only"
         exchange = "okx"
         public_key = os.getenv("OKX_TRADE_PUBLIC_KEY")
         secret_key = os.getenv("OKX_TRADE_PRIVATE_KEY")

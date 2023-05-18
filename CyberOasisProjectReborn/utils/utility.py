@@ -8,17 +8,11 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
-from cleantext import clean
 from loguru import logger
 from pandas import DataFrame as df
 from pandas import ExcelWriter
 from scipy.stats import linregress
 from vectorbtpro.utils.datetime_ import get_local_tz
-
-
-def clean_string(message: str) -> str:
-    message = clean(message, no_urls=True, replace_with_url="", no_emoji=True)
-    return message
 
 
 def datetime_now_in_UTC() -> dt.datetime:
@@ -149,7 +143,6 @@ def get_calling_module_location():
 def _momentum_calc_for_vbt_data(vbt_data: vbt.Data, momentum_period: int) -> dict[str: pd.DataFrame]:
     """Calculate momentum ranking for list of history dataframes"""
     logger.info("Calculating momentum ranking for pairs histories")
-
     return vbt_data.close.rolling(momentum_period).apply(_legacy_momentum_calculate)
 
 
@@ -159,7 +152,6 @@ def _legacy_momentum_calculate(price_closes: pd.DataFrame) -> float:
     x = np.arange(len(returns))
     slope, _, rvalue, _, _ = linregress(x, returns)
     slope = slope * 100
-
     return (((np.exp(slope) ** 252) - 1) * 100) * (rvalue ** 2)
 
 
