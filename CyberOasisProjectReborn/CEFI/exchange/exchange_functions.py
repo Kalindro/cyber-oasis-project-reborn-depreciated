@@ -45,15 +45,15 @@ class Exchange:
     # ############# Pairs lists ############# #
 
     def get_pairs_list_test_single(self) -> list[str]:
-        """Get _tests pairs list"""
+        """Get single pair list"""
         return ["BTC/USDT"]
 
     def get_pairs_list_test_multi(self) -> list[str]:
-        """Get _tests pairs list"""
+        """Get few pairs list"""
         return ["NEO/USDT", "BTC/USDT", "ETH/USDT", "BNB/USDT", "LTC/USDT"]
 
     def get_pairs_list_BTC(self) -> list[str]:
-        """Get all BTC active pairs list"""
+        """Get all BTC pairs list"""
         logger.info("Getting BTC pairs list...")
         desired_quote = ("/BTC", ":BTC")
         pairs_list = self._get_pairs_list_base(desired_quote)
@@ -61,7 +61,7 @@ class Exchange:
         return pairs_list
 
     def get_pairs_list_USDT(self) -> list[str]:
-        """Get all USDT active pairs list"""
+        """Get all USDT pairs list"""
         logger.info("Getting USDT pairs list...")
         desired_quote = ("/USDT", ":USDT")
         pairs_list = self._get_pairs_list_base(desired_quote)
@@ -69,14 +69,15 @@ class Exchange:
         return pairs_list
 
     def get_pairs_list_ALL(self) -> list[str]:
-        """Get ALL active pairs list"""
+        """Get ALL pairs list"""
         logger.info("Getting ALL pairs list...")
         desired_quote = ("/USDT", ":USDT", "/BTC", ":BTC", "/ETH", ":ETH")
         pairs_list = self._get_pairs_list_base(desired_quote)
         logger.debug("Pairs list completed, returning")
         return pairs_list
 
-    def _get_pairs_list_base(self, desired_quote):
+    def _get_pairs_list_base(self, desired_quote: tuple):
+        """Base functions for retrieving pairs"""
         pairs_precisions_status = self.get_pairs_with_precisions_status()
         pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
         pairs_list_original = list(pairs_precisions_status.index)
@@ -88,7 +89,7 @@ class Exchange:
 
     @staticmethod
     def _remove_shit_from_pairs_list(pairs_list: list[str]):
-        """Remove bs pairs from ever list"""
+        """Remove bs pairs from pairs list"""
         forbidden_symbols_lying = ("LUNA", "FTT", "DREP")
         forbidden_symbols_fiat = ("EUR", "USD", "GBP", "AUD", "NZD", "CNY", "JPY", "CAD", "CHF")
         forbidden_symbols_stables = (
@@ -104,8 +105,7 @@ class Exchange:
 
     # ############# Leverage ############# #
 
-    def change_leverage_and_mode_for_whole_exchange(self, leverage: int, isolated: bool,
-                                                    ):
+    def change_leverage_and_mode_for_whole_exchange(self, leverage: int, isolated: bool):
         """Change leverage and margin mode on all exchange pairs"""
         logger.info("Changing leverage and margin mode on all pairs on exchange")
         pairs_list = self.get_pairs_list_ALL()
@@ -122,7 +122,6 @@ class Exchange:
 
     def change_leverage_and_mode_one_pair(self, pair: str, leverage: int, isolated: bool):
         """Change leverage and margin mode for one pairs_list"""
-
         mmode = "ISOLATED" if isolated else "CROSS"
 
         logger.info(f"Changing leverage and margin for {pair}")
