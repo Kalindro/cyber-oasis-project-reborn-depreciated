@@ -1,9 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from functools import partial
 
 from CyberOasisProjectReborn.CEFI.API.API_exchange_initiator import ExchangeAPISelect
-from CyberOasisProjectReborn.CEFI.exchange.get_pairs_list import get_pairs_list_test_single, get_pairs_list_test_multi, \
-    get_pairs_list_BTC, get_pairs_list_USDT
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
 
 
 class FundamentalTemplate(ABC):
@@ -21,7 +20,6 @@ class FundamentalTemplate(ABC):
             self.pairs_list = select_pairs_list_mode(pairs_mode, self.API)
 
 
-@abstractmethod
 def select_exchange_mode(exchange_mode: int) -> dict:
     """Depending on the PAIRS_MODE, return correct pairs list"""
     exchanges_dict = {1: ExchangeAPISelect().binance_spot_read_only,
@@ -34,20 +32,18 @@ def select_exchange_mode(exchange_mode: int) -> dict:
     exchange = exchanges_dict.get(exchange_mode)
     if exchange is None:
         raise ValueError("Invalid mode: " + str(exchange_mode))
-
     return exchange()
 
 
-@abstractmethod
 def select_pairs_list_mode(pairs_mode: int, API: dict) -> list[str]:
     """Depending on the PAIRS_MODE, return correct pairs list"""
-    pairs_list = {1: partial(get_pairs_list_test_single),
-                  2: partial(get_pairs_list_test_multi),
-                  3: partial(get_pairs_list_BTC, API),
-                  4: partial(get_pairs_list_USDT, API),
+    ex = Exchange(API)
+    pairs_list = {1: partial(ex.get_pairs_list_test_single),
+                  2: partial(ex.get_pairs_list_test_multi),
+                  3: partial(ex.get_pairs_list_BTC),
+                  4: partial(ex.get_pairs_list_USDT),
                   }
     pairs_list = pairs_list.get(pairs_mode)
     if pairs_list is None:
         raise ValueError("Invalid mode: " + str(pairs_mode))
-
     return pairs_list()

@@ -1,3 +1,6 @@
+import ccxt.binance
+import vectorbtpro
+
 from CyberOasisProjectReborn.CEFI.API.API_exchange_initiator import ExchangeAPISelect
 from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
 
@@ -10,4 +13,3 @@ end = "01.02.2023"
 history = GetFullHistoryDF(pairs_list=pair, start=start, end=end, timeframe=timeframe, API=API).get_full_history()
 
 print(history)
-

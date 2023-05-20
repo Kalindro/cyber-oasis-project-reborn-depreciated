@@ -77,7 +77,6 @@ def timeframe_to_timestamp_ms(timeframe: str) -> int:
         timestamp_ms = 604800000
     else:
         raise ValueError("Unsupported timeframe to convert to timestamp")
-
     return int(timestamp_ms)
 
 
@@ -104,7 +103,6 @@ def timeframe_to_timedelta(timeframe: str) -> dt.timedelta:
         my_timedelta = timedelta(days=7)
     else:
         raise ValueError("Unsupported timeframe to convert to timedelta")
-
     return my_timedelta
 
 
