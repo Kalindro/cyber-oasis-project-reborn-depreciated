@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
 
 import pandas as pd
 from loguru import logger
