@@ -1,4 +1,4 @@
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
 from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
 from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 
@@ -18,7 +18,7 @@ class LeverageChange(_BaseTemplate):
     """Used to manually change leverage and margin mode on all pairs on the exchange"""
 
     def main(self):
-        Exchange(self.API).change_leverage_and_mode_for_whole_exchange(leverage=self.LEVERAGE, isolated=self.ISOLATED)
+        ExchangeFunctions(self.API).change_leverage_and_mode_for_whole_exchange(leverage=self.LEVERAGE, isolated=self.ISOLATED)
 
 
 if __name__ == "__main__":

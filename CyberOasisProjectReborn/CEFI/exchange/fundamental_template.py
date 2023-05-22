@@ -1,8 +1,8 @@
 from abc import ABC
 from functools import partial
 
-from CyberOasisProjectReborn.CEFI.API.API_exchange_initiator import ExchangeAPISelect
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
+from CyberOasisProjectReborn.CEFI.API._exchanges_initiator import ExchangeAPISelect
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
 
 
 class FundamentalTemplate(ABC):
@@ -37,7 +37,7 @@ def select_exchange_mode(exchange_mode: int) -> dict:
 
 def select_pairs_list_mode(pairs_mode: int, API: dict) -> list[str]:
     """Depending on the PAIRS_MODE, return correct pairs list"""
-    ex = Exchange(API)
+    ex = ExchangeFunctions(API)
     pairs_list = {1: partial(ex.get_pairs_list_test_single),
                   2: partial(ex.get_pairs_list_test_multi),
                   3: partial(ex.get_pairs_list_BTC),

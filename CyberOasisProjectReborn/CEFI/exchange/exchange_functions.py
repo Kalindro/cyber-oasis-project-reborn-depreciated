@@ -1,18 +1,18 @@
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
-
+from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
 import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
 
 
-class Exchange:
+class ExchangeFunctions:
     """Class with exchange functions"""
 
-    def __init__(self, API: dict):
-        self.exchange_client = API["client"]
-        self.exchange_name = API["name"]
+    def __init__(self, exchange: Exchange):
+        self.exchange_client = exchange.client
+        self.exchange_name = exchange.name
+        self.exchange_path_name = exchange.path_name
 
     # ############# Basic ############# #
 
