@@ -1,27 +1,29 @@
-from __future__ import annotations
-
 import typing as tp
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import TYPE_CHECKING
 
 import pandas as pd
+from dotenv import load_dotenv
 from loguru import logger
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistory
 
-if TYPE_CHECKING:
-    from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
 
+class Exchange(ABC):
+    """Base abstract class to create specific exchange client"""
+    load_dotenv()
 
-class ExchangeFunctions:
-    """Class with exchange functions"""
+    def __init__(self):
+        self.exchange_client = None
+        self.exchange_name = None
+        self.exchange_path_name = None
+        self.reinitialize()
 
-    def __init__(self, exchange: Exchange):
-        self.exchange = exchange
-        self.exchange_client = exchange.client
-        self.exchange_name = exchange.name
+    @abstractmethod
+    def reinitialize(self):
+        pass
 
     # ############# Basic ############# #
 
@@ -48,7 +50,8 @@ class ExchangeFunctions:
         raw_pairs = self.exchange_client.fetch_tickers()
         pairs_prices_df = df.from_dict(raw_pairs, orient="index", columns=["average"])
         pairs_prices_df.rename(columns={"average": "price"}, inplace=True)
-        pairs_prices_df.index = pairs_prices_df.index.to_series().apply(lambda x: x.split(':')[0] if ":" in x else x)
+        pairs_prices_df.index = pairs_prices_df.index.to_series().apply(
+            lambda x: x.split(':')[0] if ":" in x else x)
         logger.debug("Pairs prices completed, returning")
         return pairs_prices_df
 
@@ -127,7 +130,8 @@ class ExchangeFunctions:
                                                 isolated: bool):
         """Change leverage and margin mode on all pairs on list"""
         with ThreadPoolExecutor(max_workers=2) as executor:
-            change_lev_partial = partial(self.change_leverage_and_mode_one_pair, leverage=leverage, isolated=isolated)
+            change_lev_partial = partial(self.change_leverage_and_mode_one_pair, leverage=leverage,
+                                         isolated=isolated)
             output = dict(zip(pairs_list, executor.map(change_lev_partial, pairs_list)))
 
     def change_leverage_and_mode_one_pair(self, pair: str, leverage: int, isolated: bool):

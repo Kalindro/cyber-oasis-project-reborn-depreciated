@@ -1,7 +1,5 @@
-from functools import partial
-
-from CyberOasisProjectReborn.CEFI.API.exchanges import *
-from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import *
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
 
 
 class FundamentalTemplate(ABC):
