@@ -1,5 +1,4 @@
 from CyberOasisProjectReborn.CEFI.API.exchanges import BinanceSpotReadOnly
-from CyberOasisProjectReborn.CEFI.API import ExchangeFunctions
-
+import vectorbtpro as vbt
 x = BinanceSpotReadOnly()
-ExchangeFunctions(BinanceSpotReadOnly())
+print(x.functions.get_pairs_list_USDT())

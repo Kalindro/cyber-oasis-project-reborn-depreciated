@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 import ccxt
 from dotenv import load_dotenv
 
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
+
 
 class ExchangeClientCreation:
     """Class including base creation of CCXT exchange client"""
@@ -45,6 +47,7 @@ class Exchange(ABC):
         self.name = None
         self.path_name = None
         self.initialize()
+        self.functions = ExchangeFunctions(self)
 
     @abstractmethod
     def initialize(self):
