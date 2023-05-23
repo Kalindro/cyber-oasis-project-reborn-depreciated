@@ -1,13 +1,14 @@
 import os
 import typing as tp
 from abc import ABC, abstractmethod
-import numpy
+
 import ccxt
 from dotenv import load_dotenv
 
 
 class ExchangeClientCreation:
     """Class including base creation of CCXT exchange client"""
+
     def binance_spot(self, public_key: str, secret_key: str) -> ccxt.Exchange:
         return self._create_exchange_instance("binance", public_key, secret_key,
                                               options={"defaultType": "spot", "fetchMarkets": ["spot"]})
