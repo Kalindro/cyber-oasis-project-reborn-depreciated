@@ -21,7 +21,7 @@ from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataf
                                                    cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC)
 
 if TYPE_CHECKING:
-    from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
+    from CyberOasisProjectReborn.CEFI.API.exchange_functions import Exchange
 
 WORKERS = 2
 SLEEP = 0.25
