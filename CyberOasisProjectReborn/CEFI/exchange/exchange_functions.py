@@ -1,29 +1,20 @@
 import typing as tp
-from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
 import pandas as pd
-from dotenv import load_dotenv
 from loguru import logger
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistory
 
 
-class Exchange(ABC):
+class ExchangeFunctions:
     """Base abstract class to create specific exchange client"""
-    load_dotenv()
 
-    def __init__(self):
-        self.exchange_client = None
-        self.exchange_name = None
-        self.exchange_path_name = None
-        self.reinitialize()
-
-    @abstractmethod
-    def reinitialize(self):
-        pass
+    def __init__(self, exchange: object):
+        self.exchange_client = exchange.client
+        self.exchange_name = exchange.name
 
     # ############# Basic ############# #
 

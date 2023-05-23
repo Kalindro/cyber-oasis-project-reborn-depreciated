@@ -1,2 +1,4 @@
 from CyberOasisProjectReborn.CEFI.API.exchanges import BinanceSpotReadOnly
-import vectorbtpro as vbt
+
+x = BinanceSpotReadOnly()
+print(dir(x))
