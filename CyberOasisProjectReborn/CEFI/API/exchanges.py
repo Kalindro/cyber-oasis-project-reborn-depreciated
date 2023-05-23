@@ -5,8 +5,6 @@ from abc import ABC, abstractmethod
 import ccxt
 from dotenv import load_dotenv
 
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
-
 
 class ExchangeClientCreation:
 
@@ -21,8 +19,8 @@ class ExchangeClientCreation:
     def bybit_spot_futures(self, public_key: str, secret_key: str) -> ccxt.Exchange:
         return self._create_exchange_instance("bybit", public_key, secret_key)
 
-    def _create_exchange_instance(self,
-                                  CCXT_name: str,
+    @staticmethod
+    def _create_exchange_instance(CCXT_name: str,
                                   public_key: str,
                                   secret_key: str,
                                   passphrase: tp.Optional[str] = None,
@@ -46,14 +44,10 @@ class Exchange(ABC):
         self.path_name = None
         self.creator = ExchangeClientCreation()
         self.initialize()
-        self.functions_wrap()
 
     @abstractmethod
     def initialize(self):
         pass
-
-    def functions_wrap(self):
-        return ExchangeFunctions(self)
 
 
 class BinanceSpotReadOnly(Exchange):
