@@ -7,6 +7,7 @@ import typing as tp
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -14,30 +15,36 @@ import vectorbtpro as vbt
 from loguru import logger
 
 from CyberOasisProjectReborn.utils.dir_paths import ROOT_DIR
-from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty, cut_exact_df_dates,
-                                                   date_string_to_UTC_datetime, datetime_now_in_UTC)
+from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty,
+                                                   cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC)
+
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
 
 WORKERS = 2
 SLEEP = 0.25
 BASE_TIMEFRAME = "15min"
 
 
-class GetFullHistoryDF:
+class GetFullHistory:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
     def __init__(self,
+                 exchange: Exchange,
                  pairs_list: list[str],
                  timeframe: str,
-                 API: dict,
                  min_data_length: int = 10,
                  vol_quantile_drop: float = None,
                  save_load_history: bool = False,
                  number_of_last_candles: tp.Optional[int] = None,
                  start: tp.Optional[str] = None,
                  end: tp.Optional[str] = None):
+
+        self.exchange_client = exchange.client
+        self.exchange_name = exchange.name
+        self.exchange_path_name = exchange.path_name
         self.pairs_list = pairs_list
         self.timeframe = timeframe
-        self.API = API
         self.min_data_length = min_data_length
         self.vol_quantile_drop = vol_quantile_drop
         self.save_load_history = save_load_history
@@ -73,14 +80,9 @@ class GetFullHistoryDF:
             logger.error(f"Error on main full history, {err}")
             print(traceback.format_exc())
 
-    def _get_vbt_one_pair_desired_history(self,
-                                          pair: str,
-                                          timeframe: str,
-                                          API: dict,
-                                          start: tp.Optional[dt.datetime] = None,
-                                          end: tp.Optional[dt.datetime] = None,
-                                          save_load_history: tp.Optional[bool] = False
-                                          ) -> pd.DataFrame:
+    def _get_vbt_one_pair_desired_history(self, pair: str, timeframe: str, API: dict,
+                                          start: tp.Optional[dt.datetime] = None, end: tp.Optional[dt.datetime] = None,
+                                          save_load_history: tp.Optional[bool] = False) -> pd.DataFrame:
         """Get desired history of one pair"""
         logger.info(f"Valuating {pair} history")
 
@@ -95,12 +97,7 @@ class GetFullHistoryDF:
 
         return one_pair_df
 
-    def _evaluate_loaded_data(self,
-                              pair: str,
-                              start: dt.datetime,
-                              end: dt.datetime,
-                              API: dict
-                              ) -> pd.DataFrame:
+    def _evaluate_loaded_data(self, pair: str, start: dt.datetime, end: dt.datetime, API: dict) -> pd.DataFrame:
         """Check if loaded data range is sufficient for current request, if not, get new or update existing"""
         timeframe = BASE_TIMEFRAME
         data_storing = _DataStoring(pair=pair, timeframe=timeframe, API=API)
@@ -128,8 +125,7 @@ class GetFullHistoryDF:
             # Check if the coin first available datetime was later than the desired start but still before end
             elif (one_pair_df.iloc[-1].name >= end) and (one_pair_df.iloc[0].name <= first_valid_datetime) and (
                     first_valid_datetime > start):
-                logger.info(
-                    f"Saved data for {pair} is sufficient (history starts later than expected)")
+                logger.info(f"Saved data for {pair} is sufficient (history starts later than expected)")
 
             # There is history but not enough, update existing accordingly
             else:
@@ -167,12 +163,8 @@ class GetFullHistoryDF:
             return one_pair_df
 
     @staticmethod
-    def _history_fetch(pair: str,
-                       API: dict,
-                       timeframe: str,
-                       start: tp.Optional[dt.datetime] = None,
-                       end: tp.Optional[dt.datetime] = None
-                       ) -> pd.DataFrame:
+    def _history_fetch(pair: str, API: dict, timeframe: str, start: tp.Optional[dt.datetime] = None,
+                       end: tp.Optional[dt.datetime] = None) -> pd.DataFrame:
         """Core history query wrapper"""
         delta = timeframe_to_timedelta(timeframe)
         time.sleep(SLEEP)
@@ -180,8 +172,8 @@ class GetFullHistoryDF:
         try:
             logger.info(f"Getting {pair} data")
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                                end=end + delta * 6, exchange=API["client"],
-                                                show_progress=False, silence_warnings=False).data.popitem()
+                                                end=end + delta * 6, exchange=API["client"], show_progress=False,
+                                                silence_warnings=False).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
 
             if dataframe_is_not_none_and_not_empty(one_pair_df):

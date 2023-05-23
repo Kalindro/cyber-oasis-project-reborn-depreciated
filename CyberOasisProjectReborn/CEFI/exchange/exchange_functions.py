@@ -1,9 +1,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
+from typing import TYPE_CHECKING
+
 import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
+
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
 
 
 class ExchangeFunctions:
@@ -12,7 +16,6 @@ class ExchangeFunctions:
     def __init__(self, exchange: Exchange):
         self.exchange_client = exchange.client
         self.exchange_name = exchange.name
-        self.exchange_path_name = exchange.path_name
 
     # ############# Basic ############# #
 
@@ -54,7 +57,7 @@ class ExchangeFunctions:
         return ["NEO/USDT", "BTC/USDT", "ETH/USDT", "BNB/USDT", "LTC/USDT"]
 
     def get_pairs_list_BTC(self) -> list[str]:
-        """Get all BTC pairs list"""
+        """Get BTC pairs list"""
         logger.info("Getting BTC pairs list...")
         desired_quote = ("/BTC", ":BTC")
         pairs_list = self._get_pairs_list_base(desired_quote)
@@ -62,7 +65,7 @@ class ExchangeFunctions:
         return pairs_list
 
     def get_pairs_list_USDT(self) -> list[str]:
-        """Get all USDT pairs list"""
+        """Get USDT pairs list"""
         logger.info("Getting USDT pairs list...")
         desired_quote = ("/USDT", ":USDT")
         pairs_list = self._get_pairs_list_base(desired_quote)

@@ -4,7 +4,7 @@ from abc import ABC
 import pandas as pd
 import vectorbtpro as vbt
 
-from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
+from CyberOasisProjectReborn.CEFI.API import GetFullHistoryDF
 from CyberOasisProjectReborn.utils.utility import get_calling_module_location, excel_save_formatted_naive
 
 

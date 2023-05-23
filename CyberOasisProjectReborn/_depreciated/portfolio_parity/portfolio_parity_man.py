@@ -1,5 +1,5 @@
-from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistoryDF
-from CyberOasisProjectReborn.CEFI.exchange.fundamental_template import FundamentalTemplate
+from CyberOasisProjectReborn.CEFI.API import GetFullHistoryDF
+from CyberOasisProjectReborn.CEFI.API import FundamentalTemplate
 from general_functions.portfolio_alocations import calc_portfolio_parity
 from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 
