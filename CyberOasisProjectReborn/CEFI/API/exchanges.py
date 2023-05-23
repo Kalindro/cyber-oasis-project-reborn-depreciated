@@ -6,7 +6,7 @@ import ccxt
 from dotenv import load_dotenv
 
 from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
-from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistory
+
 
 class ExchangeClientCreation:
     """Class including base creation of CCXT exchange client"""
