@@ -1,7 +1,7 @@
 import os
 import typing as tp
 from abc import ABC, abstractmethod
-
+import numpy
 import ccxt
 from dotenv import load_dotenv
 
