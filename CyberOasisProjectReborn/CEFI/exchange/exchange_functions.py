@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
 
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
+
 
 class ExchangeFunctions:
     """Class with exchange functions"""
 
-    def __init__(self, exchange: object):
+    def __init__(self, exchange: Exchange):
         self.exchange_client = exchange.client
         self.exchange_name = exchange.name
 

@@ -46,17 +46,17 @@ class Exchange(ABC):
         self.client = None
         self.name = None
         self.path_name = None
-        self.initialize()
+        self.reinitialize()
         self.functions = ExchangeFunctions(self)
 
     @abstractmethod
-    def initialize(self):
+    def reinitialize(self):
         pass
 
 
 class BinanceSpotReadOnly(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         self.client = self.creator.binance_spot(public_key, secret_key)
@@ -66,7 +66,7 @@ class BinanceSpotReadOnly(Exchange):
 
 class BinanceSpotTrade(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
         self.client = self.creator.binance_spot(public_key, secret_key)
@@ -76,7 +76,7 @@ class BinanceSpotTrade(Exchange):
 
 class BinanceFuturesReadOnly(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
         self.client = self.creator.binance_futures(public_key, secret_key)
@@ -86,7 +86,7 @@ class BinanceFuturesReadOnly(Exchange):
 
 class BinanceFuturesTrade(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
         secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
         self.client = self.creator.binance_futures(public_key, secret_key)
@@ -96,7 +96,7 @@ class BinanceFuturesTrade(Exchange):
 
 class BybitReadOnly(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BYBIT_READ_ONLY_PUBLIC_KEY")
         secret_key = os.getenv("BYBIT_READ_ONLY_PRIVATE_KEY")
         self.client = self.creator.bybit_spot_futures(public_key, secret_key)
@@ -106,7 +106,7 @@ class BybitReadOnly(Exchange):
 
 class BybitTrade(Exchange):
 
-    def initialize(self):
+    def reinitialize(self):
         public_key = os.getenv("BYBIT_TRADE_PUBLIC_KEY")
         secret_key = os.getenv("BYBIT_TRADE_PRIVATE_KEY")
         self.client = self.creator.bybit_spot_futures(public_key, secret_key)
