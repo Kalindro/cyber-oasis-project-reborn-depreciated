@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing as tp
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import TYPE_CHECKING
@@ -7,6 +8,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 from loguru import logger
 from pandas import DataFrame as df
+
+from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistory
 
 if TYPE_CHECKING:
     from CyberOasisProjectReborn.CEFI.API.exchanges import Exchange
@@ -16,6 +19,7 @@ class ExchangeFunctions:
     """Class with exchange functions"""
 
     def __init__(self, exchange: Exchange):
+        self.exchange = exchange
         self.exchange_client = exchange.client
         self.exchange_name = exchange.name
 
@@ -154,3 +158,18 @@ class ExchangeFunctions:
             self.exchange_client.set_margin_mode(marginMode=mmode, symbol=pair)
 
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")
+
+    # ############# History ############# #
+
+    def get_history(self,
+                    pairs_list: list[str],
+                    timeframe: str,
+                    min_data_length: int = 10,
+                    vol_quantile_drop: float = None,
+                    save_load_history: bool = False,
+                    number_of_last_candles: tp.Optional[int] = None,
+                    start: tp.Optional[str] = None,
+                    end: tp.Optional[str] = None):
+
+        return GetFullHistory(self.exchange, pairs_list, timeframe, min_data_length, vol_quantile_drop,
+                              save_load_history, number_of_last_candles, start, end).get_full_history()

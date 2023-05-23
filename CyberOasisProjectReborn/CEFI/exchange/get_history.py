@@ -61,7 +61,7 @@ class GetFullHistory:
         try:
             logger.info("Getting history of all the coins on provided pairs list...")
             vbt_history_partial = partial(self._get_vbt_one_pair_desired_history, timeframe=self.timeframe,
-                                          start=self.start, end=self.end, API=self.API,
+                                          start=self.start, end=self.end, API=self.exchange_client,
                                           save_load_history=self.save_load_history)
 
             with ThreadPoolExecutor(max_workers=WORKERS) as executor:
@@ -174,7 +174,7 @@ class GetFullHistory:
         try:
             logger.info(f"Getting {pair} data")
             _, one_pair_df = vbt.CCXTData.fetch(symbols=pair, timeframe=timeframe, start=start - delta * 6,
-                                                end=end + delta * 6, exchange=API["client"], show_progress=False,
+                                                end=end + delta * 6, exchange=API, show_progress=False,
                                                 silence_warnings=False).data.popitem()
             one_pair_df["Volume"] = one_pair_df["Volume"] * one_pair_df["Close"]
 
