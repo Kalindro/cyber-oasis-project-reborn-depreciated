@@ -1,2 +1,4 @@
-from CyberOasisProjectReborn.CEFI.API.exchanges import BinanceSpotReadOnly
-import vectorbtpro as vbt
+import ccxt
+
+ccxt.binance()
+ccxt.Exchange()
