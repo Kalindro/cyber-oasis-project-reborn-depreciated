@@ -1,7 +1,7 @@
 import os
 import typing as tp
 from abc import ABC, abstractmethod
-
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import ExchangeFunctions
 import ccxt
 from dotenv import load_dotenv
 
@@ -44,6 +44,7 @@ class Exchange(ABC):
         self.path_name = None
         self.creator = ExchangeClientCreation()
         self.initialize()
+        self.funcs = ExchangeFunctions(self)
 
     @abstractmethod
     def initialize(self):
