@@ -94,7 +94,7 @@ class Exchange(ABC):
         pairs_precisions_status = self.get_pairs_with_precisions_status()
         pairs_precisions_status = pairs_precisions_status[pairs_precisions_status["active"] == "True"]
         pairs_list_original = list(pairs_precisions_status.index)
-        pairs_list_original = self._remove_shit_from_pairs_list(pairs_list=pairs_list_original)
+        pairs_list_original = self._remove_shit_from_pairs_list(pairs_list_original)
         pairs_list = [str(pair) for pair in pairs_list_original if str(pair).endswith(desired_quote)]
         pairs_list_final = []
         [pairs_list_final.append(pair) for pair in pairs_list if pair not in pairs_list_final]
@@ -122,16 +122,13 @@ class Exchange(ABC):
         """Change leverage and margin mode on all exchange pairs"""
         logger.info("Changing leverage and margin mode on all pairs on exchange")
         pairs_list = self.get_pairs_list_ALL()
-        self.change_leverage_and_mode_for_pairs_list(leverage=leverage, pairs_list=pairs_list, isolated=isolated)
+        self.change_leverage_and_mode_for_pairs_list(leverage, pairs_list, isolated)
         logger.success("Finished changing leverage and margin mode on all")
 
-    def change_leverage_and_mode_for_pairs_list(self, leverage: int,
-                                                pairs_list: list[str],
-                                                isolated: bool):
+    def change_leverage_and_mode_for_pairs_list(self, leverage: int, pairs_list: list[str], isolated: bool):
         """Change leverage and margin mode on all pairs on list"""
         with ThreadPoolExecutor(max_workers=2) as executor:
-            change_lev_partial = partial(self.change_leverage_and_mode_one_pair, leverage=leverage,
-                                         isolated=isolated)
+            change_lev_partial = partial(self.change_leverage_and_mode_one_pair, leverage=leverage, isolated=isolated)
             output = dict(zip(pairs_list, executor.map(change_lev_partial, pairs_list)))
 
     def change_leverage_and_mode_one_pair(self, pair: str, leverage: int, isolated: bool):
@@ -141,8 +138,8 @@ class Exchange(ABC):
         logger.info(f"Changing leverage and margin for {pair}")
         if "bybit" in self.exchange_name.lower():
             try:
-                self.exchange_client.set_leverage(leverage=leverage, symbol=pair)
-                self.exchange_client.set_margin_mode(marginMode=mmode, symbol=pair, params={"leverage": leverage})
+                self.exchange_client.set_leverage(leverage, pair)
+                self.exchange_client.set_margin_mode(mmode, pair, params={"leverage": leverage})
             except Exception as err:
                 if "not modified" in str(err):
                     pass
@@ -150,16 +147,16 @@ class Exchange(ABC):
                     print(err)
         elif "okx" in self.exchange_name.lower():
             try:
-                self.exchange_client.set_leverage(leverage=leverage, symbol=pair)
-                self.exchange_client.set_margin_mode(marginMode=mmode, symbol=pair, params={"lever": leverage})
+                self.exchange_client.set_leverage(leverage, pair)
+                self.exchange_client.set_margin_mode(mmode, pair, params={"lever": leverage})
             except Exception as err:
                 if "Margin trading is not supported" in str(err) or "Leverage exceeds" in str(err):
                     pass
                 else:
                     print(err)
         else:
-            self.exchange_client.set_leverage(leverage=leverage, symbol=pair)
-            self.exchange_client.set_margin_mode(marginMode=mmode, symbol=pair)
+            self.exchange_client.set_leverage(leverage, pair)
+            self.exchange_client.set_margin_mode(mmode, pair)
 
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")
 
