@@ -1,5 +1,5 @@
-from CyberOasisProjectReborn.CEFI.API import ExchangeFunctions
-from CyberOasisProjectReborn.CEFI.API import FundamentalTemplate
+from CyberOasisProjectReborn.CEFI.exchange import ExchangeFunctions
+from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
 from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 
 logger = ConfigureLoguru().info_level()

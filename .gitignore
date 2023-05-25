@@ -3,7 +3,7 @@
 
 #Project
 CyberOasisProjectReborn/CEFI/history_data
-CyberOasisProjectReborn/CEFI/API/.env
+**/.env
 **/backtest.pickle
 **/trades_analytics.xlsx
 **/backtest_analytics.xlsx

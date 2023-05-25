@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn._depreciated.chatGPT.ask_chat import ask_question_API
-from CyberOasisProjectReborn.CEFI.API import FundamentalTemplate
+from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
 from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
 from CyberOasisProjectReborn.utils.utility import dataframe_is_not_none_and_not_empty, excel_save_formatted_naive
 from CyberOasisProjectReborn._depreciated.webscraper.crypto_news_scraper import CryptoNewsScraper

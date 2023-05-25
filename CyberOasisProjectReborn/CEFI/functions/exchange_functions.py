@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pandas import DataFrame as df
 
-from CyberOasisProjectReborn.CEFI.exchange.get_history import GetFullHistory
+from CyberOasisProjectReborn.CEFI.functions.get_history import GetFullHistory
 
 
 class Exchange(ABC):
@@ -172,5 +172,6 @@ class Exchange(ABC):
                     start: tp.Optional[str] = None,
                     end: tp.Optional[str] = None):
 
-        return GetFullHistory(self.exchange, pairs_list, timeframe, min_data_length, vol_quantile_drop,
-                              save_load_history, number_of_last_candles, start, end).get_full_history()
+        return GetFullHistory(self.exchange_client, self.exchange_name, self.exchange_path_name, pairs_list, timeframe,
+                              min_data_length, vol_quantile_drop, save_load_history, number_of_last_candles, start,
+                              end).get_full_history()

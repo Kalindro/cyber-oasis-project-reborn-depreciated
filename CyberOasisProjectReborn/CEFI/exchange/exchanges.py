@@ -3,7 +3,7 @@ import typing as tp
 
 import ccxt
 
-from CyberOasisProjectReborn.CEFI.API.exchange_functions import Exchange
+from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
 
 
 class ExchangeConstructor:
