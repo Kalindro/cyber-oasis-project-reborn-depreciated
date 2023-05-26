@@ -1,9 +1,30 @@
 import os
 import typing as tp
+from abc import ABC, abstractmethod
+from functools import partial
 
 import ccxt
+from dotenv import load_dotenv
 
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
+from CyberOasisProjectReborn.CEFI.functions.exchange_functions import ExchangeFunctions
+from CyberOasisProjectReborn.CEFI.functions.get_history import GetFullHistory
+
+
+class Exchange(ABC):
+    """Base abstract class to create specific exchange client"""
+    load_dotenv()
+
+    def __init__(self):
+        self.exchange_client = None
+        self.exchange_name = None
+        self.exchange_path_name = None
+        self.reinitialize()
+        self.functions = ExchangeFunctions(self)
+        self.history = partial(GetFullHistory, exchange=self)
+
+    @abstractmethod
+    def reinitialize(self):
+        pass
 
 
 class ExchangeConstructor:

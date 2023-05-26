@@ -1,5 +1,13 @@
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import *
-from CyberOasisProjectReborn.CEFI.exchange.exchange_functions import Exchange
+from __future__ import annotations
+
+from abc import ABC
+from functools import partial
+from typing import TYPE_CHECKING
+
+from CyberOasisProjectReborn.CEFI.exchange.exchanges import *
+
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.functions.exchange_functions import Exchange
 
 
 class FundamentalTemplate(ABC):

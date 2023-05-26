@@ -1,29 +1,24 @@
-import typing as tp
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from dotenv import load_dotenv
 from loguru import logger
 from pandas import DataFrame as df
 
-from CyberOasisProjectReborn.CEFI.functions.get_history import GetFullHistory
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.exchange.exchanges import Exchange
 
 
-class Exchange(ABC):
+class ExchangeFunctions:
     """Base abstract class to create specific exchange client"""
-    load_dotenv()
 
-    def __init__(self):
-        self.exchange_client = None
-        self.exchange_name = None
-        self.exchange_path_name = None
-        self.reinitialize()
-
-    @abstractmethod
-    def reinitialize(self):
-        pass
+    def __init__(self, exchange: Exchange):
+        self.exchange_client = exchange.exchange_client
+        self.exchange_name = exchange.exchange_name
+        self.exchange_path_name = exchange.exchange_path_name
 
     # ############# Basic ############# #
 
@@ -159,19 +154,3 @@ class Exchange(ABC):
             self.exchange_client.set_margin_mode(mmode, pair)
 
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")
-
-    # ############# History ############# #
-
-    def get_history(self,
-                    pairs_list: list[str],
-                    timeframe: str,
-                    min_data_length: int = 10,
-                    vol_quantile_drop: float = None,
-                    save_load_history: bool = False,
-                    number_of_last_candles: tp.Optional[int] = None,
-                    start: tp.Optional[str] = None,
-                    end: tp.Optional[str] = None):
-
-        return GetFullHistory(self.exchange_client, self.exchange_name, self.exchange_path_name, pairs_list, timeframe,
-                              min_data_length, vol_quantile_drop, save_load_history, number_of_last_candles, start,
-                              end).get_full_history()

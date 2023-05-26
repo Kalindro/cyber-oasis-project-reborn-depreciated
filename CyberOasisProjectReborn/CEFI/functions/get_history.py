@@ -9,8 +9,8 @@ import typing as tp
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import TYPE_CHECKING
 
-import ccxt
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
@@ -20,6 +20,8 @@ from CyberOasisProjectReborn.utils.dir_paths import ROOT_DIR
 from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty,
                                                    cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC)
 
+if TYPE_CHECKING:
+    from CyberOasisProjectReborn.CEFI.exchange.exchanges import Exchange
 WORKERS = 2
 SLEEP = 0.25
 BASE_TIMEFRAME = "15min"
@@ -29,9 +31,7 @@ class GetFullHistory:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
     def __init__(self,
-                 exchange_client: ccxt.Exchange,
-                 exchange_name: str,
-                 exchange_path_name: str,
+                 exchange: Exchange,
                  pairs_list: list[str],
                  timeframe: str,
                  min_data_length: int = 10,
@@ -40,9 +40,9 @@ class GetFullHistory:
                  number_of_last_candles: tp.Optional[int] = None,
                  start: tp.Optional[str] = None,
                  end: tp.Optional[str] = None):
-        self.exchange_client = exchange_client
-        self.exchange_name = exchange_name
-        self.exchange_path_name = exchange_path_name
+        self.exchange_client = exchange.exchange_client
+        self.exchange_name = exchange.exchange_name
+        self.exchange_path_name = exchange.exchange_path_name
         self.pairs_list = pairs_list
         self.timeframe = timeframe
         self.min_data_length = min_data_length
