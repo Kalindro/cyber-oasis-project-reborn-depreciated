@@ -20,7 +20,6 @@ class Exchange(ABC):
         self.exchange_path_name = None
         self.reinitialize()
         self.functions = ExchangeFunctions(self)
-        self.history = partial(GetFullHistory, exchange=self)
 
     @abstractmethod
     def reinitialize(self):
