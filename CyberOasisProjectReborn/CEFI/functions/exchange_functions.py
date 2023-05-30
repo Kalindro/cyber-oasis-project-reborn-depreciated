@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing as tp
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 import pandas as pd
 from loguru import logger
@@ -19,7 +19,7 @@ class ExchangeFunctions:
     """Base abstract class to create specific exchange client"""
 
     def __init__(self, exchange: Exchange):
-        self.exchange = Exchange
+        self.exchange = exchange
         self.exchange_client = exchange.exchange_client
         self.exchange_name = exchange.exchange_name
         self.exchange_path_name = exchange.exchange_path_name
