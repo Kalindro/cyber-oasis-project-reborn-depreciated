@@ -14,5 +14,6 @@ using Exchange.functions(). Those methods include querying OHLCV history (timefr
 last N candles, save/load option), exchange pairs list, changing leverage. Original CCXT methods are accessible
 with Exchange.exchange_client. 
 - scripts.market_performers.market_performers.py - Outputs an excel file with few metrics that can help analyze the 
-top performing coins
-- Many old utilities are depreciated due to core change in handling history data, they will become usable again
+top performing coins.
+- Many old utilities are depreciated due to my core change in approach of handling history data,
+they will become usable again.
