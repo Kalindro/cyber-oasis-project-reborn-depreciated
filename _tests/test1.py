@@ -6,3 +6,4 @@ candles = 100
 
 x = BinanceSpotReadOnly()
 print(x.functions.get_history(pairs_list, timeframe, number_of_last_candles=100))
+
