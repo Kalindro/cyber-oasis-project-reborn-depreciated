@@ -38,10 +38,10 @@ class FundamentalTemplate(ABC):
 
     def select_pairs_list_mode(self, pairs_mode: int) -> list[str]:
         """Depending on the PAIRS_MODE, return correct pairs list"""
-        pairs_list = {1: partial(self.exchange.get_pairs_list_test_single),
-                      2: partial(self.exchange.get_pairs_list_test_multi),
-                      3: partial(self.exchange.get_pairs_list_BTC),
-                      4: partial(self.exchange.get_pairs_list_USDT),
+        pairs_list = {1: partial(self.exchange.functions.get_pairs_list_test_single),
+                      2: partial(self.exchange.functions.get_pairs_list_test_multi),
+                      3: partial(self.exchange.functions.get_pairs_list_BTC),
+                      4: partial(self.exchange.functions.get_pairs_list_USDT),
                       }
         pairs_list = pairs_list.get(pairs_mode)
         if pairs_list is None:
