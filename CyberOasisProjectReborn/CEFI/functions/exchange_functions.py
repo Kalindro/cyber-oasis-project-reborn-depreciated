@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing as tp
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from loguru import logger
@@ -22,7 +22,6 @@ class ExchangeFunctions:
         self.exchange = exchange
         self.exchange_client = exchange.exchange_client
         self.exchange_name = exchange.exchange_name
-        self.exchange_path_name = exchange.exchange_path_name
 
     # ############# Basic ############# #
 
@@ -158,6 +157,8 @@ class ExchangeFunctions:
             self.exchange_client.set_margin_mode(mmode, pair)
 
         logger.info(f"{pair} leverage changed to {leverage}, margin mode to {mmode}")
+
+    # ############# History ############# #
 
     def get_history(self,
                     pairs_list: list[str],

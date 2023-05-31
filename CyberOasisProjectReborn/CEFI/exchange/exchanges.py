@@ -1,13 +1,11 @@
 import os
 import typing as tp
 from abc import ABC, abstractmethod
-from functools import partial
 
 import ccxt
 from dotenv import load_dotenv
 
 from CyberOasisProjectReborn.CEFI.functions.exchange_functions import ExchangeFunctions
-from CyberOasisProjectReborn.CEFI.functions.get_history import GetFullHistory
 
 
 class Exchange(ABC):
