@@ -1,8 +1,8 @@
 from general_functions.portfolio_alocations import calc_beta_neutral_allocation_for_two_pairs
 from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
-from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.log_config import Loguru
 
-logger = ConfigureLoguru().info_level()
+logger = Loguru().info_level()
 
 
 class _BaseTemplate(FundamentalTemplate):

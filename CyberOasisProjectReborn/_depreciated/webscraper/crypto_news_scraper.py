@@ -12,10 +12,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.log_config import Loguru
 from CyberOasisProjectReborn.utils.utility import clean_string
 
-logger = ConfigureLoguru().info_level()
+logger = Loguru().info_level()
 
 
 @dataclass

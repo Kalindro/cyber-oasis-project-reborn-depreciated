@@ -8,7 +8,7 @@ from loguru import logger
 from CyberOasisProjectReborn.utils.dir_paths import LOG_DIR
 
 
-class ConfigureLoguru:
+class Loguru:
     """Main configuration of Loguru, select level"""
 
     def info_level(self):

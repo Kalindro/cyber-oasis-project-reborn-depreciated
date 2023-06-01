@@ -1,7 +1,7 @@
 # General
 .idea
 
-#Project
+# Project
 CyberOasisProjectReborn/CEFI/history_data
 **/.env
 **/backtest.pickle

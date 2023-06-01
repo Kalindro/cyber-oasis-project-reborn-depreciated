@@ -3,8 +3,8 @@
 My main repository containing all the functions, utilities, strategies that help me to navigate on crypto markets.
 Please note it's a repo I constantly work on, a lot of functions are WIP and the structure changes almost daily.
 
-The user required inputs to invoke exchange instance are exchange API keys, .env file in API folder should have
-structure as the example (env_template).
+The user required inputs to invoke exchange instance are exchange API keys. They should be provided to the .env file,
+it should have the same structure as the example template.
 
 Most useful scripts are:
 

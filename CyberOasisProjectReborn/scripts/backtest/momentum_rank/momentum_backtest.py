@@ -4,9 +4,9 @@ import vectorbtpro as vbt
 from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
 from CyberOasisProjectReborn.scripts.backtest.backtest_template import BacktestTemplate
 from CyberOasisProjectReborn.scripts.backtest.momentum_rank.momentum_allocation import MomentumStrat
-from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.log_config import Loguru
 
-logger = ConfigureLoguru().info_level()
+logger = Loguru().info_level()
 
 vbt.settings['plotting']['layout']['width'] = 1800
 vbt.settings['plotting']['layout']['height'] = 800

@@ -2,10 +2,10 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn.CEFI.functions.fundamental_template import FundamentalTemplate
-from CyberOasisProjectReborn.utils.log_config import ConfigureLoguru
+from CyberOasisProjectReborn.utils.log_config import Loguru
 from CyberOasisProjectReborn.utils.utility import excel_save_formatted_naive
 
-logger = ConfigureLoguru().info_level()
+logger = Loguru().info_level()
 
 
 class _BaseTemplate(FundamentalTemplate):
