@@ -2,7 +2,6 @@ import os
 import sys
 import typing as tp
 
-import pandas as pd
 from loguru import logger
 
 from CyberOasisProjectReborn.utils.dir_paths import LOG_DIR
@@ -27,10 +26,6 @@ class Loguru:
         return self._basic_config(level="INFO", level_filter_only="INFO")
 
     def _basic_config(self, level: str, level_filter_only: tp.Optional[str] = None) -> logger:
-        pd.set_option('display.max_rows', 0)
-        pd.set_option('display.max_columns', 0)
-        pd.set_option('display.width', 0)
-
         self.level_filter_only = level_filter_only
         logger.remove()
         formatted_format = ("<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
@@ -39,8 +34,7 @@ class Loguru:
                             "<blue>{function}</blue> | "
                             "<magenta>{file}:{line}</magenta>")
         if level_filter_only:
-            logger.add(sink=sys.stderr, level=level, format=formatted_format,
-                       filter=self._log_level_filter)
+            logger.add(sink=sys.stderr, level=level, format=formatted_format, filter=self._log_level_filter)
         else:
             logger.add(sink=sys.stderr, level=level, format=formatted_format)
 
