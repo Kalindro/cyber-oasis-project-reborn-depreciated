@@ -3,25 +3,31 @@ import typing as tp
 from abc import ABC, abstractmethod
 
 import ccxt
-from dotenv import load_dotenv
+import yaml
 
 from CyberOasisProjectReborn.CEFI.functions.exchange_functions import ExchangeFunctions
+from CyberOasisProjectReborn.utils.dir_paths import ROOT_DIR
 
 
 class Exchange(ABC):
     """Base abstract class to create specific exchange client"""
-    load_dotenv()
 
     def __init__(self):
         self.exchange_client = None
         self.exchange_name = None
         self.exchange_path_name = None
+        self.config = self._load_config()
         self.reinitialize()
         self.functions = ExchangeFunctions(self)
 
     @abstractmethod
     def reinitialize(self):
         pass
+
+    @staticmethod
+    def _load_config():
+        with open(os.path.join(ROOT_DIR, "config.yaml"), "r") as file:
+            return yaml.safe_load(file)
 
 
 class ExchangeConstructor:
@@ -55,8 +61,8 @@ class ExchangeConstructor:
 class BinanceSpotReadOnly(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
-        secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
+        public_key = self.config["binance_read_only"]["public_key"]
+        secret_key = self.config["binance_read_only"]["private_key"]
         self.exchange_client = self.binance_spot(public_key, secret_key)
         self.exchange_name = "Binance Spot Read Only"
         self.exchange_path_name = "binance_spot"
@@ -65,8 +71,8 @@ class BinanceSpotReadOnly(Exchange, ExchangeConstructor):
 class BinanceSpotTrade(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
-        secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
+        public_key = self.config["binance_trade"]["public_key"]
+        secret_key = self.config["binance_trade"]["private_key"]
         self.exchange_client = self.binance_spot(public_key, secret_key)
         self.exchange_name = "Binance Spot Trade"
         self.exchange_path_name = "binance_spot"
@@ -75,8 +81,8 @@ class BinanceSpotTrade(Exchange, ExchangeConstructor):
 class BinanceFuturesReadOnly(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BINANCE_READ_ONLY_PUBLIC_KEY")
-        secret_key = os.getenv("BINANCE_READ_ONLY_PRIVATE_KEY")
+        public_key = self.config["binance_read_only"]["public_key"]
+        secret_key = self.config["binance_read_only"]["private_key"]
         self.exchange_client = self.binance_futures(public_key, secret_key)
         self.exchange_name = "Binance Futures Read Only"
         self.exchange_path_name = "binance_futures"
@@ -85,8 +91,8 @@ class BinanceFuturesReadOnly(Exchange, ExchangeConstructor):
 class BinanceFuturesTrade(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BINANCE_TRADE_PUBLIC_KEY")
-        secret_key = os.getenv("BINANCE_TRADE_PRIVATE_KEY")
+        public_key = self.config["binance_trade"]["public_key"]
+        secret_key = self.config["binance_trade"]["private_key"]
         self.exchange_client = self.binance_futures(public_key, secret_key)
         self.exchange_name = "Binance Futures Trade"
         self.exchange_path_name = "binance_futures"
@@ -95,8 +101,8 @@ class BinanceFuturesTrade(Exchange, ExchangeConstructor):
 class BybitReadOnly(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BYBIT_READ_ONLY_PUBLIC_KEY")
-        secret_key = os.getenv("BYBIT_READ_ONLY_PRIVATE_KEY")
+        public_key = self.config["bybit_read_only"]["public_key"]
+        secret_key = self.config["bybit_read_only"]["private_key"]
         self.exchange_client = self.bybit_spot_futures(public_key, secret_key)
         self.exchange_name = "Bybit Read Only"
         self.exchange_path_name = "bybit"
@@ -105,8 +111,8 @@ class BybitReadOnly(Exchange, ExchangeConstructor):
 class BybitTrade(Exchange, ExchangeConstructor):
 
     def reinitialize(self):
-        public_key = os.getenv("BYBIT_TRADE_PUBLIC_KEY")
-        secret_key = os.getenv("BYBIT_TRADE_PRIVATE_KEY")
+        public_key = self.config["bybit_trade"]["public_key"]
+        secret_key = self.config["bybit_trade"]["private_key"]
         self.exchange_client = self.bybit_spot_futures(public_key, secret_key)
         self.exchange_name = "Bybit Trade"
         self.exchange_path_name = "bybit"
