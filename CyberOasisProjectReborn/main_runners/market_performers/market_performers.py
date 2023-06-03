@@ -5,8 +5,6 @@ from CyberOasisProjectReborn.CEFI.functions.fundamental_template import Fundamen
 from CyberOasisProjectReborn.utils.logger_custom import LoggerCustom
 from CyberOasisProjectReborn.utils.utility import excel_save_formatted_naive
 
-logger = LoggerCustom().info_level()
-
 
 class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
@@ -91,4 +89,5 @@ class PerformanceRankAnalysis(_BaseTemplate):
 
 
 if __name__ == "__main__":
+    logger = LoggerCustom().info_level()
     PerformanceRankAnalysis().main()
