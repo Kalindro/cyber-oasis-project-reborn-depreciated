@@ -1,7 +1,7 @@
 from CyberOasisProjectReborn.CEFI.exchange import GetFullHistoryDF
 from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
 from general_functions.portfolio_alocations import calc_portfolio_parity
-from CyberOasisProjectReborn.utils.log_config import Loguru
+from CyberOasisProjectReborn.utils.logger_custom import Loguru
 
 logger = Loguru().info_level()
 

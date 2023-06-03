@@ -14,14 +14,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
-from loguru import logger
 
 from CyberOasisProjectReborn.utils.dir_paths import PROJECT_DIR
+from CyberOasisProjectReborn.utils.logger_custom import default_logger as logger
 from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty,
                                                    cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC)
 
 if TYPE_CHECKING:
     from CyberOasisProjectReborn.CEFI.exchange.exchanges import Exchange
+
 WORKERS = 2
 SLEEP = 0.25
 BASE_TIMEFRAME = "15min"
@@ -34,6 +35,7 @@ class GetFullHistory:
                  vol_quantile_drop: float = None, save_load_history: bool = False,
                  number_of_last_candles: tp.Optional[int] = None, start: tp.Optional[str] = None,
                  end: tp.Optional[str] = None):
+        self.exchange = exchange
         self.exchange_client = exchange.exchange_client
         self.exchange_name = exchange.exchange_name
         self.exchange_path_name = exchange.exchange_path_name
@@ -94,7 +96,7 @@ class GetFullHistory:
     def _evaluate_loaded_data(self, pair: str, start: dt.datetime, end: dt.datetime, API: dict) -> pd.DataFrame:
         """Check if loaded data range is sufficient for current request, if not, get new or update existing"""
         timeframe = BASE_TIMEFRAME
-        data_storing = _DataStoring(pair=pair, timeframe=timeframe, API=API)
+        data_storing = _DataStoring(pair=pair, timeframe=timeframe, exchange=self.exchange)
         one_pair_dict = data_storing.load_pickle()
         one_pair_df = one_pair_dict.get("data")
         first_valid_datetime = one_pair_dict.get("first_datetime")
@@ -102,7 +104,7 @@ class GetFullHistory:
         # Get first valid timestamp if not already available
         if first_valid_datetime is None:
             first_valid_datetime = vbt.CCXTData.find_earliest_date(symbol=pair, timeframe=timeframe,
-                                                                   exchange=API["client"])
+                                                                   exchange=self.exchange_client)
             one_pair_dict["first_datetime"] = first_valid_datetime
             data_storing.save_pickle(one_pair_dict)
 
@@ -222,12 +224,11 @@ class GetFullHistory:
 class _DataStoring:
     """Class for handling the history loading and saving to pickle"""
 
-    def __init__(self, pair: str, timeframe: str, API: dict):
+    def __init__(self, pair: str, timeframe: str, exchange: Exchange):
+        self.exchange_path_name = exchange.exchange_path_name
         self.pair = pair
         self.pair_for_data = pair.replace("/", "-")
         self.timeframe = timeframe
-        self.API = API
-        self.exchange_name = self.API["exchange"]
 
     @property
     def _pair_pickle_location(self) -> str:
@@ -237,7 +238,7 @@ class _DataStoring:
     @property
     def _history_data_folder_location(self) -> str:
         """Return the path where the history for this exchange should be saved"""
-        return os.path.join(PROJECT_DIR, "CyberOasisProjectReborn", "CEFI", "history_data", self.exchange_name,
+        return os.path.join(PROJECT_DIR, "CyberOasisProjectReborn", "CEFI", "history_data", self.exchange_path_name,
                             self.timeframe)
 
     def load_pickle(self) -> dict:

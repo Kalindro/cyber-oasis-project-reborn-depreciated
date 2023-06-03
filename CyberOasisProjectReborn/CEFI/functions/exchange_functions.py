@@ -6,10 +6,10 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from loguru import logger
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn.CEFI.functions.get_history import GetFullHistory
+from CyberOasisProjectReborn.utils.logger_custom import default_logger as logger
 
 if TYPE_CHECKING:
     from CyberOasisProjectReborn.CEFI.exchange.exchanges import Exchange

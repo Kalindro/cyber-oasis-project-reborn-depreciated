@@ -1,0 +1,3 @@
+2023-06-03 17:34:34 | ERROR    | Error on main full history, 'binance' object is not subscriptable | get_full_history | get_history.py:74
+2023-06-03 17:35:41 | ERROR    | Error on main full history, _DataStoring.__init__() got an unexpected keyword argument 'API' | get_full_history | get_history.py:74
+2023-06-03 17:36:37 | ERROR    | Error on main full history, 'binance' object is not subscriptable | get_full_history | get_history.py:75

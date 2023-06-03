@@ -3,7 +3,7 @@ from functools import partial
 import numpy as np
 import pandas as pd
 import vectorbtpro as vbt
-from loguru import logger
+from CyberOasisProjectReborn.utils.logger_custom import default_logger as logger
 
 from CyberOasisProjectReborn.utils.utility import resample_datetime_index
 

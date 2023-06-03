@@ -2,9 +2,9 @@ import numpy as np
 import vectorbtpro as vbt
 
 from CyberOasisProjectReborn.CEFI.exchange import FundamentalTemplate
-from CyberOasisProjectReborn.scripts.backtest.backtest_template import BacktestTemplate
-from CyberOasisProjectReborn.scripts.backtest.momentum_rank.momentum_allocation import MomentumStrat
-from CyberOasisProjectReborn.utils.log_config import Loguru
+from CyberOasisProjectReborn._depreciated.backtest.backtest_template import BacktestTemplate
+from CyberOasisProjectReborn._depreciated.backtest.momentum_rank.momentum_allocation import MomentumStrat
+from CyberOasisProjectReborn.utils.logger_custom import Loguru
 
 logger = Loguru().info_level()
 

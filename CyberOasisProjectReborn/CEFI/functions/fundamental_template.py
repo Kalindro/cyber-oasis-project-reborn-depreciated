@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import ABC
 from functools import partial
 from typing import TYPE_CHECKING
 

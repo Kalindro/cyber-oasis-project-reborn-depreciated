@@ -2,16 +2,16 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from CyberOasisProjectReborn.CEFI.functions.fundamental_template import FundamentalTemplate
-from CyberOasisProjectReborn.utils.log_config import Loguru
+from CyberOasisProjectReborn.utils.logger_custom import LoggerCustom
 from CyberOasisProjectReborn.utils.utility import excel_save_formatted_naive
 
-logger = Loguru().info_level()
+logger = LoggerCustom().info_level()
 
 
 class _BaseTemplate(FundamentalTemplate):
     def __init__(self):
         self.EXCHANGE_MODE: int = 1
-        self.PAIRS_MODE: int = 2
+        self.PAIRS_MODE: int = 4
         super().__init__(exchange_mode=self.EXCHANGE_MODE, pairs_mode=self.PAIRS_MODE)
 
         self.TIMEFRAME = "1h"
