@@ -16,7 +16,7 @@ import pandas as pd
 import vectorbtpro as vbt
 from loguru import logger
 
-from CyberOasisProjectReborn.utils.dir_paths import ROOT_DIR
+from CyberOasisProjectReborn.utils.dir_paths import PROJECT_DIR
 from CyberOasisProjectReborn.utils.utility import (timeframe_to_timedelta, dataframe_is_not_none_and_not_empty,
                                                    cut_exact_df_dates, date_string_to_UTC_datetime, datetime_now_in_UTC)
 
@@ -30,15 +30,9 @@ BASE_TIMEFRAME = "15min"
 class GetFullHistory:
     """Main logic class to receive desired range of clean, usable history dataframe"""
 
-    def __init__(self,
-                 exchange: Exchange,
-                 pairs_list: list[str],
-                 timeframe: str,
-                 min_data_length: int = 10,
-                 vol_quantile_drop: float = None,
-                 save_load_history: bool = False,
-                 number_of_last_candles: tp.Optional[int] = None,
-                 start: tp.Optional[str] = None,
+    def __init__(self, exchange: Exchange, pairs_list: list[str], timeframe: str, min_data_length: int = 10,
+                 vol_quantile_drop: float = None, save_load_history: bool = False,
+                 number_of_last_candles: tp.Optional[int] = None, start: tp.Optional[str] = None,
                  end: tp.Optional[str] = None):
         self.exchange_client = exchange.exchange_client
         self.exchange_name = exchange.exchange_name
@@ -243,7 +237,8 @@ class _DataStoring:
     @property
     def _history_data_folder_location(self) -> str:
         """Return the path where the history for this exchange should be saved"""
-        return os.path.join(ROOT_DIR, "history_data", self.exchange_name, self.timeframe)
+        return os.path.join(PROJECT_DIR, "CyberOasisProjectReborn", "CEFI", "history_data", self.exchange_name,
+                            self.timeframe)
 
     def load_pickle(self) -> dict:
         """Check for pickled data and load, if no folder for data - create"""
@@ -251,7 +246,7 @@ class _DataStoring:
         if not os.path.exists(self._history_data_folder_location):
             try:
                 os.makedirs(self._history_data_folder_location)
-            except:
+            except Exception as err:
                 pass
         else:
             try:

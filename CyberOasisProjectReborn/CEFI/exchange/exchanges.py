@@ -6,7 +6,7 @@ import ccxt
 import yaml
 
 from CyberOasisProjectReborn.CEFI.functions.exchange_functions import ExchangeFunctions
-from CyberOasisProjectReborn.utils.dir_paths import ROOT_DIR
+from CyberOasisProjectReborn.utils.dir_paths import PROJECT_DIR
 
 
 class Exchange(ABC):
@@ -26,7 +26,7 @@ class Exchange(ABC):
 
     @staticmethod
     def _load_config():
-        with open(os.path.join(ROOT_DIR, "config.yaml"), "r") as file:
+        with open(os.path.join(PROJECT_DIR, "config.yaml"), "r") as file:
             return yaml.safe_load(file)
 
 
