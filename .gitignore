@@ -130,7 +130,8 @@ cython_debug/
 config.yaml
 
 # Project
-CyberOasisProjectReborn/CEFI/history_data
+CyberOasisProjectReborn/CEFI/history_data/*
+!CyberOasisProjectReborn/CEFI/history_data/.gitkeep
 **/backtest.pickle
 **/trades_analytics.xlsx
 **/backtest_analytics.xlsx

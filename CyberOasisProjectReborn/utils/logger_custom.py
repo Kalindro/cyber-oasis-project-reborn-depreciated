@@ -50,7 +50,8 @@ class LoggerCustom:
 
     def _basic_config(self):
         logger.remove()
-        logger.add(sink=os.path.join(LOG_DIR, "errors.log"), level="ERROR", format=self.custom_format)
+        logs_path = os.path.join(LOG_DIR, "errors.log")
+        logger.add(sink=logs_path, level="ERROR", format=self.custom_format)
         return logger
 
 

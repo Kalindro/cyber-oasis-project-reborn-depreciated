@@ -21,5 +21,4 @@ class LeverageChange(_BaseTemplate):
 
 
 if __name__ == "__main__":
-    logger = LoggerCustom().info_level()
     LeverageChange().main()
