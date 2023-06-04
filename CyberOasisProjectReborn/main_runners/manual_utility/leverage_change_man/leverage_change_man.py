@@ -1,6 +1,8 @@
 from CyberOasisProjectReborn.CEFI.functions.fundamental_template import FundamentalTemplate
 from CyberOasisProjectReborn.utils.logger_custom import LoggerCustom
 
+logger = LoggerCustom().info_level()
+
 
 class _BaseTemplate(FundamentalTemplate):
     def __init__(self):

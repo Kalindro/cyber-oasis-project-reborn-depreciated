@@ -24,11 +24,12 @@ class FundamentalTemplate(ABC):
 
     def select_exchange_mode(self, exchange_mode: int) -> Exchange:
         """Depending on the PAIRS_MODE, return correct pairs list"""
-        exchanges_dict = {1: BinanceSpotReadOnly,
-                          2: BinanceFuturesReadOnly,
-                          3: BybitReadOnly,
-                          4: BybitTrade,
-                          }
+        exchanges_dict = {
+            1: BinanceSpotReadOnly,
+            2: BinanceFuturesReadOnly,
+            3: BybitReadOnly,
+            4: BybitTrade,
+        }
         exchange = exchanges_dict.get(exchange_mode)
         if exchange is None:
             raise ValueError("Invalid mode: " + str(exchange_mode))
@@ -37,11 +38,12 @@ class FundamentalTemplate(ABC):
 
     def select_pairs_list_mode(self, pairs_mode: int) -> list[str]:
         """Depending on the PAIRS_MODE, return correct pairs list"""
-        pairs_list = {1: partial(self.exchange.functions.get_pairs_list_test_single),
-                      2: partial(self.exchange.functions.get_pairs_list_test_multi),
-                      3: partial(self.exchange.functions.get_pairs_list_BTC),
-                      4: partial(self.exchange.functions.get_pairs_list_USDT),
-                      }
+        pairs_list = {
+            1: partial(self.exchange.functions.get_pairs_list_test_single),
+            2: partial(self.exchange.functions.get_pairs_list_test_multi),
+            3: partial(self.exchange.functions.get_pairs_list_BTC),
+            4: partial(self.exchange.functions.get_pairs_list_USDT)
+        }
         pairs_list = pairs_list.get(pairs_mode)
         if pairs_list is None:
             raise ValueError("Invalid mode: " + str(pairs_mode))
