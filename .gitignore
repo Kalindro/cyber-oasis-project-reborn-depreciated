@@ -96,6 +96,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.backup
 .venv
 env/
 venv/
@@ -130,12 +131,10 @@ cython_debug/
 #Pycharm
 .idea
 
-# General
-config.yaml
-
 # Project
-CyberOasisProjectReborn/CEFI/history_data/*
-!CyberOasisProjectReborn/CEFI/history_data/.gitkeep
+config.yaml
+cyberoasisprojectreborn/CEFI/history_data/*
+!cyberoasisprojectreborn/CEFI/history_data/.gitkeep
 **/backtest.pickle
 **/trades_analytics.xlsx
 **/backtest_analytics.xlsx

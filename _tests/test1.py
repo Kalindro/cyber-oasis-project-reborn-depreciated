@@ -1,4 +1,4 @@
-from CyberOasisProjectReborn.CEFI.exchange.exchanges import BinanceSpotReadOnly
+from cyberoasisprojectreborn.CEFI.exchange.exchanges import BinanceSpotReadOnly
 
 
 timeframe = "1h"
