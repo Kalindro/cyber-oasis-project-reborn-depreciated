@@ -1,0 +1,24 @@
+binance_read_only:
+  public_key:
+  private_key:
+
+binance_trade:
+  public_key:
+  private_key:
+
+bybit_read_only:
+  public_key:
+  private_key:
+
+bybit_trade:
+  public_key:
+  private_key:
+
+deribit:
+  public_key:
+  private_key:
+
+chat_gpt:
+  api_key:
+  email:
+  password:
